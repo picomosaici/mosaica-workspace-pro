@@ -1,0 +1,2041 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guida Utente — Mosaica Workspace Pro</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --ink: #1a1a2e;
+    --paper: #f5f0e8;
+    --paper-dark: #ede8df;
+    --blue: #2b6cff;
+    --blue-light: #e8eeff;
+    --green: #28a745;
+    --green-light: #e6f4ea;
+    --orange: #ff9800;
+    --orange-light: #fff3e0;
+    --red: #e74c3c;
+    --red-light: #fdecea;
+    --cyan: #00c8ff;
+    --muted: #6b7280;
+    --border: rgba(0,0,0,0.10);
+    --shadow: 0 2px 16px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    color: #fff;
+    padding: 60px 48px 52px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, #2b6cff22 0%, transparent 65%),
+                radial-gradient(ellipse at 20% 80%, #00c8ff11 0%, transparent 55%);
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    right: -60px; top: -60px;
+    width: 400px; height: 400px;
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 50%;
+  }
+  .header-inner { position: relative; max-width: 900px; margin: 0 auto; }
+  .logo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 100px;
+    padding: 6px 16px 6px 8px;
+    margin-bottom: 28px;
+    font-size: 13px;
+    color: #aac4ff;
+    font-weight: 500;
+  }
+  .logo-dot {
+    width: 24px; height: 24px;
+    background: linear-gradient(135deg, #2b6cff, #00c8ff);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+  }
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 400;
+    line-height: 1.12;
+    color: #fff;
+    margin-bottom: 16px;
+  }
+  h1 em { font-style: italic; color: #7aadff; }
+  .header-sub {
+    font-size: 16px;
+    color: rgba(255,255,255,0.55);
+    font-weight: 300;
+    max-width: 520px;
+  }
+  .header-flag {
+    position: absolute;
+    right: 0; top: 0;
+    font-size: 48px;
+    opacity: 0.18;
+  }
+
+  /* ── NAV ── */
+  nav {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 0 var(--border);
+    }
+  .nav-inner {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+    align-items: center;
+  }
+  nav a {
+    display: block;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+  }
+  nav a:hover {
+    color: var(--ink);
+    border-color: var(--blue);
+  }
+
+  /* ── LAYOUT ── */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 56px 48px 100px;
+  }
+
+  /* ── SECTIONS ── */
+  section { margin-bottom: 72px; }
+  section + section { border-top: 1px solid var(--border); padding-top: 64px; }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--blue-light);
+    max-width: 80px;
+  }
+
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    color: var(--ink);
+  }
+  h3 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 32px 0 12px;
+    color: var(--ink);
+  }
+  h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+  p { margin-bottom: 14px; color: #374151; }
+  p:last-child { margin-bottom: 0; }
+  strong { color: var(--ink); font-weight: 600; }
+  em { font-style: italic; color: #4a5568; }
+  code {
+    background: var(--paper-dark);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: #6b3aa0;
+  }
+  kbd {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--ink);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+    margin: 0 2px;
+  }
+  ul, ol { margin-left: 24px; margin-bottom: 14px; color: #374151; }
+  li { margin-bottom: 6px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 22px 26px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .card-grid {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .card-grid.col2 { grid-template-columns: 1fr 1fr; }
+  .card-grid.col3 { grid-template-columns: 1fr 1fr 1fr; }
+  .card-mini {
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 16px 18px;
+    font-size: 14px;
+    box-shadow: var(--shadow);
+  }
+  .card-mini h4 { margin-bottom: 6px; }
+  .card-mini p { font-size: 13px; color: var(--muted); line-height: 1.55; margin-bottom: 0; }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-left: 4px solid var(--blue);
+    background: var(--blue-light);
+    padding: 14px 18px;
+    border-radius: 6px;
+    margin: 20px 0;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .callout.tip { border-color: var(--blue); background: var(--blue-light); }
+  .callout.tip .callout-icon::before { content: '💡'; }
+  .callout.warning { border-color: var(--orange); background: var(--orange-light); }
+  .callout.warning .callout-icon::before { content: '⚠️'; }
+  .callout.success { border-color: var(--green); background: var(--green-light); }
+  .callout.success .callout-icon::before { content: '✅'; }
+  .callout.danger { border-color: var(--red); background: var(--red-light); }
+  .callout.danger .callout-icon::before { content: '🚨'; }
+  .callout-icon { font-size: 18px; flex-shrink: 0; line-height: 1.4; }
+  .callout > div:last-child { flex: 1; font-size: 14px; line-height: 1.65; color: #374151; }
+
+  /* ── STEP LIST ── */
+  .step-list {
+    list-style: none;
+    margin-left: 0;
+    counter-reset: step;
+  }
+  .step-list > li {
+    counter-increment: step;
+    padding: 16px 0 16px 56px;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .step-list > li:last-child { border-bottom: none; }
+  .step-list > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 16px;
+    width: 36px;
+    height: 36px;
+    background: var(--blue);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    font-family: 'DM Mono', monospace;
+  }
+  .step-title { font-weight: 600; margin-bottom: 4px; color: var(--ink); }
+  .step-body { font-size: 14px; color: var(--muted); line-height: 1.55; }
+
+  /* ── SHORTCUT TABLE ── */
+  .shortcut-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .shortcut-table th {
+    background: var(--ink);
+    color: #fff;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+  .shortcut-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    vertical-align: middle;
+  }
+  .shortcut-table tr:last-child td { border-bottom: none; }
+  .shortcut-table td:first-child { width: 38%; }
+
+  /* ── RADIAL GRID ── */
+  .radial-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .radial-item {
+    background: #fff;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .radial-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .radial-icon.green { background: var(--green); }
+  .radial-icon.orange { background: var(--orange); }
+  .radial-icon.red { background: var(--red); }
+  .radial-label { font-weight: 600; font-size: 14px; margin-bottom: 4px; color: var(--ink); }
+  .radial-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── WATERCOLOR CONTROLS ── */
+  .wc-control {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 16px;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--border);
+  }
+  .wc-control:last-child { border-bottom: none; }
+  .wc-name { font-weight: 600; font-size: 14px; color: var(--ink); }
+  .wc-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
+  .wc-range {
+    display: inline-block;
+    background: var(--blue-light);
+    color: var(--blue);
+    border-radius: 12px;
+    padding: 2px 10px;
+    margin-top: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  /* ── BRUSH PREVIEW ── */
+  .brush-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .brush-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+  .brush-preview {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    background: var(--paper-dark);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .brush-preview-stroke {
+    width: 60px;
+    height: 14px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(43,108,255,0.7) 0%, transparent 70%);
+  }
+  .brush-preview-stroke.flat {
+    height: 8px;
+    width: 64px;
+    background: linear-gradient(90deg, transparent 0%, rgba(43,108,255,0.7) 20%, rgba(43,108,255,0.7) 80%, transparent 100%);
+    border-radius: 2px;
+  }
+  .brush-preview-stroke.dry {
+    height: 12px;
+    width: 64px;
+    background: repeating-linear-gradient(90deg, rgba(43,108,255,0.7) 0px, rgba(43,108,255,0.7) 4px, transparent 4px, transparent 7px);
+  }
+  .brush-info { flex: 1; }
+  .brush-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; color: var(--ink); }
+  .brush-file {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--blue);
+    background: var(--blue-light);
+    border-radius: 4px;
+    padding: 2px 8px;
+    display: inline-block;
+    margin-bottom: 8px;
+  }
+  .brush-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── UI DIAGRAM ── */
+  .ui-diagram {
+    background: #1a1a2e;
+    border-radius: 12px;
+    padding: 22px 24px;
+    margin: 24px 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+  .ui-diagram::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(#3a3a3a 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.35;
+  }
+  .ui-diagram-inner {
+    position: relative;
+    display: grid;
+    grid-template-columns: 50px 50px 1fr 200px;
+    grid-template-rows: 36px 50px 1fr 24px;
+    gap: 4px;
+    min-height: 320px;
+    color: #fff;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+  }
+  .uib {
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 4px;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 1.3;
+    background: rgba(43,108,255,0.10);
+  }
+  .uib.canvas {
+    background: #f8f6f0;
+    color: #888;
+    grid-column: 3 / 4;
+    grid-row: 3 / 4;
+  }
+  .uib.topbar { grid-column: 1 / -1; grid-row: 1 / 2; background: rgba(0,200,255,0.10); }
+  .uib.bgbar  { grid-column: 1 / -1; grid-row: 2 / 3; background: rgba(255,152,0,0.10); }
+  .uib.texturep { grid-column: 1 / 2; grid-row: 3 / 4; writing-mode: vertical-rl; transform: rotate(180deg); }
+  .uib.lefttool { grid-column: 2 / 3; grid-row: 3 / 4; writing-mode: vertical-rl; transform: rotate(180deg); }
+  .uib.inspector { grid-column: 4 / 5; grid-row: 3 / 4; }
+  .uib.statusbar { grid-column: 1 / -1; grid-row: 4 / 5; background: rgba(40,167,69,0.10); font-size: 10px; }
+
+  /* ── PANEL DIAGRAM (legacy) ── */
+  .new-feature {
+    background: #e8f4ff;
+    border-left: 4px solid #2b6cff;
+    padding: 12px 16px;
+    margin: 12px 0;
+    border-radius: 6px;
+  }
+
+  .bgBtn {
+    padding: 6px;
+    border-radius: 6px;
+    border: 0;
+    background: #2b6cff;
+    color: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    flex: 1;
+    white-space: nowrap;
+  }
+  .bgBtn.secondary { background: #28a745; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--ink);
+    color: rgba(255,255,255,0.4);
+    padding: 32px 48px;
+    text-align: center;
+    font-size: 13px;
+  }
+  footer strong { color: rgba(255,255,255,0.7); }
+
+  @media (max-width: 700px) {
+    main { padding: 32px 20px 60px; }
+    header { padding: 40px 20px 36px; }
+    .nav-inner { padding: 0 20px; }
+    .card-grid.col2, .card-grid.col3 { grid-template-columns: 1fr; }
+    .radial-grid { grid-template-columns: 1fr 1fr; }
+    .brush-cards { grid-template-columns: 1fr; }
+  }
+
+  /* ── CONSIGLI PRATICI ── */
+  .tips-box {
+    background: #e6f4ea;
+    border-left: 4px solid #28a745;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 24px 0 0 0;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    font-size: 14px;
+    line-height: 1.6;
+    box-shadow: 0 2px 8px rgba(40,167,69,0.10);
+  }
+  .tips-box .tips-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .tips-box strong {
+    color: #1a1a2e;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 8px;
+    font-size: 15px;
+  }
+  .tips-box ul {
+    margin: 0 0 0 18px;
+    padding: 0;
+    color: #374151;
+  }
+  .tips-box li { margin-bottom: 6px; }
+  .tips-box li:last-child { margin-bottom: 0; }
+
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════ HEADER ════════════════════════════════ -->
+<header>
+  <div class="header-inner">
+    <div class="logo-badge">
+      <div class="logo-dot">🎨</div>
+      Guida Utente · V 5.2026
+    </div>
+    <h1>Mosaica<br><em>Workspace Pro</em></h1>
+    <p class="header-sub">Guida completa all'uso dell'applicazione per la progettazione di mosaici in scala reale, disegno a mano libera, acquerello digitale ed esportazione per laser CAM.</p>
+    <span class="header-flag">🇮🇹</span>
+  </div>
+</header>
+
+<!-- ════════════════════════════════ NAV ════════════════════════════════ -->
+<nav>
+  <div class="nav-inner">
+    <a href="#interfaccia">Interfaccia</a>
+    <a href="#calibrazione">Calibrazione</a>
+    <a href="#rotazione">Rotazione Canvas</a>
+    <a href="#forme">Forme</a>
+    <a href="#radiale">Menu Radiale</a>
+    <a href="#lazo">Selezione Lazo</a>
+    <a href="#disegno">Disegno Libero</a>
+    <a href="#acquerello">Acquerello</a>
+    <a href="#punte">Punte Pennello</a>
+    <a href="#sfondo">Sfondo</a>
+    <a href="#progetti">Progetti</a>
+    <a href="#autosave">Auto-salvataggio</a>
+    <a href="#autoopen">Apertura Automatica</a>
+    <a href="#fullscreen">Schermo Intero</a>
+    <a href="#esporta">Esporta</a>
+    <a href="#wacom">Tavoletta Wacom</a>
+    <a href="#inputmapping">Mappatura Input</a>
+    <a href="#scorciatoie">Scorciatoie</a>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════ MAIN ════════════════════════════════ -->
+<main>
+
+<!-- ── INTERFACCIA ── -->
+<section id="interfaccia">
+  <div class="section-label">01</div>
+  <h2>L'interfaccia</h2>
+  <p>Mosaica Workspace Pro mostra un <strong>foglio A4 bianco</strong> su uno sfondo scuro a puntini. Tutto il lavoro avviene sul foglio. Intorno al foglio ci sono <strong>sei pannelli fissi</strong> che racchiudono il canvas: top bar, pannello sfondo, pannello texture, toolbar strumenti, inspector contestuale e status bar.</p>
+
+  <div class="ui-diagram">
+    <div class="ui-diagram-inner">
+      <div class="uib topbar">Top Bar — File · Esporta · Undo/Redo · Zoom · Calibrazione · Schermo intero · Guida</div>
+      <div class="uib bgbar">BG Panel — Caricamento e gestione sfondo (Drop · Contain · Cover · Ruota · Rimuovi)</div>
+      <div class="uib texturep">Texture Panel</div>
+      <div class="uib lefttool">Left Toolbar</div>
+      <div class="uib canvas">Foglio A4 (Workspace)</div>
+      <div class="uib inspector">Inspector contestuale<br>(strumento o forma selezionata)</div>
+      <div class="uib statusbar">Status Bar — Zoom · Coordinate (mm) · Selezione · Auto-save · Calibrazione</div>
+    </div>
+  </div>
+
+  <h3>I sei pannelli</h3>
+  <div class="card-grid col2">
+  <div class="card-mini">
+      <h4>① Top Bar (in alto)</h4>
+      <p>Logo, dropdown <strong>File</strong> (Apri/Salva/Nuovo Progetto + auto-apertura), dropdown <strong>Esporta</strong> (PDF, PNG/SVG, mano libera), pulsanti <strong>Undo/Redo</strong>, controlli <strong>Zoom</strong> (+/−/reset con percentuale live), dropdown <strong>Calibrazione</strong>, toggle <strong>schermo intero</strong> (⛶/🗗), pulsante <strong>📖 Guida</strong>, pulsante <strong>🖊️ Wacom</strong> (impostazioni tavoletta con indicatore di stato connessione) e pulsante <strong>🖱️⌨️ Input</strong> (mappatura personalizzata mouse e tastiera).</p>
+    </div>
+    <div class="card-mini">
+      <h4>② BG Panel (subito sotto)</h4>
+      <p>Barra orizzontale dedicata all'<strong>immagine di sfondo</strong>: area di drop, anteprima miniatura, pulsanti Contain/Cover, rotazione (↶ ↷) e rimozione.</p>
+    </div>
+    <div class="card-mini">
+      <h4>③ Texture Panel (sinistra estrema)</h4>
+      <p>Colonna verticale stretta con la <strong>griglia delle texture</strong> disponibili. Click su una miniatura applica la texture all'oggetto selezionato.</p>
+    </div>
+    <div class="card-mini">
+      <h4>④ Left Toolbar (dopo le texture)</h4>
+      <p>Tutti gli <strong>strumenti</strong>: rotazione canvas (Verticale/Orizzontale), Seleziona (default), Aggiungi forma, Lazo, Penna, Gomma, Acquerello, Lista linee, Cancella tutto.</p>
+    </div>
+    <div class="card-mini">
+      <h4>⑤ Inspector (a destra)</h4>
+      <p>Pannello <strong>contestuale</strong> che cambia automaticamente in base allo strumento attivo o alla forma selezionata: parametri penna/acquerello, slider angoli del triangolo, controlli trapezio, dimensioni in mm.</p>
+    </div>
+    <div class="card-mini">
+      <h4>⑥ Status Bar (in basso)</h4>
+      <p>Zoom %, <strong>coordinate cursore in mm</strong>, tipo e dimensioni della selezione, stato auto-save, fattore di calibrazione.</p>
+    </div>
+  </div>
+
+  <h3>Top Bar — dropdown File</h3>
+  <p>Cliccando <strong>File</strong> nella top bar si apre un menu con tre azioni e una checkbox:</p>
+  <ul>
+    <li><strong>📂 Apri progetto…</strong> — apre un file <code>.msp.json</code> esistente.</li>
+    <li><strong>💾 Salva progetto</strong> — salva il progetto corrente in formato <code>.msp.json</code>.</li>
+    <li><strong>Nuovo progetto</strong> (pulsante viola) — pulisce il canvas e crea un foglio vuoto con un piccolo rettangolo di riferimento. Apre prima un <strong>modale di conferma</strong> perché l'azione cancella tutto il lavoro non salvato.</li>
+    <li><strong>☐ Apri progetto all'avvio</strong> — checkbox per attivare l'apertura automatica dell'ultimo progetto salvato (vedi sezione dedicata).</li>
+  </ul>
+
+  <h3>Top Bar — dropdown Esporta</h3>
+  <p>Cliccando <strong>Esporta</strong> nella top bar si apre un menu con tre voci, ognuna delle quali apre un modale di scelta dettagliata:</p>
+  <ul>
+    <li><strong>📄 Esporta PDF (A4)</strong> — 5 modalità di esportazione, vedi sezione "Esporta".</li>
+    <li><strong>🖼️ Esporta PNG / SVG</strong> — PNG completo o SVG vettoriale (riempito o solo contorni).</li>
+    <li><strong>✏️ Esporta disegno mano libera</strong> — esporta solo i tratti freehand e acquerello in SVG o PNG.</li>
+  </ul>
+
+  <h3>Status Bar — leggere i numeri</h3>
+  <p>La barra di stato in basso mostra in tempo reale:</p>
+  <ul>
+    <li><strong>Zoom</strong> — percentuale di zoom attuale (100% = scala 1:1 con la calibrazione).</li>
+    <li><strong>Cursore</strong> — coordinate X, Y in millimetri reali (zero = angolo in alto a sinistra del foglio A4).</li>
+    <li><strong>Selezione</strong> — tipo dell'oggetto selezionato + dimensioni in mm reali (es. <em>rect · 25.4 × 18.0 mm</em>), oppure il numero di oggetti se è una selezione multipla.</li>
+    <li><strong>Auto-save</strong> — appare solo durante un salvataggio automatico in corso, poi diventa "✔ Auto-salvato" per 2 secondi.</li>
+    <li><strong>Calibrazione</strong> — fattore di scala correttivo applicato (default 1.000).</li>
+  </ul>
+
+  <h3>Navigare la vista</h3>
+  <div class="card-grid col3">
+    <div class="card-mini">
+      <h4>🖱️ Rotella mouse</h4>
+      <p>Zoom centrato sul cursore. Preciso e fluido.</p>
+    </div>
+    <div class="card-mini">
+      <h4>⌥ Alt + trascina</h4>
+      <p>Tieni premuto Alt e trascina per fare pan (spostare la vista).</p>
+    </div>
+    <div class="card-mini">
+      <h4>⌨️ Frecce</h4>
+      <p>Con nessun oggetto selezionato, le frecce fanno pan. Con oggetto selezionato, spostano l'oggetto (1 px, 10 px con Shift).</p>
+    </div>
+  </div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li>Usa <strong>Alt + trascina</strong> per navigare sul foglio senza uscire dallo strumento attivo; il cursore cambia in "pan" automaticamente.</li>
+    <li>Lo <strong>zoom con rotella</strong> è centrato sul cursore: posiziona il mouse esattamente dove vuoi ingrandire per non perdere il punto di lavoro.</li>
+    <li>Se sei in modalità penna, gomma o acquerello e vuoi tornare a selezionare le forme, clicca <strong>🖱️ Seleziona</strong> nella toolbar a sinistra: disattiva automaticamente tutti gli strumenti modali.</li>
+    <li>La <strong>Status Bar</strong> mostra le coordinate in <em>mm reali</em>: usala per posizionamenti precisi al decimo di millimetro. Le coordinate scompaiono quando il mouse esce dal workspace.</li>
+    <li>Se perdi la vista del foglio, premi <strong>Ctrl + 0</strong> per tornare allo zoom 100% e centrare il canvas.</li>
+    <li>L'app si avvia in <strong>modalità schermo intero</strong>: il pulsante 🗗 in alto a destra (o <strong>ESC</strong>) la fa uscire.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── CALIBRAZIONE ── -->
+<section id="calibrazione">
+  <div class="section-label">02</div>
+  <h2>Calibrazione schermo</h2>
+  <p>Mosaica lavora in millimetri reali. Per farlo correttamente, deve sapere quanti pixel corrispondono a 1 millimetro sul tuo schermo. La calibrazione si fa una sola volta per ogni monitor.</p>
+
+  <h3>Dove trovi la calibrazione</h3>
+  <p>Nella <strong>top bar in alto a destra</strong> trovi il pulsante <strong>📏 Calibrazione</strong> con un indicatore numerico accanto (es. <code>1.000</code>). Cliccando si apre un popover con tutti gli strumenti necessari.</p>
+
+  <ol class="step-list">
+    <li>
+      <div>
+        <div class="step-title">Apri il pannello calibrazione</div>
+        <div class="step-body">Clic su <strong>📏 Calibrazione</strong> nella top bar. Si apre un popover con una <strong>striscia grigia</strong> con bordo bianco, lunga esattamente 50 mm teorici.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Verifica zoom OS e browser al 100%</div>
+        <div class="step-body">Prima di misurare assicurati che <strong>zoom del sistema operativo sia al 100%</strong> (scaling display) e che non ci siano filtri attivi.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Misura la striscia con il calibro</div>
+        <div class="step-body">Appoggia un <strong>calibro digitale</strong> (o un righello metallico rigido) direttamente sullo schermo, sulla striscia con etichetta "50 mm TEORICI". Annota la misura effettiva.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Inserisci la misura reale</div>
+        <div class="step-body">Digita il valore misurato nel campo "Misura reale con calibro (mm)" — es. <code>47.85</code> se la striscia misura 47.85 mm.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Clicca "Applica calibrazione"</div>
+        <div class="step-body">Il fattore di calibrazione viene calcolato, salvato e applicato istantaneamente. L'indicatore in topbar e quello in status bar si aggiornano. Tutte le misure dell'app si ricalibrano.</div>
+      </div>
+    </li>
+  </ol>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>La calibrazione viene <strong>salvata automaticamente</strong> nel file <code>calibration.json</code> dentro <code>%APPDATA%\mosaica-workspace-pro\</code>. Non è necessario ricalibrarla ogni volta che apri l'app, solo se cambi monitor o risoluzione.</div></div>
+
+  <p>Il pulsante <strong>Reset calibrazione (1.0)</strong> riporta il fattore a 1.000 (nessuna correzione).</p>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li>Usa un <strong>calibro digitale</strong> o un righello fisico rigido (metallo o plastica dura) invece di un metro flessibile: la lettura è più precisa al centesimo di millimetro.</li>
+    <li>Se cambi monitor, risoluzione o orientamento dello schermo, <strong>ricalibra</strong>: il fattore è legato a quel display specifico.</li>
+    <li>Per verificare la calibrazione, doppio-clic sul foglio per creare un quadrato e controlla che le misure mostrate nell'Inspector e nello <em>status bar</em> corrispondano alla misura del calibro appoggiato sullo schermo.</li>
+    <li>L'indicatore del fattore di calibrazione è sempre visibile sia nel pulsante in topbar sia nella status bar a destra: a colpo d'occhio sai se sei calibrato o se hai un fattore correttivo applicato.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── ROTAZIONE DEL CANVAS ── -->
+<section id="rotazione">
+  <div class="section-label">03</div>
+  <h2>Rotazione del Canvas (Portrait ↔ Landscape)</h2>
+  <p>I due pulsanti in cima alla <strong>Left Toolbar</strong> permettono di passare istantaneamente tra orientamento <strong>verticale (A4 portrait, 210 × 297 mm)</strong> e <strong>orizzontale (A4 landscape, 297 × 210 mm)</strong>, ruotando geometricamente l'intero contenuto del foglio.</p>
+
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>Pulsante "Verticale"</h4>
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <button class="bgBtn" title="Canvas Verticale (A4 Portrait)" style="cursor:default;">
+          <svg width="26" height="34" viewBox="0 0 26 34" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:4px;">
+            <rect x="1" y="1" width="24" height="32" rx="3" stroke="#ffffff" stroke-width="2.5"/>
+            <rect x="6" y="7" width="14" height="3" fill="#ffffff" opacity="0.9"/>
+          </svg><br>Verticale
+        </button>
+      </div>
+      <p>Imposta il canvas in formato A4 portrait (210 × 297 mm).</p>
+    </div>
+    <div class="card-mini">
+      <h4>Pulsante "Orizzontale"</h4>
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <button class="bgBtn secondary" title="Canvas Orizzontale (A4 Landscape)" style="cursor:default;">
+          <svg width="34" height="26" viewBox="0 0 34 26" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:4px;">
+            <rect x="1" y="1" width="32" height="24" rx="3" stroke="#ffffff" stroke-width="2.5"/>
+            <rect x="7" y="9" width="20" height="3" fill="#ffffff" opacity="0.9"/>
+          </svg><br>Orizzontale
+        </button>
+      </div>
+      <p>Imposta il canvas in formato A4 landscape (297 × 210 mm).</p>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon"></div>
+    <div>La rotazione è <strong>geometrica e precisa</strong>:<br>
+    • Tutte le forme, i tratti a mano libera e acquerello vengono ruotati.<br>
+    • La texture della carta viene ricreata automaticamente alle nuove dimensioni.<br>
+    • L'immagine di sfondo viene riadattata.<br>
+    • La calibrazione mm resta invariata.<br>
+    • Undo/Redo funziona normalmente dopo la rotazione.</div>
+  </div>
+
+  <p>L'orientamento corrente viene salvato nel file di progetto <code>.msp.json</code> e ripristinato all'apertura. Anche l'export PDF rispetta l'orientamento del foglio (portrait/landscape).</p>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li>Prima di ruotare il canvas, posiziona tutte le forme dove desideri: la rotazione avviene attorno al <strong>centro geometrico del foglio A4</strong>.</li>
+    <li>Dopo una rotazione, verifica l'immagine di sfondo: se usavi <strong>Contain</strong> o <strong>Cover</strong>, potrebbe essere necessario riaggiustare la rotazione dello sfondo separatamente (con i pulsanti ↶ Ruota nel BG Panel).</li>
+    <li>La <strong>texture carta</strong> si rigenera automaticamente con l'orientamento corretto: non devi ricaricarla manualmente.</li>
+    <li>Undo/Redo funziona normalmente anche dopo il cambio di orientamento, quindi puoi annullare la rotazione se il risultato non ti soddisfa.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── FORME ── -->
+<section id="forme">
+  <div class="section-label">04</div>
+  <h2>Creare e gestire le forme</h2>
+  
+  <h3>Quattro modi per creare una forma</h3>
+  <ul>
+    <li><strong>Doppio clic</strong> su una zona vuota del foglio → crea un quadratino di ~10 mm nel punto cliccato.</li>
+    <li>Pulsante <strong>➕ Aggiungi forma</strong> nella Left Toolbar → crea un quadratino di ~10 mm <em>al centro della porzione di canvas visibile</em>, indipendente da zoom e pan. Comodo se hai zoomato lontano e non vuoi tornare al foglio per inserire una forma.</li>
+    <li>Pulsante <strong>✏️➕ Crea forma personalizzata</strong> nella Left Toolbar → apre un modale dedicato dove disegni un poligono <em>non standard</em> tracciandone i vertici click dopo click, lo modifichi vertice per vertice e poi lo inserisci nel canvas. Vedi il paragrafo dedicato qui sotto.</li>
+    <li>All'avvio di un <strong>Nuovo Progetto</strong> viene creato un rettangolo di riferimento al centro del foglio.</li>
+  </ul>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Il rettangolo è la forma di partenza per i poligoni "regolari". Usa il pulsante <strong>🔄 Cambia Forma</strong> nel menu radiale per trasformarlo in cerchio, trapezio, triangolo o settore di cerchio. Per forme libere (stelle, frecce, sagome irregolari) usa invece il builder <strong>✏️➕ Crea forma personalizzata</strong>.</div></div>
+
+  <h3>Selezionare e spostare</h3>
+  <p>Clicca su una forma per selezionarla. Appariranno le <strong>maniglie di controllo azzurre</strong> ai bordi e agli angoli per ridimensionare, e il simbolo <strong>↻</strong> per ruotare. Trascina la forma per spostarla.</p>
+
+  <h3>Selezione multipla</h3>
+  <p>Hai tre modi:</p>
+  <ul>
+    <li><strong>Trascinamento</strong> su un'area vuota del foglio → riquadro di selezione classico.</li>
+    <li><strong>Shift + click</strong> su più forme → aggiunge o rimuove forme dalla selezione corrente.</li>
+    <li><strong>Lazo</strong> (vedi sezione dedicata) → traccia un poligono libero per selezionare forme di forma irregolare.</li>
+  </ul>
+
+  <h3>Misure in millimetri</h3>
+  <p>Quando una forma è selezionata, sopra di essa compaiono <strong>due etichette</strong> con le misure reali (Larghezza × Altezza) in mm. <strong>Cliccando sull'etichetta L o A</strong> puoi inserire manualmente la dimensione desiderata: digita il valore, premi Invio per applicare o Esc per annullare.</p>
+
+  <p>Inoltre, quando è selezionata una forma singola, nell'<strong>Inspector a destra</strong> in alto vedi il blocco <strong>Dimensioni</strong> con due campi <code>Largh.</code> e <code>Altezza</code> in mm, sempre modificabili.</p>
+
+  <h3>Ciclo delle forme</h3>
+  <p>Il tasto <strong>🔄 Cambia Forma</strong> del menu radiale cicla attraverso:</p>
+  <div class="card" style="display:flex;flex-wrap:wrap;gap:10px;padding:18px 22px;">
+    <span style="background:var(--blue-light);color:var(--blue);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">Rettangolo</span>
+    <span style="background:var(--blue-light);color:var(--blue);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">Cerchio / Ellisse</span>
+    <span style="background:var(--blue-light);color:var(--blue);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">Trapezio</span>
+    <span style="background:var(--blue-light);color:var(--blue);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">Triangolo isoscele</span>
+    <span style="background:var(--blue-light);color:var(--blue);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">Triangolo scaleno</span>
+    <span style="background:var(--blue-light);color:var(--blue);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">Triangolo equilatero</span>
+    <span style="background:var(--blue-light);color:var(--blue);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">Triangolo retto</span>
+    <span style="background:var(--blue-light);color:var(--blue);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">Triangolo acutangolo</span>
+    <span style="background:var(--blue-light);color:var(--blue);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">Triangolo ottusangolo</span>
+  </div>
+
+  <h3>Inspector — Triangolo (slider angoli)</h3>
+  <p>Quando selezioni un triangolo, l'Inspector mostra automaticamente la sezione <strong>"Triangolo · Angoli"</strong> con due slider:</p>
+  <ul>
+    <li><strong>α (alfa)</strong> — angolo in basso a sinistra, 1°–178°</li>
+    <li><strong>β (beta)</strong> — angolo in basso a destra, 1°–178°</li>
+  </ul>
+  <p>Il terzo angolo γ si calcola automaticamente (somma = 180°). Le dimensioni visive del triangolo vengono preservate mentre cambi gli angoli. Lo snap è di 0.1°.</p>
+
+  <h3>Inspector — Trapezio</h3>
+  <p>Quando selezioni un trapezio, l'Inspector mostra la sezione dedicata con slider per:</p>
+  <ul>
+    <li><strong>Base superiore</strong> (in mm)</li>
+    <li><strong>Base inferiore</strong> (in mm)</li>
+    <li><strong>Altezza</strong> (in mm)</li>
+    <li><strong>Offset</strong> — spostamento orizzontale della base superiore rispetto al centro (cambia la "categoria": rettangolo, isoscele, scaleno)</li>
+  </ul>
+
+<h3>Dividi cerchio in settori</h3>
+  <p>Seleziona un cerchio o ellisse, poi usa il pulsante <strong>◔ Dividi</strong> del menu radiale:</p>
+  <ul>
+    <li><strong>Click normale</strong> → divide in 4 quarti (90° ciascuno)</li>
+    <li><strong>Alt + Click</strong> → divide in 2 metà (180° ciascuna)</li>
+  </ul>
+  <p>Ogni settore diventa un oggetto indipendente, ridimensionabile e modificabile.</p>
+
+  <h3>Forme personalizzate (non standard)</h3>
+  <p>Quando le forme regolari (rettangolo, cerchio, triangolo, trapezio, settore) non bastano — per esempio per stelle, frecce, sagome irregolari, contorni di tessere irregolari per i tuoi mosaici — usa il <strong>builder di forme personalizzate</strong> dalla Left Toolbar (pulsante <strong>✏️➕</strong> subito accanto a <strong>➕ Aggiungi forma</strong>).</p>
+
+  <p>Il builder apre un <strong>modale dedicato</strong> con un canvas di anteprima e funziona in due fasi.</p>
+
+  <h4 style="margin:14px 0 6px;">Fase 1 — Tracciare i lati (drawing)</h4>
+  <ul>
+    <li><strong>1° click</strong> sul canvas di anteprima → fissa il primo vertice. Da quel momento una linea blu tratteggiata <em>insegue il mouse senza dover tenere premuto</em>, estendendosi e inclinandosi liberamente.</li>
+    <li><strong>2° click</strong> → fissa la fine della prima linea. La seconda linea parte automaticamente dall'ultimo vertice e segue il mouse.</li>
+    <li><strong>3° click, 4° click… N° click</strong> → ogni click aggiunge un vertice e dà il via al lato successivo. Puoi piazzare quanti vertici vuoi.</li>
+    <li><strong>Backspace</strong> (o pulsante <strong>↶ Vertice</strong>) → rimuove l'ultimo vertice piazzato se hai sbagliato.</li>
+    <li><strong>🔄 Ricomincia</strong> → svuota tutto e ricominci da capo.</li>
+  </ul>
+
+  <h4 style="margin:14px 0 6px;">Chiudere la forma</h4>
+  <p>Con <strong>almeno 3 vertici</strong> puoi chiudere il poligono in due modi:</p>
+  <ul>
+    <li><strong>Avvicina il mouse al primo vertice</strong> (quello verde): quando entri nel raggio di snap il primo vertice si ingrandisce e la linea-fantasma diventa <span style="color:#16a34a;font-weight:600;">verde continua</span>. Click → la forma si chiude.</li>
+    <li><strong>Premi Invio</strong> → la forma si chiude congiungendo l'ultimo vertice al primo, indipendentemente da dov'è il mouse.</li>
+  </ul>
+
+  <h4 style="margin:14px 0 6px;">Fase 2 — Modificare i vertici (editing)</h4>
+  <p>Appena la forma è chiusa, su <strong>ogni vertice</strong> compare una <strong>maniglia a forma di pallino azzurro</strong>. Per esempio, una stella a sei punte avrà sei maniglie, una per punta.</p>
+  <ul>
+    <li><strong>Click e trascina</strong> una maniglia → il vertice corrispondente si sposta, e i due lati che lo formano <em>si allungano e si inclinano</em> in tempo reale fino a quando rilasci il mouse.</li>
+    <li>Puoi modificare quanti vertici vuoi, anche più volte: la forma resta in fase di editing finché non la inserisci o annulli.</li>
+  </ul>
+
+  <h4 style="margin:14px 0 6px;">Inserire nel canvas</h4>
+  <p>Quando la forma ti soddisfa, premi <strong>✅ Inserisci nel canvas</strong> (oppure <strong>Invio</strong> se sei già in fase editing): il modale si chiude e la forma viene piazzata <em>al centro della porzione di canvas visibile</em> — esattamente con la stessa logica di posizionamento del pulsante <strong>➕ Aggiungi forma</strong>, indipendente da zoom e pan. La forma mantiene le dimensioni del preview (1:1 in pixel).</p>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Una volta nel canvas, la forma personalizzata si comporta esattamente come tutte le altre: <strong>menu radiale</strong>, <strong>maniglie azzurre</strong> per ridimensionare e ruotare, <strong>misure in mm</strong> nell'Inspector e nella status bar, applicazione di <strong>colore</strong> e <strong>texture</strong>, <strong>duplicazione</strong>, <strong>group/ungroup</strong>, <strong>selezione lazo</strong>, <strong>undo/redo</strong>, e viene <strong>salvata</strong> nel progetto <code>.msp.json</code> insieme a tutto il resto.</div></div>
+
+  <h4 style="margin:14px 0 6px;">Scorciatoie da tastiera dentro il modale</h4>
+  <ul>
+    <li><strong>Invio</strong> → in drawing chiude la forma (con ≥3 vertici); in editing inserisce la forma nel canvas.</li>
+    <li><strong>Backspace</strong> / <strong>Canc</strong> → rimuove l'ultimo vertice (solo in drawing).</li>
+    <li><strong>Esc</strong> → chiude il modale senza inserire nulla.</li>
+  </ul>
+
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div>Il builder <strong>non controlla</strong> se i lati si auto-intersecano: se i lati si incrociano otterrai un poligono "a farfalla" con riempimento secondo la regola <em>even-odd</em> di Fabric. È spesso una feature voluta (forme tipo clessidra, infiniti, ecc.), ma se non era nelle tue intenzioni usa <strong>↶ Vertice</strong> per tornare indietro o <strong>🔄 Ricomincia</strong>.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li>Dopo aver creato un rettangolo, usa <strong>🔄 Cambia Forma</strong> nel menu radiale per trasformarlo immediatamente in cerchio, trapezio o triangolo preservando posizione, colore e dimensioni.</li>
+    <li>Per dimensioni precise al decimo di millimetro usa i campi <strong>Largh./Altezza</strong> dell'Inspector: digita il valore e premi Invio.</li>
+    <li>Per i <strong>triangoli</strong>, modifica prima gli angoli α e β dall'Inspector: la forma preserva automaticamente le dimensioni visive mentre cambi la geometria.</li>
+    <li>Per i <strong>trapezi</strong>, lo slider <strong>Offset</strong> cambia la "categoria" della forma; gli slider delle basi preservano invece gli angoli esistenti.</li>
+    <li>Dopo aver ridimensionato una forma con le maniglie azzurre, il sistema esegue automaticamente il <em>bake</em> della scala nei punti: i campi in mm restano sempre coerenti con ciò che vedi a schermo.</li>
+    <li>Per dividere un cerchio in settori indipendenti, selezionalo e usa <strong>◔ Dividi</strong>: click normale per 4 quarti, <strong>Alt + click</strong> per 2 metà.</li>
+    <li>Per <strong>forme irregolari</strong> (stelle, frecce, sagome di tessere) usa il builder <strong>✏️➕ Crea forma personalizzata</strong>: la griglia leggera nel preview ti aiuta a stimare le proporzioni. Una volta inserita, puoi sempre <strong>ridimensionarla</strong> con le maniglie azzurre o digitare le misure in mm nell'Inspector.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── MENU RADIALE ── -->
+<section id="radiale">
+  <div class="section-label">05</div>
+  <h2>Menu Radiale</h2>
+  <p>Quando selezioni uno o più oggetti, attorno ad essi appare un <strong>cerchio di pulsanti</strong>. È il menu radiale: contiene tutte le azioni disponibili per la selezione. I pulsanti si dispongono a cerchio intorno all'oggetto, a distanza proporzionale alla dimensione (puoi affinare il raggio con uno slider che appare sotto le misure W/H).</p>
+
+  <div class="radial-grid">
+    <div class="radial-item">
+      <div class="radial-icon">↻</div>
+      <div>
+        <div class="radial-label">Ruota (fine)</div>
+        <div class="radial-desc">
+          <strong>Click sinistro</strong> = +0.25° (Shift +0.5°, Ctrl +1°).<br>
+          <strong>Click destro</strong> = stesso passo ma in senso antiorario.
+        </div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon">⎘</div>
+      <div>
+        <div class="radial-label">Duplica</div>
+        <div class="radial-desc">Crea una copia esatta dell'oggetto leggermente spostata. La copia viene selezionata automaticamente.</div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon">⤢</div>
+      <div>
+        <div class="radial-label">Scala (in mm)</div>
+        <div class="radial-desc">
+          <strong>Click sinistro</strong> = +1 mm sul lato maggiore (Shift +0.5 mm, Ctrl +0.35 mm).<br>
+          <strong>Click destro</strong> = stesso passo ma in contrazione.
+        </div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon">🎨</div>
+      <div>
+        <div class="radial-label">Cambia colore</div>
+        <div class="radial-desc">Apre il selettore colore. Scegli un colore personalizzato o usa i tasti rapidi sotto il selettore.</div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon">🖌️</div>
+      <div>
+        <div class="radial-label">Incolla colore</div>
+        <div class="radial-desc">Applica all'oggetto l'ultimo colore copiato. Comodo per propagare lo stesso colore a più forme.</div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon">🔄</div>
+      <div>
+        <div class="radial-label">Cambia forma</div>
+        <div class="radial-desc">Cicla tra rettangolo, cerchio, trapezio e tutti i tipi di triangolo, preservando posizione, colore e dimensioni.</div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon">◔</div>
+      <div>
+        <div class="radial-label">Dividi cerchio</div>
+        <div class="radial-desc">Visibile solo con cerchi/ellissi selezionati. Click = 4 quarti. Alt+Click = 2 metà. Ogni settore è indipendente.</div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon orange">🔒</div>
+      <div>
+        <div class="radial-label">Blocca / Sblocca</div>
+        <div class="radial-desc">Blocca l'oggetto: non può più essere selezionato, spostato o ridimensionato. Click di nuovo per sbloccare.</div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon red">🗑️</div>
+      <div>
+        <div class="radial-label">Elimina</div>
+        <div class="radial-desc">Cancella l'oggetto selezionato. L'azione è reversibile con Ctrl+Z.</div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon green">⎇</div>
+      <div>
+        <div class="radial-label">Raggruppa</div>
+        <div class="radial-desc">Visibile con più oggetti selezionati. Unisce le forme in un singolo gruppo che si sposta e ridimensiona come un'unica entità.</div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon green">⎆</div>
+      <div>
+        <div class="radial-label">Separa gruppo</div>
+        <div class="radial-desc">Visibile su gruppi. Riporta le forme allo stato singolo, mantenendo posizioni e orientamenti.</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Rotazione e Scala fine — il dettaglio</h3>
+  <p>I pulsanti <strong>↻ Ruota</strong> e <strong>⤢ Scala</strong> sono speciali: rispondono al <strong>click destro</strong> per il verso opposto e a <strong>Shift/Ctrl</strong> per passi più piccoli o più grandi, così puoi raggiungere qualsiasi angolo e dimensione senza usare le maniglie.</p>
+
+  <div class="card" style="background:#fff;padding:16px 22px;">
+    <table class="shortcut-table" style="margin-bottom:0;box-shadow:none;">
+      <thead><tr><th>Modificatore</th><th>Rotazione</th><th>Scala (lato maggiore)</th></tr></thead>
+      <tbody>
+        <tr><td>Nessuno</td><td>± 0.25°</td><td>± 1 mm</td></tr>
+        <tr><td><kbd>Shift</kbd></td><td>± 0.5°</td><td>± 0.5 mm</td></tr>
+        <tr><td><kbd>Ctrl</kbd> / <kbd>⌘</kbd></td><td>± 1°</td><td>± 0.35 mm</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Il <strong>+</strong> è il click sinistro (rotazione oraria / scala maggiore); il <strong>−</strong> è il click destro (antiorario / scala minore).</p>
+
+  <h3>Rotazione fine con tasto destro + rotella</h3>
+  <p>Esiste un secondo metodo per ruotare con precisione: <strong>tieni premuto il tasto destro sopra una forma e usa la rotella del mouse</strong>. Il cursore diventa un'icona di rotazione blu finché il tasto destro è premuto. Stessi passi del pulsante radiale (0.25° default, 0.5° con Shift, 1° con Ctrl). Rilascia il tasto destro per chiudere la sessione di rotazione (un solo push nello storico undo/redo).</p>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Con <strong>più oggetti selezionati</strong> appaiono i pulsanti <strong>⎇ Raggruppa</strong> e <strong>⎆ Separa</strong> in verde. Un gruppo si sposta, ridimensiona e ruota come un'unità sola.</div></div>
+
+  <h3>Applicare il colore</h3>
+  <p>Dopo aver cliccato 🎨 appare un pannello con un selettore colore e otto colori rapidi. Il colore si applica immediatamente all'oggetto. Clicca fuori dal pannello per chiuderlo.</p>
+
+  <h3>Applicare una texture</h3>
+  <p>Con un oggetto selezionato, clicca direttamente su una delle anteprime nel <strong>Texture Panel</strong> a sinistra estrema. La texture viene ripetuta (repeat) per riempire la forma.</p>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li>Se il menu radiale copre l'oggetto che stai modificando, usa lo <strong>slider che appare sotto le misure W/H</strong> per ridurne il raggio; un doppio click sullo slider lo riporta alla dimensione automatica.</li>
+    <li>Con più oggetti selezionati appaiono i pulsanti <strong>⎇ Raggruppa</strong> e <strong>⎆ Separa</strong>: raggruppa per spostare insiemi complessi come un'unica forma.</li>
+    <li>Usa <strong>🔒 Blocca</strong> sulle forme finite per evitare di selezionarle per errore mentre disegni a mano libera sopra di esse.</li>
+    <li>Per <strong>scalare con precisione di un millimetro intero</strong> usa il pulsante ⤢ Scala senza modificatori; per il <strong>centesimo di mm</strong> tieni Ctrl premuto (passi da 0.35 mm).</li>
+    <li>La <strong>maniglia di rotazione</strong> (↻) mostra la stessa icona del cursore che appare durante la rotazione fine con tasto destro + rotella: è un'anteprima visiva del gesto.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── SELEZIONE LAZO ── -->
+<section id="lazo">
+  <div class="section-label">06</div>
+  <h2>Selezione Lazo (poligono libero)</h2>
+  <p>Il <strong>Lazo</strong> è un metodo di selezione avanzato che permette di racchiudere forme con un <strong>poligono libero disegnato a mano</strong>. È pensato in particolare per i mosaici, dove le tessere sono spesso piccole, fitte e con fughe strette: con un riquadro rettangolare prenderesti troppo o troppo poco, mentre con il lazo segui il contorno reale dell'area che ti interessa.</p>
+
+  <h3>Come si attiva</h3>
+  <ol class="step-list">
+    <li>
+      <div>
+        <div class="step-title">Clicca l'icona Lazo nella Left Toolbar</div>
+        <div class="step-body">L'icona ovale tratteggiata con la "coda" attiva la modalità lazo. Se erano attivi penna, gomma o acquerello, vengono <strong>disattivati automaticamente</strong> per evitare conflitti.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Trascina sul canvas per disegnare</div>
+        <div class="step-body">Tieni premuto il tasto sinistro e muovi il mouse: viene tracciato un poligono libero, anche con <strong>rientranze o autointersezioni</strong>. L'anteprima è una linea blu tratteggiata con riempimento azzurrino tenue.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Rilascia il tasto sinistro</div>
+        <div class="step-body">Tutte le forme la cui porzione interna al poligono supera la <strong>soglia di sensibilità</strong> (vedi sotto) vengono selezionate in una selezione multipla nativa di Fabric. Lo strumento si <strong>auto-disattiva</strong>: torni in modalità Seleziona normale.</div>
+      </div>
+    </li>
+  </ol>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Per uscire dal lazo a metà tracciamento senza confermare nulla, premi <kbd>Esc</kbd>: il poligono viene annullato e lo strumento si disattiva.</div></div>
+
+  <h3>Come decide cosa includere — l'algoritmo</h3>
+  <p>A differenza di un lazo "ingenuo" che guarda solo il centro geometrico (inutile su mosaici con tessere piccole), Mosaica usa un approccio <strong>a due fasi calibrato per mosaici fitti</strong>:</p>
+  <ol>
+    <li><strong>Broad-phase (AABB):</strong> per ogni forma viene calcolato il bounding box orientato e confrontato con quello del lazo. Le forme chiaramente fuori area vengono scartate subito (operazione velocissima anche con migliaia di tessere).</li>
+    <li><strong>Narrow-phase (campionamento):</strong> per le forme rimaste, si campionano <strong>più punti rappresentativi</strong> — il centro, i 4 angoli del bounding box orientato (che segue rotazione e scala), i 4 punti medi dei lati, e per poligoni / triangoli anche un sotto-campione dei <strong>vertici reali trasformati</strong>. Si misura quale percentuale di questi punti cade dentro il poligono del lazo e si confronta con la <strong>soglia di contenimento</strong>.</li>
+  </ol>
+  <p>Il test di "punto dentro poligono" è il classico <strong>ray casting</strong>, quindi funziona correttamente anche con lazi concavi o con autointersezioni.</p>
+
+  <h3>Sensibilità (soglia di contenimento)</h3>
+  <p>La sensibilità del lazo è regolabile e <strong>persistente</strong>. Il valore di fabbrica è <code>0.20</code> (20%), cioè basta che <em>almeno il 20% dei punti campionati di una tessera</em> cada dentro il tracciato perché la tessera venga inclusa. Questo default è tarato apposta sui mosaici reali con tessere ≤10–15 mm² e fughe da 2–3 mm, dove tracciando a mano libera fra le fughe è praticamente impossibile non sfiorare le tessere da prendere.</p>
+
+  <ol class="step-list">
+    <li>
+      <div>
+        <div class="step-title">Apri il popover impostazioni</div>
+        <div class="step-body"><strong>Click destro</strong> sul bottone Lazo nella Left Toolbar (il click sinistro attiva/disattiva lo strumento, il destro apre le impostazioni). Si apre un piccolo popover intitolato <strong>🎯 Sensibilità Lazo</strong>.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Sposta lo slider</div>
+        <div class="step-body">Range da <code>0.05</code> (5% — molto permissivo) a <code>1.00</code> (100% — solo forme quasi interamente dentro). Il valore si applica <strong>in tempo reale</strong> mentre trascini. Accanto allo slider vedi il valore corrente sia come decimale che come percentuale.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Rilascia per salvare</div>
+        <div class="step-body">A fine drag il valore viene scritto in <code>calibration.json</code> (campo <code>lassoContainmentThreshold</code>) dentro <code>%APPDATA%\mosaica-workspace-pro\</code>. Resta valido per tutte le future sessioni.</div>
+      </div>
+    </li>
+  </ol>
+
+  <p>Il bottone <strong>Default (0.20)</strong> nel popover riporta la sensibilità al valore di fabbrica consigliato. Premi <kbd>Esc</kbd> oppure clicca fuori dal popover per chiuderlo senza modifiche aggiuntive.</p>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>La soglia viene <strong>fusa</strong> con gli altri campi di <code>calibration.json</code> (come <code>calibrationFactor</code>): regolare la sensibilità del lazo <em>non</em> tocca la calibrazione dello schermo, e viceversa.</div></div>
+
+  <p>Dopo il rilascio del lazo puoi:</p>
+  <ul>
+    <li>Spostare tutte le forme selezionate insieme.</li>
+    <li>Aprire il menu radiale e usare <strong>⎇ Raggruppa</strong> per creare un gruppo permanente.</li>
+    <li>Premere <strong>Canc</strong> per eliminarle tutte.</li>
+    <li>Cliccare fuori dalla selezione per annullarla.</li>
+  </ul>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li><strong>Tessere fitte e fughe strette?</strong> Tieni la soglia bassa (0.10–0.20). Anche sfiorando le tessere vicine, solo quelle veramente dentro l'area saranno selezionate perché il campionamento valuta più punti, non solo il centro.</li>
+    <li><strong>Tessere grandi e ben distanziate?</strong> Alza la soglia (0.40–0.60) per essere più rigoroso: solo le tessere effettivamente abbracciate dal lazo entrano nella selezione.</li>
+    <li><strong>Selezione chirurgica di una singola tessera in mezzo ad altre?</strong> Soglia alta (0.70–0.90) e traccia stretto attorno alla tessera target: gli "sfioramenti" delle vicine vengono ignorati.</li>
+    <li>Lo strumento <strong>si auto-disattiva</strong> al rilascio. Se devi fare più lazo consecutivi, clicca di nuovo l'icona ogni volta. Questa scelta evita di restare in modalità lazo senza accorgersene e di "mangiarsi" un click di selezione normale.</li>
+    <li>Il lazo è perfetto per selezionare <strong>tessere distribuite a spirale, lungo bordi curvi, o aree dalla forma irregolare</strong> dove un riquadro rettangolare prenderebbe troppo.</li>
+    <li>Le forme <strong>bloccate</strong> (🔒), lo sfondo utente e la texture carta vengono <strong>sempre ignorati</strong>: blocca le tessere già a posto prima di un lazo grosso per non spostarle accidentalmente.</li>
+    <li>Durante il lazo il <strong>cursore diventa un crocino</strong> e la selezione a rettangolo nativa di Fabric è temporaneamente sospesa, così non si confondono i due metodi di selezione.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── DISEGNO LIBERO ── -->
+<section id="disegno">
+  <div class="section-label">07</div>
+  <h2>Disegno a mano libera</h2>
+  <p>La <strong>Left Toolbar</strong> contiene tre strumenti di disegno modali: <strong>penna ✏️</strong>, <strong>gomma 🧼</strong> e <strong>acquerello 💧</strong>. Sono mutuamente esclusivi: attivando uno, gli altri si disattivano.</p>
+
+  <div class="card-grid col3">
+    <div class="card-mini">
+      <h4>✏️ Penna</h4>
+      <p>Linee continue, colore solido, spessore regolabile. Bordi netti. Tratti vettoriali.</p>
+    </div>
+    <div class="card-mini">
+      <h4>💧 Acquerello</h4>
+      <p>Tratti con texture, trasparenza, sbavature e variazioni tonali. Effetto pittura naturale.</p>
+    </div>
+    <div class="card-mini">
+      <h4>🧼 Gomma</h4>
+      <p>Cancella i tratti di penna e acquerello nella zona passata. Non cancella le forme geometriche.</p>
+    </div>
+  </div>
+
+  <h3>Attivare uno strumento</h3>
+  <p>Clicca il pulsante dello strumento desiderato nella Left Toolbar. Il pulsante diventa azzurro (attivo) e l'Inspector a destra mostra automaticamente i controlli dedicati. Il cursore cambia. Disegna tenendo premuto il tasto sinistro del mouse. Rilascia per terminare il tratto.</p>
+
+  <h3>Tornare a selezionare</h3>
+  <p>Clicca <strong>🖱️ Seleziona</strong> nella Left Toolbar (il primo pulsante sotto i due di rotazione canvas). Disattiva istantaneamente penna, gomma e acquerello e torna alla modalità di selezione e manipolazione delle forme.</p>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>Mentre sei in modalità disegno <strong>non puoi selezionare le forme geometriche</strong>. Disattiva la modalità disegno prima di tornare a lavorare con le forme.</div></div>
+
+  <h3>Inspector — Penna / Gomma</h3>
+  <p>Quando penna o gomma sono attive, l'Inspector mostra:</p>
+  <ul>
+    <li><strong>Colore corrente</strong> (in alto, blocco condiviso con l'acquerello)</li>
+    <li><strong>Larghezza</strong> — slider 1–60 px</li>
+  </ul>
+
+  <h3>Gestire i tratti</h3>
+  <p>Nella Left Toolbar trovi due pulsanti accanto a Lista linee e Cancella tutto:</p>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>📋 Lista linee</h4>
+      <p>Apre un modale con tutti i tratti freehand. Anteprima di ciascuno, checkbox per selezionarne più contemporaneamente e pulsante per eliminarli selettivamente.</p>
+    </div>
+    <div class="card-mini">
+      <h4>🗑️ Cancella tutto</h4>
+      <p>Rimuove tutti i tratti penna + acquerello dal canvas. Chiede conferma prima di procedere.</p>
+    </div>
+  </div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li>La <strong>gomma</strong> funziona cancellando solo i tratti penna/acquerello: se la texture carta è nascosta da un'immagine di sfondo opaca, l'effetto potrebbe non essere visibile. Rimuovi lo sfondo o usa la lista linee per cancellare.</li>
+    <li>Per cancellare tratti specifici senza toccare gli altri, apri il modale <strong>📋 Lista linee</strong>: mostra un'anteprima di ogni tratto e permette la cancellazione selettiva con checkbox.</li>
+    <li>I tratti freehand (penna e acquerello) sono sempre renderizzati <strong>sotto le forme geometriche</strong>: se hai bisogno di un disegno sopra una forma, crea la forma prima del tratto.</li>
+    <li>Quando hai finito di disegnare, clicca <strong>🖱️ Seleziona</strong> per tornare a lavorare con le forme.</li>
+    <li>Il <strong>colore corrente</strong> mostrato nell'Inspector è condiviso tra penna e acquerello: cambiandolo da uno cambia anche per l'altro.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── ACQUERELLO ── -->
+<section id="acquerello">
+  <div class="section-label">08</div>
+  <h2>Controlli Acquerello</h2>
+  <p>La modalità acquerello ha un set di parametri avanzati per simulare il comportamento reale della pittura ad acquerello. Tutti i controlli sono nell'<strong>Inspector a destra</strong> quando lo strumento è attivo. Ogni parametro agisce su un aspetto diverso del tratto.</p>
+
+  <div class="card" style="padding: 8px 0;">
+    <div class="wc-control">
+      <div class="wc-name">Larghezza</div>
+      <div class="wc-desc">
+        <strong>Larghezza del pennello.</strong> Valori bassi = tratti sottili e precisi. Valori alti = pennellate larghe e coprenti.
+        <div><span class="wc-range">1 – 100 px</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Opacità</div>
+      <div class="wc-desc">
+        <strong>Densità del pigmento.</strong> Controlla quanta "acqua" c'è nel pennello. Basso = acquerello molto diluito, quasi trasparente. Alto = colore denso.
+        <div><span class="wc-range">25% – 100%</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Tono</div>
+      <div class="wc-desc">
+        <strong>Variazione di luminosità del colore.</strong> Sotto il 50% scurisce il colore. Sopra il 50% lo schiarisce. A 50% = colore esatto scelto.
+        <div><span class="wc-range">1% – 100%</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Rotaz. iniziale</div>
+      <div class="wc-desc">
+        <strong>Rotazione fissa della punta del pennello.</strong> Imposta l'angolo di partenza della texture della punta (da −180° a +180°). Utile per orientare correttamente pennelli piatti o asimmetrici.
+        <div><span class="wc-range">−180° – +180°</span></div>
+        <div class="new-feature"><strong>Nota:</strong> questo valore è salvato <em>per singola punta</em> e viene ripristinato automaticamente quando selezioni di nuovo quella punta.</div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Distanza</div>
+      <div class="wc-desc">
+        <strong>Distanza tra un timbro e il successivo</strong> lungo il tratto. Bassa = copertura densa. Alta = tratto più "staccato" con lacune visibili.
+        <div><span class="wc-range">0× – 2.8×</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Jitter pos.</div>
+      <div class="wc-desc">
+        <strong>Dispersione laterale dei timbri.</strong> Controlla quanto ogni singolo timbro si sposta casualmente in direzione perpendicolare al tratto. Valori alti = bordi irregolari e organici.
+        <div><span class="wc-range">0 – 28 px</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Rotazione</div>
+      <div class="wc-desc">
+        <strong>Variazione casuale dell'angolo di ogni timbro.</strong> Piccole rotazioni casuali rendono il tratto meno meccanico e più naturale.
+        <div><span class="wc-range">0° – 35°</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Sbavatura</div>
+      <div class="wc-desc">
+        <strong>Alone di colore (bleeding).</strong> Simula il pigmento che si diffonde sulla carta bagnata. Valori alti creano bordi sfumati e luminosi.
+        <div><span class="wc-range">0 – 18</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Layers</div>
+      <div class="wc-desc">
+        <strong>Numero di strati sovrapposti per timbro.</strong> Ogni timbro è composto da N strati con leggere variazioni. Più layers = tratto più ricco e complesso ma più lento.
+        <div><span class="wc-range">1 – 38</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Punta</div>
+      <div class="wc-desc">
+        <strong>Forma della punta del pennello.</strong> Ogni texture crea un carattere di tratto diverso. Clicca sul pulsante con il nome corrente (es. <code>watercolor-stamp</code>) per aprire il <strong>modale di selezione punte</strong> con tutte le anteprime disponibili.<br>
+        Vedi sezione <a href="#punte" style="color:var(--blue);">Punte Pennello</a>.
+      </div>
+    </div>
+    <div class="wc-control" style="border-bottom:none;">
+      <div class="wc-name">Mixing</div>
+      <div class="wc-desc">
+        <strong>Modalità di fusione con il canvas.</strong>
+        <ul style="margin:6px 0 0 16px;font-size:12px;color:var(--muted);">
+          <li><strong>Multiply</strong> — sovrappone scurendo colore su colore. Effetto naturale, colori traslucidi.</li>
+          <li><strong>Overlay</strong> — aumenta contrasto e saturazione, somma colori. Effetto vibrante.</li>
+          <li><strong>Soft Light</strong> — effetto morbido e delicato, somma colore. Ideale per velature.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h3>Modale Selettore Punte Pennello</h3>
+  <p>Il pulsante <strong>Punta</strong> nell'Inspector apre un modale a griglia con tutte le texture disponibili nella cartella <code>textures/brush/</code>. Cliccando su una punta essa viene attivata immediatamente e il valore di Rotaz. iniziale specifico di quella punta viene caricato nello slider.</p>
+
+  <div class="callout tip">
+    <div class="callout-icon"></div>
+    <div><strong>Persistenza automatica</strong><br>
+    Tutti i valori degli slider (Larghezza, Opacità, Tono, Rotaz. iniz., Distanza, Jitter pos., Rotazione, Sbavatura, Layers e Punta) vengono salvati automaticamente in <code>localStorage</code> e nel progetto <code>.msp.json</code>. All'apertura dell'app o di un progetto, tutti gli slider si impostano automaticamente sugli ultimi valori usati.</div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon"></div>
+    <div>Per un effetto acquerello realistico consigliato: <strong>Opacità 60-80%</strong>, <strong>Sbavatura 2-5</strong>, <strong>Layers 18-24</strong>, <strong>Mixing: Multiply</strong> oppure <strong>Overlay</strong>. Inizia con questi valori e regola a piacere.</div>
+  </div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li>Per un effetto realistico partendo da zero: <strong>Opacità 60-80%</strong>, <strong>Sbavatura 2-5</strong>, <strong>Layers 18-24</strong>, <strong>Mixing Overlay</strong>. Questi valori bilanciano qualità e fluidità.</li>
+    <li>Se il PC rallenta durante pennellate lunghe, <strong>riduci i Layers a 12-16</strong>: il rendering alleggerirà il carico mantenendo un buon effetto visivo.</li>
+    <li>La <strong>Distanza</strong> influenza molto il carattere del tratto: 0.25×-0.65× dà copertura densa e uniforme; valori sopra 1.0× creano un effetto "staccato" molto artistico.</li>
+    <li>Il <strong>Mixing Overlay</strong> è generalmente preferibile a Multiply quando sovrapponi colori diversi: Multiply tende a generare nero per via dei limiti matematici del blend mode.</li>
+    <li>Usa la <strong>Rotaz. iniziale</strong> per orientare pennelli piatti o asimmetrici: il valore è salvato <em>per ogni singola punta</em>, quindi puoi avere angoli diversi per ogni texture.</li>
+    <li>La densità dei timbri si adatta automaticamente alla <strong>velocità del tratto</strong>: muovendo il mouse velocemente il pennello si "allarga" e sfuma, lentamente si compatta.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── PUNTE PENNELLO ── -->
+<section id="punte">
+  <div class="section-label">09</div>
+  <h2>Punte Pennello</h2>
+  <p>Le punte del pennello sono file PNG in scala di grigi che definiscono la <strong>forma di ogni singolo timbro</strong>. Le zone scure ricevono più colore; le zone chiare sono quasi trasparenti. Inseriscile nella cartella:</p>
+  <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;">
+    C:\Users\[utente]\AppData\Roaming\mosaica-workspace-pro\textures\brush\
+  </div>
+
+  <div class="brush-cards" style="margin-top:24px;">
+    <div class="brush-card">
+      <div class="brush-preview">
+        <div class="brush-preview-stroke round"></div>
+      </div>
+      <div class="brush-info">
+        <div class="brush-name">Punta Rotonda Morbida</div>
+        <div class="brush-file">brush_round_soft.png</div>
+        <div class="brush-desc">Forma ovale con bordi sfumati e fibre radiali. Ideale per tratti fluidi, linee morbide e campiture uniformi. È la punta più versatile.</div>
+      </div>
+    </div>
+    <div class="brush-card">
+      <div class="brush-preview">
+        <div class="brush-preview-stroke flat"></div>
+      </div>
+      <div class="brush-info">
+        <div class="brush-name">Piatto Largo (Flat Wash)</div>
+        <div class="brush-file">brush_flat_wash.png</div>
+        <div class="brush-desc">Forma rettangolare con bordi strappati e fibre orizzontali. Perfetta per campiture ampie, bande di colore e fondali. Il pennello ruota automaticamente con la direzione del tratto.</div>
+      </div>
+    </div>
+    <div class="brush-card">
+      <div class="brush-preview">
+        <div class="brush-preview-stroke dry"></div>
+      </div>
+      <div class="brush-info">
+        <div class="brush-name">Secco Granulare (Dry Brush)</div>
+        <div class="brush-file">brush_dry_grain.png</div>
+        <div class="brush-desc">Forma allungata con buchi e striature longitudinali. Simula un pennello a secco su carta ruvida. Crea velature, screpolature ed effetti di usura.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Puoi aggiungere le tue punte personalizzate: salva qualsiasi PNG in scala di grigi nella cartella <code>textures/brush/</code> e apparirà automaticamente nel modale "Punta" alla prossima apertura.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li>Per aggiungere punte personalizzate, salva file <strong>PNG in scala di grigi</strong> nella cartella <code>textures/brush/</code>: appariranno automaticamente nel modale alla prossima apertura dell'app.</li>
+    <li>Ogni punta ha la sua <strong>Rotazione iniziale</strong> indipendente: sperimenta angoli diversi per ogni texture per scoprire variazioni di tratto inaspettate.</li>
+    <li>Le punte "dry brush" con buchi e striature (es. <code>brush_dry_grain.png</code>) danno effetti di velatura molto realistici quando combinate con la texture carta ruvida.</li>
+    <li>Se una punta sembra troppo grande o troppo piccola rispetto al tratto, ricorda che la <strong>Larghezza</strong> globale del pennello scala tutte le punte proporzionalmente.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── SFONDO ── -->
+<section id="sfondo">
+  <div class="section-label">10</div>
+  <h2>Immagine di Sfondo</h2>
+  <p>Il <strong>BG Panel</strong> (la barra orizzontale subito sotto la top bar) è dedicato all'immagine di sfondo. Puoi caricare una foto di riferimento, un disegno o un progetto fotografato per tracciare sopra il tuo mosaico.</p>
+
+  <h3>Caricare un'immagine</h3>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>📂 Trascina &amp; Rilascia</h4>
+      <p>Trascina qualsiasi file immagine (JPG, PNG, GIF, WebP) direttamente sull'area "Trascina qui" nel BG Panel.</p>
+    </div>
+    <div class="card-mini">
+      <h4>📁 Scegli file</h4>
+      <p>Clicca il pulsante "Scegli file" nel BG Panel per aprire il file manager e selezionare l'immagine.</p>
+    </div>
+  </div>
+
+  <h3>Controlli dopo il caricamento</h3>
+  <p>Dopo aver caricato un'immagine, accanto alla miniatura appaiono i pulsanti:</p>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>Contain</h4>
+      <p>Mostra l'immagine intera dentro il foglio (possibili bande laterali, nessun ritaglio).</p>
+    </div>
+    <div class="card-mini">
+      <h4>Cover</h4>
+      <p>Copre tutto il foglio (possibili ritagli ai bordi, nessuna banda).</p>
+    </div>
+    <div class="card-mini">
+      <h4>↶ Ruota / Ruota ↷</h4>
+      <p>Ruotano lo sfondo di 90° a sinistra o a destra. Utile per orientare foto scattate in verticale.</p>
+    </div>
+    <div class="card-mini">
+      <h4>🗑 Rimuovi</h4>
+      <p>Elimina lo sfondo. La texture carta torna immediatamente visibile.</p>
+    </div>
+  </div>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>L'immagine di sfondo è <strong>non selezionabile e non modificabile</strong> direttamente sul canvas. Usa i pulsanti nel BG Panel per cambiarla. Lo sfondo viene salvato nel progetto <code>.msp.json</code> e ripristinato all'apertura.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li>Per tracciare sopra una foto di riferimento, usa <strong>Contain</strong> per vedere l'intera immagine senza ritagli; passa a <strong>Cover</strong> solo se vuoi che riempia tutto il foglio accettando qualche ritaglio ai bordi.</li>
+    <li>Se lo sfondo è troppo saturo e distrae, ricorda che i tratti a mano libera restano <strong>sopra lo sfondo ma sotto le forme geometriche</strong>: puoi usare le forme per "mascherare" aree del disegno.</li>
+    <li>Rimuovendo lo sfondo, la <strong>texture carta torna visibile automaticamente</strong>: non serve riattivarla manualmente.</li>
+    <li>Se carichi un'immagine in verticale, usa i pulsanti <strong>↶ Ruota</strong> nel BG Panel prima di iniziare a disegnare, per avere il riferimento orientato correttamente.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── PROGETTI ── -->
+<section id="progetti">
+  <div class="section-label">11</div>
+  <h2>Salvare e aprire progetti</h2>
+  <p>I progetti Mosaica si salvano come file <strong>.msp.json</strong>. Contengono tutte le forme, i tratti freehand, gli acquerelli, i colori, le texture applicate, l'immagine di sfondo, l'orientamento del canvas (portrait/landscape) e i parametri correnti di penna e acquerello. La cartella predefinita è:</p>
+
+  <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;margin-bottom:20px;">
+    C:\Users\[utente]\AppData\Roaming\mosaica-workspace-pro\projects\
+  </div>
+
+  <h3>Tre azioni nel menu File</h3>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>💾 Salva Progetto</h4>
+      <p>Dal dropdown <strong>File</strong> in topbar. Apre la finestra di dialogo per scegliere nome e cartella (puoi salvare ovunque, anche su USB/SD). Estensione <code>.msp.json</code>.</p>
+    </div>
+    <div class="card-mini">
+      <h4>📂 Apri Progetto</h4>
+      <p>Dal dropdown <strong>File</strong>. Carica un file <code>.msp.json</code> esistente: tutte le forme, gli sfondi, i tratti e i parametri vengono ripristinati esattamente come erano.</p>
+    </div>
+    <div class="card-mini">
+      <h4>Nuovo progetto</h4>
+      <p>Pulsante viola nel dropdown <strong>File</strong>. Apre un <strong>modale di conferma</strong> perché cancella tutto il canvas. Conferma e parti con un foglio vuoto + un piccolo rettangolo di riferimento al centro.</p>
+    </div>
+    <div class="card-mini">
+      <h4>📋 Persistenza completa</h4>
+      <p>Colori delle forme, texture applicate, parametri dell'acquerello, dimensioni della penna, orientamento del foglio: tutto viene preservato e ripristinato fedelmente.</p>
+    </div>
+  </div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li>Salva spesso con il pulsante <strong>💾 Salva progetto</strong>: il formato <code>.msp.json</code> conserva forme, colori, texture, sfondo e le impostazioni di penna/acquerello.</li>
+    <li>Puoi salvare in qualsiasi cartella del tuo PC; la cartella predefinita è solo un suggerimento e può essere cambiata ogni volta.</li>
+    <li>Prima di avviare una sessione di lavoro lunga, salva una prima versione con un nome di base (es. <em>progetto_v1.msp.json</em>) così puoi tornare indietro in caso di modifiche drastiche.</li>
+    <li>I file <code>.msp.json</code> sono di puro testo (JSON): puoi versionarli con Git o copiarli su backup esterni senza problemi.</li>
+    <li>Anche <strong>l'auto-salvataggio</strong> (vedi sezione successiva) crea file <code>.msp.json</code> con data e ora in modo automatico, così non perdi mai il lavoro.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── AUTO-SAVE ── -->
+<section id="autosave">
+  <div class="section-label">12</div>
+  <h2>Auto-salvataggio</h2>
+  <p>Mosaica salva automaticamente il tuo lavoro <strong>in background</strong> ogni minuto e quando chiudi l'app. Nessuna interazione richiesta: succede da solo.</p>
+
+  <h3>Come funziona</h3>
+  <p>L'auto-salvataggio ha <strong>due modalità</strong> che dipendono dallo stato del progetto:</p>
+
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>① Progetto già aperto</h4>
+      <p>Se hai aperto un file (manualmente o via <em>apertura automatica</em>), l'autosave <strong>sovrascrive in-place</strong> quel file ovunque si trovi: HDD, USB, SD. Non crea duplicati.</p>
+    </div>
+    <div class="card-mini">
+      <h4>② Nuovo progetto non salvato</h4>
+      <p>Se stai lavorando su un foglio nuovo (mai salvato esplicitamente), l'autosave crea un <strong>file di sessione</strong> nella cartella <code>userData/projects/</code> con nome data+ora italiana.</p>
+    </div>
+  </div>
+
+  <h3>Nome del file di sessione</h3>
+  <p>I file di sessione hanno questo formato:</p>
+  <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;">
+    1 Aprile 2026 - 15&amp;30.msp.json
+  </div>
+  <p>Il separatore tra ora e minuti è <code>&amp;</code> (e commerciale) e non <code>:</code> perché su Windows il due punti è riservato e troncherebbe il nome creando file vuoti.</p>
+
+  <h3>Pruning automatico</h3>
+  <p>L'app mantiene un <strong>massimo di 10 file di sessione</strong>. Quando ne crei l'undicesimo, il più vecchio viene cancellato automaticamente. Il file corrente viene <em>sempre</em> preservato. I progetti che hai salvato manualmente con nomi personalizzati <strong>non vengono mai toccati</strong>: il pruning agisce solo sui file che corrispondono al pattern data+ora.</p>
+
+  <h3>Frequenza e condizioni</h3>
+  <ul>
+    <li><strong>Ogni 60 secondi</strong>, ma solo se il canvas è "dirty" (modificato dall'ultimo save).</li>
+    <li>Anti-spam: <strong>almeno 5 secondi</strong> tra un save e l'altro.</li>
+    <li>Durante la serializzazione del progetto, l'autosave è bloccato per evitare loop.</li>
+  </ul>
+
+  <h3>Indicatore in Status Bar</h3>
+  <p>Quando un autosave parte, nella <strong>status bar in basso</strong> appare brevemente <strong>"💾 Auto-salvataggio in corso…"</strong>, poi <strong>"✔ Auto-salvato"</strong> in verde per circa 2 secondi. Se il salvataggio fallisce (es. USB scollegata) viene mostrato un avviso.</p>
+
+  <h3>Chiusura dell'app</h3>
+  <p>Quando chiudi l'app con la X, Alt+F4 o un altro metodo standard, Mosaica:</p>
+  <ol class="step-list">
+    <li>
+      <div>
+        <div class="step-title">Intercetta la chiusura</div>
+        <div class="step-body">Il sistema operativo viene "convinto" ad aspettare. Si apre un <strong>overlay informativo</strong> a schermo intero.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Esegue l'auto-salvataggio</div>
+        <div class="step-body">Salva il progetto corrente (in-place o come file di sessione, come sopra). L'overlay mostra il path salvato e uno spinner.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Conto alla rovescia di 4 secondi</div>
+        <div class="step-body">Dopo il salvataggio parte un countdown di 4 secondi, poi l'app si chiude automaticamente. Puoi accelerare cliccando <strong>Esci ora</strong>.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Pulsante "Annulla chiusura"</div>
+        <div class="step-body">Se hai cliccato X per errore, clicca <strong>Annulla chiusura</strong> nell'overlay: l'app resta aperta e puoi continuare a lavorare.</div>
+      </div>
+    </li>
+  </ol>
+
+  <div class="callout success"><div class="callout-icon"></div><div>Se l'app crasha o il PC viene spento bruscamente, riapri Mosaica e dal menu <strong>File → Apri progetto</strong> cerca nella cartella <code>%APPDATA%\mosaica-workspace-pro\projects\</code> il file di sessione con la data e l'ora più recente: troverai il tuo lavoro fino al penultimo autosave (perdita massima ≈ 60 secondi).</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li>Se vuoi un nome significativo per il progetto, <strong>salvalo esplicitamente</strong> con File → Salva progetto: da quel momento l'autosave sovrascrive quel file invece di creare uno di sessione.</li>
+    <li>I file di sessione restano nella cartella userData anche dopo la chiusura: ogni 10 file il più vecchio viene cancellato. Se ti serve trattenerne uno particolare, copialo altrove o rinominalo (l'app non lo cancellerà più perché non corrisponde al pattern data+ora).</li>
+    <li>Quando lavori su un progetto salvato su una <strong>chiavetta USB</strong> o <strong>scheda SD</strong>, l'autosave sovrascrive direttamente il file lì: non scollegare il supporto durante il lavoro o vedrai un errore "Cartella non disponibile".</li>
+    <li>Il pulsante <strong>"Annulla chiusura"</strong> è una rete di sicurezza: se chiudi per sbaglio, hai 4 secondi (più il tempo del salvataggio) per fermare la chiusura.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── AUTO-OPEN ── -->
+<section id="autoopen">
+  <div class="section-label">13</div>
+  <h2>Apertura automatica dell'ultimo progetto</h2>
+  <p>Mosaica può aprire automaticamente l'ultimo progetto salvato ogni volta che lanci l'app. La preferenza si configura dal dropdown <strong>File</strong> in topbar.</p>
+
+  <div class="callout success"><div class="callout-icon"></div><div>Segui i passaggi nell'ordine indicato: <strong>prima salva, poi spunta la checkbox</strong>. Se spunti prima di salvare, l'app ti avvisa e non attiva la funzione.</div></div>
+
+  <ol class="step-list">
+    <li>
+      <div>
+        <div class="step-title">Lavora sul tuo progetto</div>
+        <div class="step-body">Crea o modifica il mosaico come desideri. Aggiungi forme, colori, disegni.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Salva il progetto con "Salva Progetto"</div>
+        <div class="step-body">Apri il dropdown <strong>File</strong> in topbar e clicca 💾 Salva progetto. Scegli nome e cartella. Aspetta la conferma "Progetto salvato ✔".</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Spunta "Apri progetto all'avvio"</div>
+        <div class="step-body">Sempre nel dropdown <strong>File</strong> trovi la checkbox in fondo. Spuntala <strong>dopo</strong> aver salvato. Vedrai un messaggio di conferma.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Chiudi l'app e riapri</div>
+        <div class="step-body">Al prossimo avvio, il progetto si apre automaticamente durante il caricamento. Nessuna azione richiesta.</div>
+      </div>
+    </li>
+  </ol>
+
+  <h3>Come disattivare l'apertura automatica</h3>
+  <p>Deseleziona la checkbox "Apri progetto all'avvio". La prossima volta che apri l'app troverai un canvas vuoto.</p>
+
+  <h3>Come cambiare il progetto automatico</h3>
+  <p>Apri o salva un altro progetto, poi spunta di nuovo la checkbox. Il nuovo file sostituirà quello precedente come progetto automatico.</p>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>Se spunti la checkbox <strong>prima</strong> di salvare, vedrai un avviso. Salva prima il progetto, poi spunta la checkbox. L'ordine è importante.</div></div>
+
+  <h3>Dove viene salvata la configurazione</h3>
+  <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;">
+    C:\Users\[utente]\AppData\Roaming\mosaica-workspace-pro\autoOpen.json
+  </div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li>L'ordine corretto è sempre: <strong>1) Salva il progetto → 2) Spunta "Apri progetto all'avvio"</strong>. Se spunti prima di salvare, l'app ti avvisa e non attiva la funzione.</li>
+    <li>Per cambiare il progetto automatico, basta aprirne o salvarne un altro e riselezionare la checkbox: il nuovo file sovrascrive il precedente in <code>autoOpen.json</code>.</li>
+    <li>Se vuoi avviare l'app con un canvas vuoto, deseleziona la checkbox: al prossimo riavvio troverai il foglio bianco di default.</li>
+    <li>Apertura automatica e auto-salvataggio lavorano insieme: il progetto auto-aperto è quello che riceverà gli autosave in-place.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── FULLSCREEN ── -->
+<section id="fullscreen">
+  <div class="section-label">14</div>
+  <h2>Modalità schermo intero</h2>
+  <p>Mosaica si avvia <strong>sempre in modalità schermo intero</strong> per massimizzare lo spazio di lavoro. Puoi uscire ed entrare in qualsiasi momento.</p>
+
+  <h3>Tre modi per uscire dal fullscreen</h3>
+  <ul>
+    <li>Clicca il pulsante <strong>🗗</strong> in alto a destra nella top bar.</li>
+    <li>Premi <kbd>Esc</kbd> (solo se non hai modali o dropdown aperti).</li>
+    <li>Usa la scorciatoia OS standard (<kbd>F11</kbd> su Windows, etc.).</li>
+  </ul>
+
+  <h3>Tre modi per rientrare in fullscreen</h3>
+  <ul>
+    <li>Clicca il pulsante <strong>⛶</strong> in alto a destra nella top bar (visibile solo fuori dal fullscreen).</li>
+    <li>Usa la scorciatoia OS standard.</li>
+  </ul>
+
+  <p>Quando entri in fullscreen, appare un breve <strong>toast in alto</strong> che ricorda di premere ESC per uscire.</p>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>I due pulsanti ⛶ e 🗗 si scambiano automaticamente in base allo stato della finestra: visibile solo quello pertinente. Lo stato è sincronizzato anche con i cambi via tastiera OS.</div></div>
+</section>
+
+<!-- ── ESPORTA ── -->
+<section id="esporta">
+  <div class="section-label">15</div>
+  <h2>Esportare il lavoro</h2>
+  <p>Il dropdown <strong>Esporta</strong> in topbar offre tre voci, ciascuna con un modale dedicato per scegliere il contenuto da esportare.</p>
+
+  <div class="card-grid col3">
+    <div class="card-mini">
+      <h4>📄 PDF A4</h4>
+      <p>Esporta in PDF formato A4 reale a <strong>300 DPI</strong>. Rispetta l'orientamento (portrait/landscape).</p>
+    </div>
+    <div class="card-mini">
+      <h4>🖼️ PNG / SVG</h4>
+      <p>PNG completo del canvas oppure SVG vettoriale (con riempimento o solo contorni).</p>
+    </div>
+    <div class="card-mini">
+      <h4>✏️ Mano libera</h4>
+      <p>Esporta solo i tratti freehand e acquerello, come SVG vettoriale o PNG ad alta risoluzione, in un file unico o separati.</p>
+    </div>
+  </div>
+
+  <h3>PDF — 5 modalità di esportazione</h3>
+  <p>Il modale "Esporta PDF (A4)" offre cinque modalità mutuamente esclusive:</p>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>🖼️ Tutto il canvas completo</h4>
+      <p>Esporta esattamente ciò che vedi: sfondo, texture, acquerello, mano libera, forme.</p>
+    </div>
+    <div class="card-mini">
+      <h4>📜 Solo forme su texture carta</h4>
+      <p>Solo le forme geometriche, sopra la texture carta. Niente acquerello né mano libera.</p>
+    </div>
+    <div class="card-mini">
+      <h4>🌄 Solo forme con immagine di sfondo</h4>
+      <p>Solo le forme geometriche, sopra l'immagine di sfondo caricata. Disabilitato se non hai uno sfondo.</p>
+    </div>
+    <div class="card-mini">
+      <h4>⬜ Solo forme su sfondo bianco</h4>
+      <p>Solo le forme, sfondo bianco solido. Ideale per stampa neutra.</p>
+    </div>
+    <div class="card-mini">
+      <h4>🔲 Solo forme su sfondo trasparente</h4>
+      <p>Solo le forme. La maggior parte dei lettori PDF mostra il bianco; alcuni mostrano la trasparenza reale.</p>
+    </div>
+  </div>
+
+  <h3>PNG / SVG — 3 modalità di esportazione</h3>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>🖼️ PNG completo del canvas</h4>
+      <p>Esporta tutto ciò che vedi: sfondo, texture carta, forme, mano libera, acquerello. Alta risoluzione.</p>
+    </div>
+    <div class="card-mini">
+      <h4>🧩 SVG con riempimento</h4>
+      <p>Solo forme geometriche con il loro colore di riempimento e posizione esatta. Sfondo trasparente. Texture bitmap rese come <strong>colore medio</strong> (vedi nota laser CAM).</p>
+    </div>
+    <div class="card-mini" style="grid-column: 1 / -1;">
+      <h4>✏️ SVG solo contorni</h4>
+      <p>Solo i contorni delle forme: stroke del colore di riempimento se è tinta unita, nero se la forma ha una texture. Sfondo trasparente. Ideale per <strong>taglio laser</strong> o plotter da taglio.</p>
+    </div>
+  </div>
+
+  <div class="callout tip"><div class="callout-icon"></div><div><strong>Compatibilità laser CAM</strong><br>
+  L'SVG generato è ottimizzato per <strong>LightBurn</strong> e <strong>Beam Studio</strong> (Flux BeamBox Pro). Le texture bitmap di Fabric.js verrebbero altrimenti incorporate come pattern base64, che LightBurn ignora silenziosamente e Beam Studio rigetta. Mosaica le sostituisce con il colore medio della texture, e ripulisce header, DOCTYPE e namespace per compatibilità totale.</div></div>
+
+  <h3>Mano libera — file unico o separati</h3>
+  <p>Il modale "Esporta Disegno a Mano Libera" elenca tutti i tratti penna e acquerello con un'anteprima. Puoi:</p>
+  <ul>
+    <li>Selezionare singole linee o tutte insieme con checkbox.</li>
+    <li>Scegliere il formato: <strong>SVG</strong> (vettoriale, scalabile infinitamente) o <strong>PNG</strong> (alta risoluzione).</li>
+    <li>Esportare in un <strong>unico file</strong> (tutte insieme) o in <strong>file separati</strong> (uno per linea).</li>
+  </ul>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li>Per la <strong>stampa professionale</strong> usa il PDF A4 a 300 DPI in modalità "Tutto il canvas" oppure "Solo forme su texture carta": entrambi preservano le dimensioni reali in millimetri.</li>
+    <li>Il formato <strong>SVG contorni</strong> è ideale per il <strong>taglio laser</strong> (LightBurn / Beam Studio / RDWorks) o il plotter da taglio: stroke nero per le texture, colore originale per i fill tinta unita.</li>
+    <li>L'<strong>SVG con riempimento</strong> renderizza le texture come colore medio per garantire l'importazione nei software laser CAM: se ti serve la texture vera, esporta in PNG o PDF.</li>
+    <li>Esportando i tratti freehand come <strong>SVG</strong>, il <code>mix-blend-mode</code> viene preservato: aprilo in un browser moderno o in Illustrator per vedere correttamente la sovrapposizione dei colori.</li>
+    <li>Il <strong>PNG completo</strong> viene generato ad alta risoluzione: ottimo per presentazioni o post-produzione in Photoshop.</li>
+    <li>Quando esporti i tratti freehand in modalità <strong>File separati</strong>, ogni linea viene salvata singolarmente: utile se devi animare o trattare i layer individualmente.</li>
+  </ul></div></div>
+</section>
+  
+<!-- ── TAVOLETTA WACOM ── -->
+<section id="wacom">
+  <div class="section-label">16</div>
+  <h2>Tavoletta Wacom — pressione, inclinazione, tasti penna</h2>
+  <p>Mosaica integra un sistema completo per tavolette grafiche Wacom (e qualsiasi altra tavoletta che esponga <code>PointerEvent.pressure</code>). La pressione è <strong>vera, punto-per-punto</strong>: ogni segmento del tratto memorizza la propria pressione, viene serializzato nei progetti <code>.msp.json</code>, esportato in SVG, e partecipa a Undo/Redo come qualsiasi altro oggetto Fabric.</p>
+
+  <h3>Dove trovi le impostazioni Wacom</h3>
+  <p>Nella <strong>top bar in alto a destra</strong>, accanto al pulsante 📖 Guida, c'è il pulsante <strong>🖊️ Wacom</strong>. Un piccolo pallino accanto al nome funge da indicatore live:</p>
+  <ul>
+    <li><strong>Pallino verde</strong> — tavoletta rilevata e attiva</li>
+    <li><strong>Pallino spento</strong> — tavoletta non rilevata (o non ancora usata in questa sessione)</li>
+  </ul>
+  <p>Clicca il pulsante per aprire il <strong>modale di configurazione Wacom</strong>, dove trovi stato connessione, modulazione pressione, inclinazione, tasti penna, calibrazione e un canvas di test live.</p>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Mosaica rileva la tavoletta in <strong>due modi complementari</strong>: via WMI (lettura device USB su Windows) e a runtime intercettando il primo <code>PointerEvent</code> con <code>pointerType === "pen"</code>. Anche se la rilevazione hardware fallisce, la pressione funziona comunque appena tocchi la tavoletta.</div></div>
+
+  <h3>Compatibilità</h3>
+  <p>Modello di riferimento: <strong>Wacom Bamboo Pen CTL-460</strong> su Windows 10/11 con driver Wacom 6.3.x+ in modalità <strong>Windows Ink</strong>. Funziona con qualsiasi altra tavoletta Wacom (Intuos, Cintiq, One) e con qualsiasi penna che esponga <code>PointerEvent.pressure</code>.</p>
+  <p>Se i driver Wacom non sono in modalità <em>Windows Ink</em>, il modale mostra un avviso: senza Windows Ink la pressione non viene esposta al browser e i fattori restano a 1.0.</p>
+
+  <h3>Pannello 1 — Stato connessione</h3>
+  <ul>
+    <li><strong>Indicatore "✓ Connessa"</strong> (verde) o <strong>"✗ Non rilevata"</strong> (rosso) con elenco dei device rilevati.</li>
+    <li><strong>🔄 Rileva di nuovo</strong> — forza una nuova scansione WMI dei device.</li>
+    <li><strong>🪟 Apri Preferenze Wacom</strong> — lancia l'app ufficiale dei driver Wacom (se installata) per modificare le impostazioni di sistema.</li>
+  </ul>
+
+  <h3>Pannello 2 — Pressione</h3>
+  <p>Una sola checkbox master <strong>"Abilita integrazione Wacom"</strong> attiva/disattiva tutto il sistema. Sotto, i controlli di pressione:</p>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>Sensibilità (0%–200%)</h4>
+      <p>Moltiplicatore globale della pressione letta dalla penna. 100% = come letta dal driver. Aumenta se devi premere troppo per ottenere tratti spessi.</p>
+    </div>
+    <div class="card-mini">
+      <h4>Curva di risposta</h4>
+      <p>Quattro modalità:<br>
+      • <strong>Lineare</strong> — pressione 1:1<br>
+      • <strong>Soft</strong> — più sensibile a pressioni basse<br>
+      • <strong>Hard</strong> — richiede pressione maggiore<br>
+      • <strong>Stairs</strong> — quattro gradini netti (effetto stilizzato)</p>
+    </div>
+  </div>
+
+  <h3>Pannello 3 — Cosa modula la pressione</h3>
+  <p>Tre canali indipendenti, ciascuno con la propria checkbox e i propri estremi <em>min/max factor</em>:</p>
+  <div class="card-grid col3">
+    <div class="card-mini">
+      <h4>📏 Larghezza (Width)</h4>
+      <p>Min/Max factor della larghezza del tratto. Default 20%–120%: pressione zero = 1/5 della width, pressione massima = +20%. Si applica sia alla Penna che all'Acquerello.</p>
+    </div>
+    <div class="card-mini">
+      <h4>👻 Opacità (Opacity)</h4>
+      <p>Min/Max factor dell'opacità del tratto. Default 35%–100%. Crea effetti "leggero/marcato" molto naturali per la penna e per le velature acquerello.</p>
+    </div>
+    <div class="card-mini">
+      <h4>💧 Flow (Acquerello)</h4>
+      <p>Min/Max factor del flusso di colore. Default 40%–100%. Modula la quantità di pigmento depositato a ogni timbro dell'acquerello: realismo pieno alla pennellata.</p>
+    </div>
+  </div>
+
+  <h3>Pannello 4 — Inclinazione (Tilt)</h3>
+  <p>Le tavolette che espongono <code>tiltX/tiltY</code> (Intuos Pro, Cintiq, alcune Bamboo) permettono di modulare il tratto anche in base all'inclinazione della penna. <strong>La Bamboo CTL-460 non supporta tilt</strong> (penna senza sensori): il pannello di test diagnosi mostra "tilt non disponibile" e i moltiplicatori restano 1.0.</p>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>Width tilt amount (0%–100%)</h4>
+      <p>Quanto la pennellata si allarga quando inclini la penna. Default 50%: penna inclinata al massimo = +50% di larghezza, per simulare il "lato" della punta.</p>
+    </div>
+    <div class="card-mini">
+      <h4>Rotate tilt amount (0%–100%)</h4>
+      <p>Quanto il <strong>timbro acquerello</strong> ruota seguendo l'orientamento della penna. Default 100%: il timbro segue completamente l'inclinazione, come un pennello reale "di traverso".</p>
+    </div>
+  </div>
+
+  <h3>Pannello 5 — Tasti laterali della penna</h3>
+  <p>Quasi tutte le penne Wacom hanno <strong>due tasti laterali</strong> sull'impugnatura. Mosaica li chiama "tasto BASSO" (più vicino alla punta) e "tasto ALTO". Puoi mappare ogni tasto a un'azione tra:</p>
+  <div class="card-grid col3">
+    <div class="card-mini"><h4>⊘ Nessuna azione</h4><p>Tasto disabilitato.</p></div>
+    <div class="card-mini"><h4>🖱️ Click destro (default)</h4><p>Comportamento standard: apre il menu contestuale del sistema.</p></div>
+    <div class="card-mini"><h4>⚡ Doppio click</h4><p>Sintetizza un <code>dblclick</code> sul punto del puntatore — utile per creare un nuovo rettangolo o aprire campi inline.</p></div>
+    <div class="card-mini"><h4>🧼 Gomma rapida</h4><p>Attiva lo strumento Gomma. Premere di nuovo torna allo strumento precedente.</p></div>
+    <div class="card-mini"><h4>✋ Pan canvas</h4><p>Mentre tieni premuto il tasto, trascini per fare pan (equivale ad <kbd>Alt</kbd>+drag).</p></div>
+    <div class="card-mini"><h4>↩️ Annulla / ↪️ Ripeti</h4><p>Equivalente a <kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd>.</p></div>
+    <div class="card-mini"><h4>✏️ Toggle Penna</h4><p>Attiva/disattiva lo strumento Penna libera.</p></div>
+    <div class="card-mini"><h4>💧 Toggle Acquerello</h4><p>Attiva/disattiva lo strumento Acquerello.</p></div>
+    <div class="card-mini"><h4>⭕ Toggle Lazo</h4><p>Attiva/disattiva la selezione con lazo.</p></div>
+  </div>
+
+  <h3>Calibrazione tasti penna — perché serve</h3>
+  <p>Driver Wacom diversi mappano i tasti laterali a valori di <code>PointerEvent.button</code> diversi: alcuni sparano <code>button=2</code> per il basso, altri emettono direttamente un evento <code>contextmenu</code>, altri ancora usano <code>button=4</code> o <code>5</code> per il tasto alto, e su certi driver il tasto alto arriva <strong>solo</strong> come <code>auxclick</code>. Per evitare euristiche cieche, Mosaica permette di <strong>imparare</strong> il codice del tuo specifico driver.</p>
+  <ol class="step-list">
+    <li>
+      <div>
+        <div class="step-title">Clicca "Calibra tasto BASSO"</div>
+        <div class="step-body">Il banner diventa giallo: <em>"⏳ Premi ora il tasto BASSO della penna..."</em> — hai 10 secondi.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Premi fisicamente il tasto basso</div>
+        <div class="step-body">Mosaica cattura il codice (es. <code>code 2</code>, oppure <code>contextmenu sintetico</code> se il driver sparа solo contextmenu) e lo salva in <code>learnedLowerButtonCode</code>.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Ripeti per il tasto ALTO</div>
+        <div class="step-body">Stesso procedimento. Se il tasto alto non viene rilevato dopo qualche tentativo, il tuo driver non lo emette al browser (limite hardware/driver): in quel caso, configura il tasto alto direttamente nelle <em>Preferenze Wacom</em> ufficiali.</div>
+      </div>
+    </li>
+  </ol>
+  <p>Il pulsante <strong>"Reset calibrazione"</strong> torna agli euristici predefiniti.</p>
+
+  <h3>Canvas di test live</h3>
+  <p>In fondo al modale c'è un piccolo <strong>canvas di test</strong>: traccia liberamente con la penna per vedere in tempo reale:</p>
+  <ul>
+    <li><strong>Pressione corrente</strong> in percentuale (0–100%)</li>
+    <li><strong>Inclinazione</strong> (magnitude e angolo) — oppure "tilt non disponibile" se la penna non li supporta</li>
+    <li><strong>Anteprima del tratto</strong> con le impostazioni correnti applicate</li>
+  </ul>
+  <p>Il pulsante <strong>"Cancella test"</strong> pulisce il canvas; <strong>"Ripristina default"</strong> riporta tutte le impostazioni Wacom ai valori di fabbrica (dopo conferma).</p>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>Le impostazioni Wacom vengono salvate in <code>localStorage</code> (chiave <code>mosaica_wacom_settings</code>) e <strong>persistono fra sessioni</strong>. Sono indipendenti dai progetti <code>.msp.json</code>: cambiando computer dovrai riconfigurare la sensibilità preferita.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li>Se hai una <strong>Bamboo CTL-460</strong>, la tilt non funziona (mancano i sensori): disabilita <em>Modula inclinazione</em> per evitare ogni overhead inutile, e concentrati su Pressione + Tasti penna.</li>
+    <li>Per uno stile "<strong>tratto vivo</strong>", parti dal default e abbassa il <em>minWidthFactor</em> al 10%: ottieni inizi e code di tratto molto sottili.</li>
+    <li>Per disegno tecnico o lettering, usa la curva <strong>Hard</strong>: la pressione bassa scrive sottilissimo, la pressione media tiene la linea stabile.</li>
+    <li>Mappa il tasto basso su <strong>↩️ Annulla</strong> e il tasto alto su <strong>🧼 Gomma rapida</strong>: è il setup più comodo per disegno + correzione veloce senza staccare la penna dalla tavoletta.</li>
+    <li>Se i tasti penna non rispondono, prima di tutto <strong>calibrali</strong>: l'euristica di fallback funziona sul 70% dei driver, ma calibrare li sblocca al 100%.</li>
+    <li>Se devi modificare le aree attive della tavoletta, la pressione del sistema o l'orientamento, usa <strong>🪟 Apri Preferenze Wacom</strong>: quello è il pannello ufficiale dei driver.</li>
+    <li>Disattivando l'integrazione Wacom (checkbox master), l'app si comporta come con un mouse: tutti i fattori tornano a 1.0 e gli slider degli strumenti riprendono effetto pieno.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── MAPPATURA MOUSE & TASTIERA ── -->
+<section id="inputmapping">
+  <div class="section-label">17</div>
+  <h2>Mappatura Mouse &amp; Tastiera</h2>
+  <p>Le scorciatoie classiche di Mosaica (Ctrl+Z/C/V/X, Delete, Ctrl+/−, frecce, Ctrl+R, doppio click) sono <strong>protette e sempre attive</strong>. Il modulo Mappatura Input ti permette di aggiungere <em>oltre</em> a queste:</p>
+  <ul>
+    <li><strong>Azioni sui tasti singoli del mouse</strong> (sinistro, centrale/rotella, destro, X1, X2)</li>
+    <li><strong>Combinazioni di tasti mouse</strong> premuti simultaneamente (chord)</li>
+    <li><strong>Scorciatoie tastiera personalizzate</strong> (es. <kbd>Ctrl</kbd>+<kbd>L</kbd> = toggle Lazo)</li>
+  </ul>
+
+  <h3>Dove trovi la mappatura</h3>
+  <p>Nella <strong>top bar in alto a destra</strong>, dopo il pulsante 🖊️ Wacom, c'è il pulsante <strong>🖱️⌨️ Input</strong>. Cliccalo per aprire il modale di configurazione, organizzato in tre sezioni più un blocco di opzioni avanzate.</p>
+
+  <h3>Sezione 1 — Tasti singoli del mouse</h3>
+  <p>Per ogni codice <code>MouseEvent.button</code> puoi assegnare un'azione:</p>
+  <table class="shortcut-table">
+    <thead><tr><th>Codice</th><th>Nome</th><th>Default in Mosaica</th></tr></thead>
+    <tbody>
+      <tr><td><code>0</code></td><td>Sinistro</td><td>Nessuna (riservato a selezione/disegno)</td></tr>
+      <tr><td><code>1</code></td><td>Centrale (rotella)</td><td>Nessuna</td></tr>
+      <tr><td><code>2</code></td><td>Destro</td><td>Nessuna (riservato alla rotazione fine sulle forme)</td></tr>
+      <tr><td><code>3</code></td><td>X1 / Browser Back (laterale)</td><td>↩️ Annulla</td></tr>
+      <tr><td><code>4</code></td><td>X2 / Browser Forward (laterale)</td><td>↪️ Ripeti</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Sui mouse <strong>HP HSA-P007M</strong>, sui gaming mouse e su molti mouse "browser back/forward", i due tasti laterali emettono <code>button=3</code> e <code>button=4</code>. Mosaica intercetta questi codici sia da <code>mousedown</code>, sia da <code>auxclick</code>, sia dai tasti virtuali <code>BrowserBack</code>/<code>BrowserForward</code>: i mapping funzionano qualsiasi sia il driver.</div></div>
+
+  <h3>🎯 Rileva codice tasto — scopri che codice manda il tuo mouse</h3>
+  <p>Se hai un mouse con tasti esotici (pollice, DPI, programmabili) e non sai che <code>button code</code> emettono, premi <strong>"🎯 Rileva codice tasto"</strong>: il banner giallo dice <em>"⏳ Premi ora il tasto del mouse che vuoi rilevare..."</em>. Premi il tasto fisico, Mosaica cattura il codice e lo aggiunge alla lista così puoi assegnargli un'azione dal menù a tendina. Timeout di sicurezza dopo 15 secondi.</p>
+
+  <h3>Sezione 2 — Combinazioni (chord)</h3>
+  <p>Premi <strong>"➕ Aggiungi combinazione"</strong> e tieni premuti contemporaneamente i tasti del mouse che vuoi combinare (es. sinistro + destro). Rilascia: dopo 0,5 secondi di idle, Mosaica registra la combinazione. Esempio classico:</p>
+  <ul>
+    <li><strong>Sinistro + Destro</strong> → Annulla</li>
+    <li><strong>Destro + Centrale</strong> → Zoom reset</li>
+    <li><strong>X1 + X2</strong> → Salva progetto</li>
+  </ul>
+  <p>Le combinazioni hanno <strong>priorità assoluta</strong> sui singoli: appena il chord si completa, l'azione del singolo che lo compone non scatta. Inoltre, i chord che includono il tasto destro <strong>bloccano la rotazione fine</strong> di mouseObserver, così non si scatena per errore.</p>
+
+  <p>Ogni combinazione registrata ha tre controlli: il <strong>menu azione</strong> a destra, il pulsante <strong>🎯 Riapprendi</strong> (per cambiare i tasti senza eliminare il mapping) e <strong>✕</strong> per rimuoverla.</p>
+
+  <h3>Sezione 3 — Scorciatoie tastiera personalizzate</h3>
+  <p>Premi <strong>"➕ Aggiungi scorciatoia"</strong>: il banner ti chiede di premere la combinazione (modificatori + tasto). Esempi:</p>
+  <ul>
+    <li><kbd>Ctrl</kbd>+<kbd>L</kbd> → Toggle Lazo <em>(default già configurato)</em></li>
+    <li><kbd>Alt</kbd>+<kbd>W</kbd> → Toggle Acquerello</li>
+    <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> → Duplica selezione</li>
+    <li><kbd>F2</kbd> → Toggle Penna</li>
+  </ul>
+
+  <div class="callout warning"><div class="callout-icon"></div><div><strong>Override delle scorciatoie hardcoded</strong> — le scorciatoie classiche di Mosaica (Ctrl+Z/C/V/X, Delete, Ctrl+/−, Ctrl+R, frecce) restano sempre attive di default. Se aggiungi una scorciatoia personalizzata con la <em>stessa combinazione</em>, la tua versione avrà la <strong>precedenza</strong> (l'override è esplicito: sai cosa stai facendo). Rimuovendola, torna in vigore la hardcoded.</div></div>
+
+  <p>I modificatori <kbd>Ctrl</kbd> e <kbd>Cmd</kbd> (su macOS) sono trattati come <strong>equivalenti</strong>: una scorciatoia salvata come "Ctrl+L" matcha anche "Cmd+L".</p>
+
+  <h3>Tutte le azioni mappabili</h3>
+  <div class="card-grid col3">
+    <div class="card-mini"><h4>↩️ Annulla</h4><p>Equivalente a Ctrl+Z. Funziona anche se la cronologia ha un singolo passo.</p></div>
+    <div class="card-mini"><h4>↪️ Ripeti</h4><p>Equivalente a Ctrl+Shift+Z / Ctrl+Y.</p></div>
+    <div class="card-mini"><h4>📋 Copia / 📌 Incolla / ✂️ Taglia</h4><p>Stessa logica di Ctrl+C/V/X, anche per la selezione multipla.</p></div>
+    <div class="card-mini"><h4>🗑️ Elimina selezione</h4><p>Cancella oggetto o selezione attiva (Delete/Backspace).</p></div>
+    <div class="card-mini"><h4>🔍➕ Zoom in / 🔍➖ Zoom out / 🔍⤾ Reset</h4><p>Zoom verso il centro dello schermo. Reset = Ctrl+0.</p></div>
+    <div class="card-mini"><h4>⭕ Toggle Lazo / ✏️ Penna / 💧 Acquerello / 🧼 Gomma / 🖱️ Selezione</h4><p>Cinque toggle per gli strumenti della left toolbar.</p></div>
+    <div class="card-mini"><h4>✋ Pan canvas (tieni premuto)</h4><p>Mentre tieni premuto il tasto/combo, il drag fa pan come Alt+drag.</p></div>
+    <div class="card-mini"><h4>⚡ Doppio click</h4><p>Sintetizza un dblclick sul punto del cursore — utile per creare rettangoli rapidi col mouse o con tasti laterali.</p></div>
+    <div class="card-mini"><h4>💾 Salva progetto / 📂 Apri progetto</h4><p>Equivalenti ai pulsanti del dropdown File.</p></div>
+    <div class="card-mini"><h4>❎ Deseleziona tutto</h4><p>Discard active object + chiude il menu radiale.</p></div>
+    <div class="card-mini"><h4>🧬 Duplica selezione</h4><p>Copia + Incolla in un colpo solo, con offset standard di 25 px.</p></div>
+  </div>
+
+  <h3>⚙️ Opzioni avanzate</h3>
+  <p>Aprendo il blocco <strong>"⚙️ Opzioni avanzate"</strong> in fondo al modale trovi tre regolazioni fini:</p>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>Ritardo chord disambiguation (0–300 ms)</h4>
+      <p>Quando premi un tasto che <em>potrebbe</em> far parte di una combinazione mappata, Mosaica attende N millisecondi prima di scattare il singolo, per dare tempo alla combo di formarsi. Default <strong>80 ms</strong>: equilibrato fra reattività e precisione del chord. Imposta a 0 per reattività massima (rischio: il singolo può "doppio-fuoco" prima del chord).</p>
+    </div>
+    <div class="card-mini">
+      <h4>Preserva rotazione fine sul tasto destro</h4>
+      <p>Se attiva (default <strong>ON</strong>), il mapping single sul tasto destro <em>non scatta</em> quando il puntatore è sopra una forma ruotabile: in quel caso prevale la rotazione fine di mouseObserver (destro + rotella). Sulle aree vuote del workspace il mapping si attiva normalmente.</p>
+    </div>
+    <div class="card-mini" style="grid-column: 1 / -1;">
+      <h4>Sospendi in modalità disegno</h4>
+      <p>Se attiva (default <strong>ON</strong>), quando uno strumento di disegno è attivo (Penna, Acquerello, Gomma) i mapping single sul tasto sinistro vengono sospesi: il sinistro serve a disegnare. Le combinazioni e le scorciatoie tastiera continuano a funzionare normalmente.</p>
+    </div>
+  </div>
+
+  <h3>Abilita / Disabilita / Reset</h3>
+  <ul>
+    <li>La checkbox <strong>"Abilita mapping personalizzati"</strong> in alto disattiva globalmente il modulo: si torna al comportamento standard (sx=selezione, dx=rotazione su forme). Utile come "kill switch" se vuoi confrontare comportamenti.</li>
+    <li><strong>"🔄 Ripristina default"</strong> in fondo: riporta tutti i mapping ai valori di fabbrica (X1→Undo, X2→Redo, Ctrl+L→Lazo, nessun chord configurato).</li>
+  </ul>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Le impostazioni di mappatura vengono salvate in <code>localStorage</code> (chiave <code>mosaica_input_mapping_settings</code>) e <strong>persistono fra sessioni</strong>. Sono indipendenti dai progetti <code>.msp.json</code>.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li>Se hai un mouse con i tasti laterali, lascia i default <strong>X1→Annulla, X2→Ripeti</strong>: è il setup più produttivo per chi disegna mosaici, dove sbagliare e correggere è continuo.</li>
+    <li>Una combinazione comoda è <strong>Sinistro+Destro → Deseleziona tutto</strong>: con due dita "spegni" qualunque oggetto attivo senza dover cliccare altrove.</li>
+    <li>Per disegnatori che usano <strong>la tastiera con la sinistra</strong>: mappa <kbd>F1</kbd> → Penna, <kbd>F2</kbd> → Acquerello, <kbd>F3</kbd> → Gomma, <kbd>F4</kbd> → Lazo. Cambio strumento senza alzare lo sguardo.</li>
+    <li>Se una scorciatoia non funziona, controlla se sei dentro un <strong>campo di testo</strong> (Inspector, dimensioni W/H, calibrazione): i mapping tastiera sono sospesi quando un input è focalizzato — esattamente come le scorciatoie hardcoded.</li>
+    <li>Se aggiungi un chord che include il tasto destro, ricordati che il sistema <strong>blocca anche la rotazione fine</strong> di mouseObserver quando il chord scatta: scegli combinazioni che non interferiscano col tuo workflow di rotazione.</li>
+    <li>Per debug, apri la <strong>console DevTools</strong> (Ctrl+Shift+I): i due moduli stampano i mapping caricati all'avvio (<code>[InputMapping] modulo inizializzato — prefs: …</code> e <code>[Wacom] Modulo inizializzato — prefs: …</code>).</li>
+  </ul></div></div>
+</section>
+
+<!-- ── SCORCIATOIE ── -->
+<section id="scorciatoie">
+  <div class="section-label">18</div>
+  <h2>Scorciatoie da tastiera</h2>
+
+  <h3>Cronologia e appunti</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Tasto</th><th>Azione</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>Annulla l'ultima azione (Undo)</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>Ripeti l'ultima azione annullata (Redo)</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>C</kbd></td><td>Copia l'oggetto o la selezione multipla</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>V</kbd></td><td>Incolla mantenendo le posizioni relative (offset +25 px)</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>X</kbd></td><td>Taglia l'oggetto o la selezione</td></tr>
+      <tr><td><kbd>Delete</kbd> / <kbd>Backspace</kbd></td><td>Elimina l'oggetto o la selezione</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Zoom e vista</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Tasto</th><th>Azione</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>+</kbd></td><td>Zoom in (centrato sullo schermo)</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>−</kbd></td><td>Zoom out</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>0</kbd></td><td>Ripristina zoom e posizione originale</td></tr>
+      <tr><td>Rotella mouse</td><td>Zoom centrato sul cursore</td></tr>
+      <tr><td><kbd>Alt</kbd> + trascina</td><td>Pan della vista (sposta il foglio)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Rotazione e scala fine</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Tasto / Gesto</th><th>Azione</th></tr></thead>
+    <tbody>
+      <tr><td>Tasto destro tenuto + rotella</td><td>Rotazione fine della forma sotto il cursore (passo 0.25°)</td></tr>
+      <tr><td><kbd>Shift</kbd> + tasto destro + rotella</td><td>Rotazione fine, passo 0.5°</td></tr>
+      <tr><td><kbd>Ctrl</kbd> + tasto destro + rotella</td><td>Rotazione fine, passo 1°</td></tr>
+      <tr><td>Click sinistro su ↻ Ruota</td><td>+0.25° (con Shift +0.5°, con Ctrl +1°)</td></tr>
+      <tr><td>Click destro su ↻ Ruota</td><td>−0.25° (con Shift −0.5°, con Ctrl −1°)</td></tr>
+      <tr><td>Click sinistro su ⤢ Scala</td><td>+1 mm (Shift +0.5 mm, Ctrl +0.35 mm)</td></tr>
+      <tr><td>Click destro su ⤢ Scala</td><td>−1 mm (Shift −0.5 mm, Ctrl −0.35 mm)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Spostamento oggetti e pan</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Tasto</th><th>Azione</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></td><td>Sposta oggetto selezionato di 1 px. Pan della vista se nessun oggetto è selezionato.</td></tr>
+      <tr><td><kbd>Shift</kbd>+Frecce</td><td>Sposta oggetto di 10 px alla volta</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Fullscreen, modali, altro</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Tasto</th><th>Azione</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Esc</kbd></td><td>Priorità in ordine: chiude modali aperti → chiude dropdown topbar → esce dal fullscreen</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>R</kbd></td><td>Riavvia l'applicazione (chiede conferma)</td></tr>
+      <tr><td>Doppio click sul foglio</td><td>Crea un nuovo rettangolo nel punto cliccato</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Le scorciatoie <strong>non funzionano</strong> quando il cursore è dentro un campo di testo (es. il valore della calibrazione, dimensioni W/H nell'Inspector, valore inline delle misure). Clicca fuori dal campo per riattivare le scorciatoie.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li><strong>Tasto destro + rotella</strong> sulla forma è il modo più rapido per ruotare con precisione senza usare le maniglie: 0.25° di default, 0.5° con Shift, 1° con Ctrl.</li>
+    <li>Se il cursore è dentro un campo di testo o uno slider, le scorciatoie sono disabilitate: premi <strong>Esc</strong> o clicca sul canvas per riattivarle.</li>
+    <li>Le <strong>frecce direzionali</strong> spostano l'oggetto selezionato di 1 px (10 px con Shift); se nessuna forma è selezionata, eseguono il pan della vista.</li>
+    <li><strong>Ctrl + R</strong> riavvia l'applicazione: utile se noti rallentamenti dopo molte operazioni di undo/redo o esportazioni pesanti. L'autosave parte prima della chiusura, non perdi il lavoro.</li>
+    <li>Per duplicare rapidamente una forma, selezionala e premi <strong>Ctrl + C</strong> poi <strong>Ctrl + V</strong>: la copia viene incollata con un offset di 25 px.</li>
+    <li>Il tasto <kbd>Esc</kbd> ha priorità intelligente: prima chiude modali, poi dropdown, infine esce dal fullscreen — premendolo ripetutamente in sequenza è il "back button" universale.</li>
+  </ul></div></div>
+</section>
+
+</main>
+
+<!-- ════════════════════════════════ FOOTER ════════════════════════════════ -->
+<footer>
+  <strong>Mosaica Workspace Pro</strong> · Guida Utente · By Pico Mosaici<br>
+  <span style="margin-top:6px;display:block;">Aggiornata alla versione · V 5.2026</span>
+  <span style="margin-top:6px;display:block;">© 2026 Pico Mosaici® di Pietro Coraggio | Venafro (IS) | Tutti i diritti riservati</span>
+</footer>
+
+</body>
+</html>

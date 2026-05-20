@@ -1,0 +1,3224 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mosaica Workspace Pro</title>
+    <style>
+      /* ══════════════════════════════════════════════════════════
+         BASE
+         ══════════════════════════════════════════════════════════ */
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #2b2b2b;
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          "Helvetica Neue",
+          Arial;
+        color: #eee;
+      }
+      :root {
+        --topbar-h: 44px;
+        --bgbar-h: 70px;
+        --leftbar-w: 56px;
+        --texturepanel-w: 64px;
+        --statusbar-h: 30px;
+        --inspector-w: 260px;
+        --col-bg-panel: rgba(24, 24, 24, 0.96);
+        --col-bg-section: rgba(40, 40, 40, 0.96);
+        --col-border: rgba(255, 255, 255, 0.08);
+        --col-border-strong: rgba(255, 255, 255, 0.18);
+        --col-accent: #2b6cff;
+        --col-accent-hot: #00c8ff;
+        --col-text: #eee;
+        --col-text-muted: #aab1c0;
+        --col-text-dim: #7d8390;
+      }
+      /* ══════════════════════════════════════════════════════════
+         WORKSPACE (canvas) — INVARIATO
+         ══════════════════════════════════════════════════════════ */
+      #workspace {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(#3a3a3a 1px, transparent 1px);
+        background-size: 40px 40px;
+        cursor: grab;
+      }
+      #workspace:active {
+        cursor: grabbing;
+      }
+      #paper {
+        position: absolute;
+        left: 0;
+        top: 0;
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7);
+        background: #fff;
+        transform-origin: 0 0;
+        will-change: transform;
+        transform: translateZ(0);
+        backface-visibility: hidden;
+      }
+      canvas {
+        display: block;
+      }
+
+      /* ══════════════════════════════════════════════════════════
+         RADIAL MENU — INVARIATO
+         ══════════════════════════════════════════════════════════ */
+      #radialMenu {
+        position: absolute;
+        pointer-events: none;
+        z-index: 9998;
+        --radial-radius: 115px;
+        width: calc(var(--radial-radius) * 2);
+        height: calc(var(--radial-radius) * 2);
+      }
+      .radial-btn {
+        position: absolute;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #1e90ff;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+        pointer-events: auto;
+        user-select: none;
+        transition: all 0.15s ease;
+      }
+      .radial-btn:hover {
+        background: #4aa3ff;
+        transform: scale(1.18);
+      }
+      .radial-btn[data-action="group"],
+      .radial-btn[data-action="ungroup"] {
+        background: #28a745;
+      }
+      .radial-btn[data-action="group"]:hover,
+      .radial-btn[data-action="ungroup"]:hover {
+        background: #34c261;
+      }
+      .radial-btn[style*="pointer-events: none"] {
+        cursor: not-allowed;
+      }
+
+      /* radial tooltip + measure overlay (invariati) */
+      #radialTooltip {
+        /* posizionato e mostrato da JS */
+      }
+      #measureOverlay {
+        position: absolute;
+        pointer-events: none;
+        font-family: monospace;
+        font-size: 13px;
+        color: #fff;
+        z-index: 9997;
+        display: flex;
+        gap: 6px;
+        flex-direction: column;
+        align-items: center;
+      }
+      .measure-row {
+        display: flex;
+        gap: 8px;
+        flex-direction: row;
+        align-items: center;
+      }
+      .measure {
+        padding: 4px 10px;
+        white-space: nowrap;
+        background: rgba(15, 15, 15, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        border-radius: 5px;
+        pointer-events: auto;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+      }
+      .measure:hover {
+        border-color: rgba(0, 200, 255, 0.6);
+        background: rgba(15, 15, 15, 0.95);
+      }
+      .radial-size-slider-wrap {
+        width: 200px;
+        background: rgba(15, 15, 15, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        padding: 5px 10px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-sizing: border-box;
+        pointer-events: auto;
+      }
+      .radial-size-slider-wrap::before {
+        content: "⌬";
+        color: #00c8ff;
+        font-size: 14px;
+        font-weight: bold;
+        flex-shrink: 0;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+      }
+      #radialSizeSlider {
+        -webkit-appearance: none;
+        appearance: none;
+        flex: 1;
+        height: 4px;
+        background: linear-gradient(90deg, #2b6cff, #00c8ff);
+        border-radius: 4px;
+        outline: none;
+        cursor: pointer;
+      }
+      #radialSizeSlider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 13px;
+        height: 13px;
+        background: #fff;
+        border: 2px solid #00c8ff;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+      }
+
+      /* ══════════════════════════════════════════════════════════
+         COLOR POPUP — INVARIATO
+         ══════════════════════════════════════════════════════════ */
+      #colorPopup {
+        position: absolute;
+        background: #1b1b1b;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 8px;
+        border-radius: 8px;
+        display: none;
+        z-index: 10005;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+      }
+      #colorPopup input[type="color"] {
+        width: 44px;
+        height: 36px;
+        border: none;
+        padding: 0;
+        background: transparent;
+        cursor: pointer;
+      }
+
+      /* ══════════════════════════════════════════════════════════
+         TOP BAR (NUOVA)
+         ══════════════════════════════════════════════════════════ */
+      #topBar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: var(--topbar-h);
+        background: var(--col-bg-panel);
+        border-bottom: 1px solid var(--col-border);
+        z-index: 9500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 10px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+        user-select: none;
+      }
+      .topbar-section {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        height: 100%;
+        padding: 0 6px;
+      }
+      .topbar-section + .topbar-section {
+        border-left: 1px solid var(--col-border);
+      }
+      .topbar-spacer {
+        flex: 1;
+      }
+      .topbar-logo {
+        font-weight: 700;
+        font-size: 14px;
+        background: linear-gradient(135deg, #2b6cff, #00c8ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        padding: 0 8px;
+        letter-spacing: 0.5px;
+      }
+      .topbar-btn {
+        background: transparent;
+        color: var(--col-text);
+        border: 1px solid transparent;
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition:
+          background 0.12s,
+          border-color 0.12s;
+      }
+      .topbar-btn:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: var(--col-border);
+      }
+      .topbar-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      /* ── Indicatore stato Wacom (puntino sul pulsante) ─────────── */
+      #wacomToolbarBtn .wacom-dot {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #666;
+        box-shadow: 0 0 0 2px #1a1a1a;
+        transition: background 0.25s ease;
+      }
+      #wacomToolbarBtn.wacom-connected .wacom-dot {
+        background: #4ade80;
+        box-shadow:
+          0 0 8px #4ade80,
+          0 0 0 2px #1a1a1a;
+      }
+      .topbar-btn.has-dropdown::after {
+        content: "▾";
+        font-size: 10px;
+        opacity: 0.7;
+        margin-left: 2px;
+      }
+      .topbar-icon-btn {
+        background: transparent;
+        color: var(--col-text);
+        border: 1px solid transparent;
+        width: 32px;
+        height: 30px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          background 0.12s,
+          border-color 0.12s;
+      }
+      .topbar-icon-btn:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: var(--col-border);
+      }
+      .topbar-icon-btn:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+      .topbar-icon-btn:disabled:hover {
+        background: transparent;
+        border-color: transparent;
+      }
+      #zoomPercent {
+        font-size: 12px;
+        color: var(--col-text-muted);
+        min-width: 44px;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* ── DROPDOWN (File / Esporta / Calibrazione) ── */
+      .topbar-dropdown {
+        position: relative;
+      }
+      .dropdown-content {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        background: var(--col-bg-panel);
+        border: 1px solid var(--col-border-strong);
+        border-radius: 8px;
+        padding: 8px;
+        min-width: 220px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+        display: none;
+        z-index: 9600;
+      }
+      .topbar-dropdown.open .dropdown-content {
+        display: block;
+      }
+      .topbar-dropdown.open > .topbar-btn {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--col-border);
+      }
+      .dropdown-content button {
+        display: block;
+        width: 100%;
+        text-align: left;
+        background: transparent;
+        color: var(--col-text);
+        border: 1px solid transparent;
+        padding: 8px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        margin-bottom: 2px;
+      }
+      .dropdown-content button:hover {
+        background: rgba(43, 108, 255, 0.18);
+        border-color: rgba(43, 108, 255, 0.4);
+      }
+      .dropdown-content hr {
+        border: 0;
+        border-top: 1px solid var(--col-border);
+        margin: 6px 4px;
+      }
+      .dropdown-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        font-size: 12px;
+        color: var(--col-text-muted);
+        cursor: pointer;
+      }
+
+      /* Calibrazione popover (più largo + striscia visibile) */
+      #calibDropdown .dropdown-content {
+        right: 0;
+        left: auto;
+        width: 340px;
+        padding: 12px;
+      }
+      #calibPanel {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      #calibPanel h4 {
+        margin: 0 0 4px 0;
+        font-size: 14px;
+        color: var(--col-text);
+      }
+      #calibPanel ol {
+        padding-left: 18px;
+        margin: 6px 0;
+        font-size: 12px;
+        color: #cfe;
+        line-height: 1.45;
+      }
+      #calibPanel label {
+        display: block;
+        font-size: 12px;
+        margin-top: 8px;
+        color: #cfd8ff;
+      }
+      #calibRect {
+        margin-top: 6px;
+        height: 58px;
+        background: #444;
+        border: 3px solid #111;
+        border-radius: 6px;
+        position: relative;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+        overflow: hidden;
+      }
+      .calibStrip {
+        position: absolute;
+        inset: 6px;
+        background: linear-gradient(90deg, #222 0%, #555 50%, #222 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #fff;
+        border-radius: 3px;
+      }
+      #calibStrip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      }
+      .stripLabel {
+        font-weight: 700;
+        font-size: 12px;
+        color: #fff;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+      }
+      #calibPanel #realMeasuredMM {
+        width: 100%;
+        padding: 7px;
+        border-radius: 6px;
+        border: 1px solid var(--col-border-strong);
+        background: #1b1b1b;
+        color: #fff;
+        box-sizing: border-box;
+        font-size: 13px;
+      }
+      /* ── Lazo: popover impostazioni sensibilità (right-click su #lassoSelectBtn) ── */
+#lassoSettingsPopover {
+  position: fixed;
+  display: none;
+  z-index: 9999;
+  min-width: 300px;
+  max-width: 360px;
+  padding: 12px;
+  background: var(--col-bg-panel);
+  border: 1px solid var(--col-border-strong);
+  border-radius: 10px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+  color: var(--col-text);
+  font-family: inherit;
+}
+#lassoSettingsPopover[aria-hidden="true"] { display: none; }
+#lassoSettingsPopover .lsp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+#lassoSettingsPopover .lsp-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: var(--col-text);
+}
+#lassoSettingsPopover .lsp-close {
+  background: transparent;
+  border: 0;
+  color: var(--col-text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+#lassoSettingsPopover .lsp-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--col-text);
+}
+#lassoSettingsPopover .lsp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0 4px 0;
+}
+#lassoSettingsPopover #lassoThresholdSlider {
+  flex: 1;
+  accent-color: var(--col-accent);
+}
+#lassoSettingsPopover #lassoThresholdValue {
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: var(--col-text);
+  min-width: 86px;
+  text-align: right;
+}
+#lassoSettingsPopover .lsp-hint {
+  font-size: 11px;
+  color: var(--col-text-muted);
+  line-height: 1.45;
+  margin: 8px 0 10px 0;
+}
+#lassoSettingsPopover .lsp-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+#lassoSettingsPopover .lsp-btn {
+  background: var(--col-bg-section);
+  border: 1px solid var(--col-border);
+  color: var(--col-text);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+#lassoSettingsPopover .lsp-btn:hover {
+  border-color: var(--col-border-strong);
+  background: rgba(255, 255, 255, 0.06);
+}
+#lassoSettingsPopover .lsp-btn.lsp-btn-primary {
+  border-color: var(--col-accent);
+  color: #fff;
+  background: rgba(43, 108, 255, 0.18);
+}
+      #calibPanel #applyCalib {
+        margin-top: 6px;
+        width: 100%;
+        padding: 8px;
+        border: 0;
+        border-radius: 6px;
+        background: var(--col-accent);
+        color: #fff;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      #calibPanel #resetCalib {
+        margin-top: 4px;
+        width: 100%;
+        padding: 7px;
+        border: 0;
+        border-radius: 6px;
+        background: #6a6a6a;
+        color: #fff;
+        cursor: pointer;
+      }
+      #calibNote {
+        font-size: 11px;
+        color: #bfc7ff;
+        margin-top: 4px;
+        opacity: 0.9;
+      }
+      /* compat: vecchio bottone calibToggle "—" non lo usiamo più, ma lo lascio nascosto se mai presente */
+      #calibPanel .smallbtn[id="calibToggle"] {
+        display: none;
+      }
+
+      /* indicatore mini (numero) accanto al label "Calibrazione" */
+      #calibFactorIndicator {
+        font-variant-numeric: tabular-nums;
+        font-size: 11px;
+        color: var(--col-text-muted);
+        background: rgba(255, 255, 255, 0.06);
+        padding: 1px 6px;
+        border-radius: 3px;
+        margin-left: 4px;
+      }
+
+      /* ══════════════════════════════════════════════════════════
+         LEFT TOOLBAR (NUOVA)
+         ══════════════════════════════════════════════════════════ */
+      #leftToolbar {
+        position: fixed;
+        left: var(--texturepanel-w);
+        top: calc(var(--topbar-h) + var(--bgbar-h));
+        bottom: var(--statusbar-h);
+        width: var(--leftbar-w);
+        background: var(--col-bg-panel);
+        border-right: 1px solid var(--col-border);
+        z-index: 9400;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 0;
+        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.35);
+      }
+      .tool-btn {
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--col-text);
+        cursor: pointer;
+        font-size: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+      }
+      .tool-btn:hover {
+        background: rgba(43, 108, 255, 0.18);
+        border-color: rgba(43, 108, 255, 0.5);
+        transform: scale(1.06);
+      }
+      .tool-btn.active {
+        background: linear-gradient(135deg, #2b6cff, #00c8ff);
+        border-color: #00c8ff;
+        box-shadow: 0 0 0 3px rgba(0, 200, 255, 0.18);
+      }
+      .tool-btn.danger {
+        background: rgba(231, 76, 60, 0.15);
+        border-color: rgba(231, 76, 60, 0.4);
+      }
+      .tool-btn.danger:hover {
+        background: rgba(231, 76, 60, 0.3);
+      }
+      .tool-divider {
+        width: 36px;
+        height: 1px;
+        background: var(--col-border);
+        margin: 4px 0;
+      }
+      .tool-tooltip-zone[data-tooltip] {
+        position: relative;
+      }
+
+      /* compat: stile vecchio .freehand-btn (alcuni elementi nei modali lo usano) */
+      .freehand-btn {
+        width: 38px;
+        height: 36px;
+        border-radius: 6px;
+        border: 0;
+        background: #28a745;
+        color: #fff;
+        cursor: pointer;
+        font-size: 17px;
+        transition: all 0.2s;
+      }
+      .freehand-btn.active {
+        background: #ff9800;
+        box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.4);
+      }
+      .freehand-btn:hover {
+        transform: scale(1.08);
+      }
+
+      /* ══════════════════════════════════════════════════════════
+         INSPECTOR (id="historyPanel" mantenuto per compat JS)
+         ══════════════════════════════════════════════════════════ */
+      #historyPanel {
+        position: fixed;
+        right: 0;
+        top: calc(var(--topbar-h) + var(--bgbar-h));
+        bottom: var(--statusbar-h);
+        width: var(--inspector-w);
+        max-width: 260px;
+        background: var(--col-bg-panel);
+        border-left: 1px solid var(--col-border-strong);
+        border-radius: 0;
+        z-index: 9300;
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        box-shadow: -4px 0 18px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+      }
+      .inspector-header {
+        flex: 0 0 auto;
+        padding: 10px 14px 8px;
+        border-bottom: 1px solid var(--col-border);
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .inspector-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--col-accent-hot);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin: 0;
+      }
+      .inspector-subtitle {
+        font-size: 13px;
+        color: var(--col-text);
+        margin: 2px 0 0 0;
+        font-weight: 500;
+      }
+      .inspector-body {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 12px 14px;
+        scrollbar-width: thin;
+        scrollbar-color: #555 #2b2b2b;
+      }
+      .inspector-body::-webkit-scrollbar {
+        width: 6px;
+      }
+      .inspector-body::-webkit-scrollbar-thumb {
+        background: #555;
+        border-radius: 3px;
+      }
+      .inspector-section {
+        display: none;
+      }
+      .inspector-section.active {
+        display: block;
+      }
+
+      .inspector-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .inspector-row .val {
+        font-family: monospace;
+        font-size: 12px;
+        color: var(--col-text);
+        min-width: 36px;
+        flex-shrink: 0;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .inspector-row .val {
+        font-family: monospace;
+        font-size: 12px;
+        color: var(--col-text);
+        min-width: 36px;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .inspector-row input[type="range"] {
+        flex: 1;
+        min-width: 0;
+        height: 4px;
+        cursor: pointer;
+      }
+      .inspector-row input[type="color"] {
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        border: none;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+      .inspector-divider {
+        height: 1px;
+        background: var(--col-border);
+        margin: 12px 0;
+      }
+      /* Input numerici per Dimensioni W/H nell'inspector */
+      .inspector-dim-input {
+        flex: 1;
+        min-width: 0;
+        background: #2b2b2b;
+        color: var(--col-text);
+        border: 1px solid #555;
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 12px;
+        font-family: monospace;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        outline: none;
+      }
+      .inspector-dim-input:focus {
+        border-color: var(--col-accent, #2b6cff);
+        background: #1f1f1f;
+      }
+      /* Nasconde le freccette spinner native (riduzione rumore visivo) */
+      .inspector-dim-input::-webkit-outer-spin-button,
+      .inspector-dim-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      .inspector-dim-input[type="number"] {
+        -moz-appearance: textfield;
+      }
+      .inspector-section-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--col-accent-hot);
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        margin: 0 0 8px 0;
+      }
+      .inspector-empty {
+        font-size: 12px;
+        color: var(--col-text-dim);
+        text-align: center;
+        padding: 20px 6px;
+        line-height: 1.5;
+      }
+      .inspector-btn {
+        width: 100%;
+        padding: 7px;
+        background: var(--col-accent);
+        color: #fff;
+        border: 0;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        margin-top: 4px;
+      }
+      .inspector-btn.danger {
+        background: #e74c3c;
+      }
+      .inspector-btn.danger:hover {
+        background: #c0392b;
+      }
+      .inspector-btn:hover {
+        filter: brightness(1.12);
+      }
+
+      /* ── Mini history (undo/redo dentro Inspector header, opzionali) ── */
+      /* Spostiamo undo/redo in topBar; storage qui non serve. */
+
+      /* ══════════════════════════════════════════════════════════
+   TEXTURE PANEL (gemello del leftToolbar, sul lato sinistro)
+   ══════════════════════════════════════════════════════════ */
+      #texturePanel {
+        position: fixed;
+        left: 0;
+        top: calc(var(--topbar-h) + var(--bgbar-h));
+        bottom: var(--statusbar-h);
+        width: var(--texturepanel-w);
+        background: var(--col-bg-panel);
+        border-right: 1px solid var(--col-border);
+        z-index: 9400;
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        gap: 0;
+        padding: 8px 0;
+        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.35);
+        overflow: hidden;
+      }
+
+      .texture-vlabel {
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--col-accent-hot);
+        text-transform: uppercase;
+        letter-spacing: 1.4px;
+        padding: 6px 2px;
+        user-select: none;
+        white-space: nowrap;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .texture-vdivider {
+        width: 36px;
+        height: 1px;
+        background: var(--col-border);
+        margin: 2px 0;
+        flex-shrink: 0;
+      }
+      #textureGrid {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: 0;
+        padding: 2px 5px 2px 4px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: thin;
+        scrollbar-color: var(--col-accent-hot) rgba(0, 0, 0, 0.45);
+      }
+      #textureGrid::-webkit-scrollbar {
+        width: 6px;
+      }
+      #textureGrid::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.45);
+        border-radius: 3px;
+        margin: 2px 0;
+      }
+      #textureGrid::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, var(--col-accent), var(--col-accent-hot));
+        border-radius: 3px;
+        border: 1px solid rgba(0, 0, 0, 0.35);
+      }
+      #textureGrid::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, var(--col-accent-hot), var(--col-accent));
+      }
+      .textureThumb {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        height: auto;
+        object-fit: cover;
+        cursor: pointer;
+        border-radius: 6px;
+        border: 1px solid #444;
+        display: block;
+        flex-shrink: 0;
+      }
+      .textureThumb:hover {
+        outline: 2px solid var(--col-accent-hot);
+        outline-offset: -1px;
+      }
+
+      /* ══════════════════════════════════════════════════════════
+   BG PANEL (barra orizzontale sotto la topbar)
+   ══════════════════════════════════════════════════════════ */
+      #bgPanel {
+        position: fixed;
+        top: var(--topbar-h);
+        left: 0;
+        right: 0;
+        height: var(--bgbar-h);
+        background: var(--col-bg-panel);
+        border-bottom: 1px solid var(--col-border);
+        z-index: 9450;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 0 14px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+        overflow-x: auto;
+        overflow-y: hidden;
+        user-select: none;
+      }
+      .bgPanel-section {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 100%;
+        flex-shrink: 0;
+      }
+      .bgPanel-section + .bgPanel-section {
+        border-left: 1px solid var(--col-border);
+        padding-left: 14px;
+      }
+      .bgPanel-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--col-accent-hot);
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        white-space: nowrap;
+      }
+      #bgPanel .bg-drop {
+        margin: 0;
+        padding: 6px 12px;
+        font-size: 11px;
+        border-radius: 6px;
+        white-space: nowrap;
+      }
+      .bg-drop {
+        border: 1px dashed rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 10px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(0, 0, 0, 0.03));
+        color: #cfe;
+        font-size: 12px;
+        text-align: center;
+        cursor: pointer;
+      }
+      .bg-drop.dragover {
+        border-color: var(--col-accent);
+        box-shadow: 0 6px 18px rgba(43, 108, 255, 0.18);
+        transform: translateY(-1px);
+      }
+      #bgPanel #bgPreview {
+        max-width: 48px !important;
+        height: 36px !important;
+        width: auto;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 1px solid #444;
+      }
+      #bgPanel #bgInfo {
+        font-size: 11px;
+        color: #cfe;
+        max-width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .bgBtn {
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 0;
+        background: var(--col-accent);
+        color: #fff;
+        cursor: pointer;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+      .bgBtn.secondary {
+        background: #28a745;
+      }
+      .bgBtn.danger {
+        background: #e74c3c;
+      }
+      .bgBtn.danger:hover {
+        background: #c0392b;
+      }
+      .bgBtn:hover {
+        filter: brightness(1.12);
+      }
+      #bgPreview {
+        transition: transform 0.25s ease;
+        will-change: transform;
+      }
+
+      /* ══════════════════════════════════════════════════════════
+         STATUS BAR (NUOVA)
+         ══════════════════════════════════════════════════════════ */
+      #statusBar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: var(--statusbar-h);
+        background: var(--col-bg-panel);
+        border-top: 1px solid var(--col-border);
+        z-index: 9500;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 0 14px;
+        font-size: 12px;
+        color: var(--col-text-muted);
+        font-variant-numeric: tabular-nums;
+        user-select: none;
+      }
+      .status-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .status-item + .status-item {
+        border-left: 1px solid var(--col-border);
+        padding-left: 14px;
+      }
+      .status-item .label {
+        color: var(--col-text-dim);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .status-item .value {
+        color: var(--col-text);
+      }
+
+      /* ══════════════════════════════════════════════════════════
+         VECCHI ELEMENTI MANTENUTI per back-compat (display: none)
+         Se il JS prova a leggerli non si rompe nulla.
+         ══════════════════════════════════════════════════════════ */
+      #zoomMini {
+        display: none !important;
+      }
+      #calibMini {
+        display: none !important;
+      }
+      /* zoomPanel ora è una sezione della topbar; gli ID figli (zoomIn/Out/Reset/Percent) restano dentro */
+      /* projectControls ora vive dentro il dropdown File */
+      /* angleControlsContainer e trapezoidControlsContainer ora vivono dentro Inspector */
+
+      /* hidden inputs */
+      #textureFile {
+        position: absolute;
+        left: -9999px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+      }
+      #cssInchDetector {
+        position: absolute;
+        left: -10000px;
+        top: -10000px;
+        width: 1in;
+        height: 1in;
+      }
+
+      /* toast */
+      #__mini_toast {
+        transition: opacity 0.25s ease;
+        opacity: 0;
+      }
+
+      /* generic smallbtn (compat) */
+      .smallbtn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* exportBtn (compat — usato in vari modali) */
+      .exportBtn {
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: 6px;
+        border: 0;
+        background: var(--col-accent);
+        color: #fff;
+        cursor: pointer;
+        font-size: 13px;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+      }
+      .exportBtn.secondary {
+        background: #28a745;
+      }
+      .exportBtn:hover {
+        transform: translateY(-1px);
+      }
+    </style>
+
+    <!-- Stili modali (PDF / PNG-SVG) — invariati -->
+    <style>
+      #pdfExportModal .pdfOpt {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 11px 12px;
+        background: #2a2a2a;
+        border: 1px solid #3a3a3a;
+        border-radius: 8px;
+        cursor: pointer;
+        transition:
+          background 0.12s,
+          border-color 0.12s;
+      }
+      #pdfExportModal .pdfOpt:hover {
+        background: #333;
+        border-color: #4a90e2;
+      }
+      #pdfExportModal .pdfOpt input[type="radio"] {
+        margin-top: 3px;
+        cursor: pointer;
+      }
+      #pdfExportModal .pdfOptTitle {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 3px;
+      }
+      #pdfExportModal .pdfOptDesc {
+        font-size: 12px;
+        opacity: 0.72;
+        line-height: 1.35;
+      }
+      #pdfExportModal .pdfOpt.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      #pdfExportModal .pdfOpt.disabled input {
+        cursor: not-allowed;
+      }
+
+      #pngSvgExportModal .psOpt {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 11px 12px;
+        background: #2a2a2a;
+        border: 1px solid #3a3a3a;
+        border-radius: 8px;
+        cursor: pointer;
+        transition:
+          background 0.12s,
+          border-color 0.12s;
+      }
+      #pngSvgExportModal .psOpt:hover {
+        background: #333;
+        border-color: #4a90e2;
+      }
+      #pngSvgExportModal .psOpt input[type="radio"] {
+        margin-top: 3px;
+        cursor: pointer;
+      }
+      #pngSvgExportModal .psOptTitle {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 3px;
+      }
+      #pngSvgExportModal .psOptDesc {
+        font-size: 12px;
+        opacity: 0.72;
+        line-height: 1.35;
+      }
+    </style>
+
+    <!-- App loader (invariato) -->
+    <style>
+      #appLoader {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(180deg, #0b1220 0%, #14203a 100%);
+        z-index: 20000;
+        pointer-events: all;
+        transition:
+          opacity 420ms ease,
+          visibility 420ms ease;
+      }
+      #appLoader[aria-hidden="true"] {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      .appLoader-inner {
+        width: 420px;
+        max-width: 92%;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        color: #e8f0ff;
+        box-shadow: 0 30px 80px rgba(2, 8, 20, 0.6);
+      }
+      .logo-circle {
+        width: 84px;
+        height: 84px;
+        margin: 0 auto 8px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 28px;
+        color: #fff;
+        background: linear-gradient(135deg, #2b6cff, #00c8ff);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      }
+      .appLoader-text .title {
+        font-size: 20px;
+        font-weight: 800;
+        margin-bottom: 2px;
+      }
+      .appLoader-text .subtitle {
+        font-size: 13px;
+        opacity: 0.85;
+        margin-bottom: 6px;
+      }
+      .appLoader-text .flag {
+        font-size: 20px;
+        margin-bottom: 10px;
+      }
+      .progressWrap {
+        margin-top: 8px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      }
+      .progressBar {
+        width: 100%;
+        height: 12px;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+      }
+      .progressFill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #00e0ff, #2b6cff);
+        transition: width 260ms linear;
+      }
+      .progressInfo {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 12px;
+        color: #cfe8ff;
+        width: 100%;
+        margin-top: 6px;
+      }
+      #appLoaderPercent {
+        font-weight: 700;
+        min-width: 48px;
+        text-align: left;
+      }
+      #appLoaderETA {
+        text-align: right;
+        opacity: 0.85;
+      }
+      .loaderNote {
+        margin-top: 10px;
+        font-size: 12px;
+        color: #bcd6ff;
+        opacity: 0.9;
+      }
+
+      /* ── TOAST CENTRATO IN ALTO (avvisi importanti tipo fullscreen) ── */
+      #__top_toast {
+        position: fixed;
+        top: calc(var(--topbar-h) + 16px);
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.82);
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 10px;
+        z-index: 10003;
+        font-size: 14px;
+        letter-spacing: 0.3px;
+        box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        max-width: 80vw;
+        text-align: center;
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- ════════════════════════════════════════════════════════
+         APP LOADER (invariato)
+         ════════════════════════════════════════════════════════ -->
+    <div id="appLoader" aria-hidden="false">
+      <div class="appLoader-inner">
+        <div class="appLoader-logo" role="img" aria-label="Pico Mosaici logo">
+          <div class="logo-circle"><img src="logo.png" alt="Pico Mosaici" /></div>
+        </div>
+        <div class="appLoader-text">
+          <div class="title">Pico Mosaici</div>
+          <div class="subtitle">Made In Italy</div>
+          <div class="flag">🇮🇹</div>
+        </div>
+        <div class="progressWrap">
+          <div class="progressBar" id="appLoaderBar"><div class="progressFill" id="appLoaderFill"></div></div>
+          <div class="progressInfo">
+            <div id="appLoaderPercent">0%</div>
+            <div id="appLoaderETA">⌛ —</div>
+          </div>
+        </div>
+        <div class="loaderNote">Caricamento…</div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         WORKSPACE (canvas) — INVARIATO
+         ════════════════════════════════════════════════════════ -->
+    <div id="workspace">
+      <div id="paper"><canvas id="sheet"></canvas></div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         RADIAL MENU — INVARIATO
+         ════════════════════════════════════════════════════════ -->
+    <div id="radialMenu" style="display: none">
+      <div class="radial-btn" data-action="rotate" data-tooltip="Ruota l'oggetto (trascina o rotella)">↻</div>
+      <div class="radial-btn" data-action="duplicate" data-tooltip="Duplica oggetto">⎘</div>
+      <div class="radial-btn" data-action="scale" data-tooltip="Ridimensiona liberamente">⤢</div>
+      <div class="radial-btn" data-action="copyColor" data-tooltip="Cambia colore attuale">🎨</div>
+      <div class="radial-btn" data-action="pasteColor" data-tooltip="Incolla colore copiato">🖌️</div>
+      <div class="radial-btn" data-action="changeShape" data-tooltip="Cambia forma (triangolo/trapezio/settore)">
+        🔄
+      </div>
+      <div
+        class="radial-btn"
+        data-action="sliceCircle"
+        data-tooltip="Dividi cerchio/ellisse (Click=4 quarti | Alt+Click=2 metà)">
+        ◔
+      </div>
+      <div class="radial-btn" data-action="lock" data-tooltip="Blocca oggetto (non selezionabile)">🔒</div>
+      <div class="radial-btn" data-action="delete" data-tooltip="Elimina oggetto (tasto Canc)">🗑️</div>
+      <div class="radial-btn" data-action="group" data-tooltip="Raggruppa oggetti selezionati">⎇</div>
+      <div class="radial-btn" data-action="ungroup" data-tooltip="Separa gruppo">⎆</div>
+    </div>
+    <div id="radialTooltip"></div>
+
+    <!-- ════════════════════════════════════════════════════════
+         COLOR POPUP — INVARIATO
+         ════════════════════════════════════════════════════════ -->
+    <div id="colorPopup" aria-hidden="true">
+      <div style="display: flex; gap: 8px; align-items: center">
+        <button
+          id="openColorBtn"
+          class="smallbtn"
+          title="Cambia colore"
+          style="padding: 6px 8px; border-radius: 6px; border: 0; background: #2b6cff; color: #fff; cursor: pointer">
+          Cambia colore
+        </button>
+        <input id="colorInput" type="color" value="#78a0ff" title="Scegli colore" />
+      </div>
+      <div style="height: 8px"></div>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap; max-width: 240px">
+        <button
+          class="smallColor"
+          data-color="#ff0000"
+          style="
+            width: 28px;
+            height: 20px;
+            background: #ff0000;
+            border: 1px solid #7a0000;
+            border-radius: 4px;
+          "></button>
+        <button
+          class="smallColor"
+          data-color="#00a000"
+          style="
+            width: 28px;
+            height: 20px;
+            background: #00a000;
+            border: 1px solid #006400;
+            border-radius: 4px;
+          "></button>
+        <button
+          class="smallColor"
+          data-color="#0078ff"
+          style="
+            width: 28px;
+            height: 20px;
+            background: #0078ff;
+            border: 1px solid #005bb5;
+            border-radius: 4px;
+          "></button>
+        <button
+          class="smallColor"
+          data-color="#ff8c00"
+          style="
+            width: 28px;
+            height: 20px;
+            background: #ff8c00;
+            border: 1px solid #b35900;
+            border-radius: 4px;
+          "></button>
+        <button
+          class="smallColor"
+          data-color="#a000ff"
+          style="
+            width: 28px;
+            height: 20px;
+            background: #a000ff;
+            border: 1px solid #6100b3;
+            border-radius: 4px;
+          "></button>
+        <button
+          class="smallColor"
+          data-color="#8b5a2b"
+          style="
+            width: 28px;
+            height: 20px;
+            background: #8b5a2b;
+            border: 1px solid #5a3a1a;
+            border-radius: 4px;
+          "></button>
+        <button
+          class="smallColor"
+          data-color="#00ffff"
+          style="
+            width: 28px;
+            height: 20px;
+            background: #00ffff;
+            border: 1px solid #00a3a3;
+            border-radius: 4px;
+          "></button>
+        <button
+          class="smallColor"
+          data-color="#ff00ff"
+          style="
+            width: 28px;
+            height: 20px;
+            background: #ff00ff;
+            border: 1px solid #b300b3;
+            border-radius: 4px;
+          "></button>
+        <button
+          class="smallColor"
+          data-color="#ffff00"
+          style="
+            width: 28px;
+            height: 20px;
+            background: #ffff00;
+            border: 1px solid #b3b300;
+            border-radius: 4px;
+          "></button>
+      </div>
+    </div>
+    
+    <!-- ════════════════════════════════════════════════════════
+     LAZO — Popover sensibilità (right-click su #lassoSelectBtn)
+     ════════════════════════════════════════════════════════ -->
+<div id="lassoSettingsPopover" aria-hidden="true" role="dialog" aria-label="Sensibilità Lazo">
+  <div class="lsp-header">
+    <span class="lsp-title">🎯 Sensibilità Lazo</span>
+    <button type="button" class="lsp-close" id="lassoSettingsClose" title="Chiudi">✕</button>
+  </div>
+  <div class="lsp-row">
+    <input
+      type="range"
+      id="lassoThresholdSlider"
+      min="0.05"
+      max="1.00"
+      step="0.05"
+      value="0.20" />
+    <span id="lassoThresholdValue">0.20 (20%)</span>
+  </div>
+  <p class="lsp-hint">
+    Quanta parte di una tessera deve cadere dentro il tracciato del lazo perché venga
+    selezionata. Più <b>basso</b> = più permissivo (utile fra tessere fitte con fughe
+    strette dove il lazo deve per forza sfiorare le forme da prendere). Più
+    <b>alto</b> = più restrittivo (solo forme quasi interamente dentro).
+  </p>
+  <div class="lsp-actions">
+    <button
+      type="button"
+      class="lsp-btn lsp-btn-primary"
+      id="lassoSettingsReset"
+      title="Ripristina il valore consigliato per mosaici fitti">
+      Default (0.20)
+    </button>
+  </div>
+</div>
+
+    <!-- ════════════════════════════════════════════════════════
+         MEASURE OVERLAY (sul canvas) — INVARIATO
+         ════════════════════════════════════════════════════════ -->
+    <div id="measureOverlay" style="display: none">
+      <div class="measure-row">
+        <div class="measure measure-w"></div>
+        <div class="measure measure-h"></div>
+      </div>
+      <div class="radial-size-slider-wrap" title="Dimensione menu radiale (doppio click = reset)">
+        <input type="range" id="radialSizeSlider" min="0" max="30" step="0.2" value="0" />
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         TOP BAR (NUOVA)
+         ════════════════════════════════════════════════════════ -->
+    <div id="topBar">
+      <!-- Logo -->
+      <div class="topbar-section">
+        <span class="topbar-logo">Mosaica Workspace Pro</span>
+      </div>
+
+      <!-- File dropdown -->
+      <div class="topbar-section">
+        <div class="topbar-dropdown" id="fileMenuDropdown">
+          <button class="topbar-btn has-dropdown" id="fileMenuToggle">File</button>
+          <div class="dropdown-content">
+            <!-- projectControls vive QUI dentro: il JS fa appendChild di newProjectBtn dentro questo container -->
+            <div id="projectControls">
+              <button id="openProjectBtn" title="Apri progetto">📂 Apri progetto…</button>
+              <button id="saveProjectBtn" title="Salva progetto">💾 Salva progetto</button>
+              <hr />
+              <label class="dropdown-checkbox">
+                <input type="checkbox" id="autoOpenCheckbox" />
+                <span>Apri progetto all'avvio</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Esporta dropdown -->
+        <div class="topbar-dropdown" id="exportMenuDropdown">
+          <button class="topbar-btn has-dropdown" id="exportMenuToggle">Esporta</button>
+          <div class="dropdown-content">
+            <button id="exportPdfBtn" title="Esporta su PDF A4">📄 Esporta PDF (A4)</button>
+            <button id="exportPngBtn" title="Esporta immagine PNG/SVG">🖼️ Esporta PNG / SVG</button>
+            <button id="exportFreehandBtn" title="Esporta solo linee a mano libera">
+              ✏️ Esporta disegno mano libera
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Undo/Redo -->
+      <div class="topbar-section">
+        <button id="undoBtn" class="topbar-icon-btn" disabled title="Annulla (Ctrl+Z)">↶</button>
+        <button id="redoBtn" class="topbar-icon-btn" disabled title="Ripristina (Ctrl+Y)">↷</button>
+      </div>
+
+      <!-- Zoom (id="zoomPanel" mantenuto per compat JS) -->
+      <div class="topbar-section" id="zoomPanel">
+        <button id="zoomOut" class="topbar-icon-btn" title="Zoom out">−</button>
+        <span id="zoomPercent">100%</span>
+        <button id="zoomIn" class="topbar-icon-btn" title="Zoom in">+</button>
+        <button id="zoomReset" class="topbar-icon-btn" title="Reset zoom">⤾</button>
+      </div>
+
+      <div class="topbar-spacer"></div>
+
+      <!-- Calibrazione popover (apre #calibPanel come dropdown) -->
+      <div class="topbar-section">
+        <div class="topbar-dropdown" id="calibDropdown">
+          <button class="topbar-btn has-dropdown" id="calibDropdownToggle" title="Calibrazione mm reale">
+            📏 <span>Calibrazione</span>
+            <span id="calibFactorIndicator">1.00</span>
+          </button>
+          <div class="dropdown-content">
+            <!-- #calibPanel mantenuto come ID per compat JS -->
+            <div id="calibPanel" aria-live="polite">
+              <h4>Calibrazione mm reale</h4>
+              <!-- vecchio bottone "—" lasciato per compat (nascosto via CSS) -->
+              <button id="calibToggle" class="smallbtn" style="display: none">—</button>
+              <div>Passaggi rapidi:</div>
+              <ol>
+                <li>Zoom browser al 100% + scaling OS al 100%</li>
+                <li><strong>Misura la striscia nera qui sotto</strong> con il calibro digitale</li>
+                <li>Inserisci il valore reale e premi "Applica calibrazione"</li>
+              </ol>
+              <div id="calibRect">
+                <div id="calibStrip" class="calibStrip">
+                  <span class="stripLabel">50 mm TEORICI</span>
+                </div>
+              </div>
+              <label>Misura reale con calibro (mm):</label>
+              <input id="realMeasuredMM" type="number" value="50.00" step="0.01" min="1" />
+              <button id="applyCalib">Applica calibrazione</button>
+              <button id="resetCalib">Reset calibrazione (1.0)</button>
+              <div id="calibNote">La striscia è esattamente 50 mm teorici. Misurala fisicamente!</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Guida -->
+      <!-- Fullscreen -->
+      <div class="topbar-section">
+        <!-- Fullscreen -->
+        <div class="topbar-section">
+          <button
+            id="enterFullscreenBtn"
+            class="topbar-icon-btn"
+            title="Entra in modalità schermo intero"
+            style="display: none">
+            ⛶
+          </button>
+          <button id="exitFullscreenBtn" class="topbar-icon-btn" title="Esci dalla modalità schermo intero (ESC)">
+            🗗
+          </button>
+        </div>
+      </div>
+
+      <!-- Guida + Wacom + Input Mapping -->
+      <div class="topbar-section">
+        <button id="guideBtn" class="topbar-btn" title="Apri Guida Utente">📖 Guida</button>
+        <button
+          id="wacomToolbarBtn"
+          class="topbar-btn"
+          title="Tavoletta Wacom — clicca per impostazioni"
+          style="position: relative">
+          🖊️ Wacom
+          <span class="wacom-dot" aria-hidden="true"></span>
+        </button>
+        <button
+          id="inputMappingToolbarBtn"
+          class="topbar-btn"
+          title="Mappatura Mouse & Tastiera — clicca per personalizzare">
+          🖱️⌨️ Input
+        </button>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+     LEFT TOOLBAR (NUOVA)
+     ════════════════════════════════════════════════════════ -->
+    <div id="leftToolbar">
+      <button id="canvasVerticalBtn" class="tool-btn" title="Canvas Verticale (A4 Portrait)">
+        <svg width="18" height="22" viewBox="0 0 26 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="1" width="24" height="32" rx="3" stroke="currentColor" stroke-width="2.5" />
+          <rect x="6" y="7" width="14" height="3" fill="currentColor" opacity="0.9" />
+        </svg>
+      </button>
+      <button id="canvasHorizontalBtn" class="tool-btn" title="Canvas Orizzontale (A4 Landscape)">
+        <svg width="22" height="18" viewBox="0 0 34 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="1" width="32" height="24" rx="3" stroke="currentColor" stroke-width="2.5" />
+          <rect x="7" y="9" width="20" height="3" fill="currentColor" opacity="0.9" />
+        </svg>
+      </button>
+      <div class="tool-divider"></div>
+      <button id="selectToolBtn" class="tool-btn active" title="Seleziona / Sposta (default)">🖱️</button>
+      <button id="addShapeBtn" class="tool-btn" title="Aggiungi forma al centro del canvas">➕</button>
+      <button id="customShapeBtn" class="tool-btn" title="Crea forma personalizzata (poligono non standard)">✏️➕</button>
+      <button
+        id="lassoSelectBtn"
+        class="tool-btn"
+        title="Lazo — selezione libera (trascina per selezionare, si auto-disattiva al rilascio). Click destro per regolare la sensibilità.">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round">
+          <ellipse cx="11" cy="9" rx="8" ry="5" stroke-dasharray="2,2" />
+          <path d="M11 14 Q 11 19 14 21" />
+          <circle cx="14" cy="21" r="1.5" fill="currentColor" />
+        </svg>
+      </button>
+      <div class="tool-divider"></div>
+      <button id="freehandBtn" class="tool-btn" title="Penna — disegno a mano libera">✏️</button>
+      <button id="eraserBtn" class="tool-btn" title="Gomma — cancella tratti freehand">🧼</button>
+      <button id="watercolorBtn" class="tool-btn" title="Acquerello — pennellata con bleed">💧</button>
+      <div class="tool-divider"></div>
+      <button id="selectFreehandBtn" class="tool-btn" title="Lista linee disegnate (selettore)">📋</button>
+      <button id="clearAllFreehandBtn" class="tool-btn danger" title="Cancella TUTTO il disegno a mano libera">
+        🗑️
+      </button>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         INSPECTOR (id="historyPanel" per compat JS)
+         ════════════════════════════════════════════════════════ -->
+    <div id="historyPanel" aria-hidden="false">
+      <div class="inspector-header">
+        <p class="inspector-title">Inspector</p>
+        <p class="inspector-subtitle" id="inspectorSubtitle">Nessuna selezione</p>
+      </div>
+      <div class="inspector-body">
+        <!-- ── COLORE CORRENTE: sempre visibile, condiviso tra Penna/Acquerello ── -->
+        <div id="inspectorColorBlock" style="display: none">
+          <p class="inspector-section-title">Colore corrente</p>
+          <div class="inspector-row">
+            <span class="lbl">Tinta</span>
+            <input type="color" id="strokeColorPicker" value="#1a1a1a" title="Colore linea / acquerello" />
+            <span style="flex: 1"></span>
+          </div>
+          <div class="inspector-divider"></div>
+        </div>
+
+        <!-- ── DIMENSIONI FORMA SELEZIONATA (sempre visibile sopra le sezioni) ── -->
+        <div id="inspectorDimensionsBlock" style="display: none">
+          <p class="inspector-section-title">Dimensioni</p>
+          <div class="inspector-row">
+            <span class="lbl">Largh.</span>
+            <input
+              type="number"
+              id="inspectorShapeWidth"
+              class="inspector-dim-input"
+              step="0.1"
+              min="0.5"
+              title="Larghezza in mm — Invio per applicare, Esc per annullare" />
+            <span class="val">mm</span>
+          </div>
+          <div class="inspector-row">
+            <span class="lbl">Altezza</span>
+            <input
+              type="number"
+              id="inspectorShapeHeight"
+              class="inspector-dim-input"
+              step="0.1"
+              min="0.5"
+              title="Altezza in mm — Invio per applicare, Esc per annullare" />
+            <span class="val">mm</span>
+          </div>
+          <div class="inspector-divider"></div>
+        </div>
+
+        <!-- ── DEFAULT (nessuna selezione, cursore attivo) ── -->
+        <div class="inspector-section active" data-section="default">
+          <div class="inspector-empty">
+            Seleziona uno strumento dalla barra a sinistra<br />
+            oppure crea/seleziona una forma sul canvas.<br /><br />
+            <em style="opacity: 0.7">Doppio-click sul foglio = nuovo quadrato</em>
+          </div>
+        </div>
+
+        <!-- ── PENNA / GOMMA ── -->
+        <div class="inspector-section" data-section="penna">
+          <p class="inspector-section-title">Penna · Gomma</p>
+          <div class="inspector-row">
+            <span class="lbl">Larghezza</span>
+            <input type="range" id="lineWidthSlider" min="1" max="60" value="4" step="0.2" />
+            <span class="val" id="lineWidthValue">4</span>
+          </div>
+          <div class="inspector-divider"></div>
+          <div style="font-size: 11px; color: var(--col-text-dim); line-height: 1.5">
+            La penna disegna tratti vettoriali sopra le forme.<br />
+            La gomma cancella solo i tratti a mano libera.
+          </div>
+        </div>
+
+        <!-- ── ACQUERELLO ── -->
+        <div class="inspector-section" data-section="acquerello">
+          <p class="inspector-section-title">Acquerello</p>
+
+          <div class="inspector-row">
+            <span class="lbl">Larghezza</span>
+            <input type="range" id="watercolorWidthSlider" min="1" max="100" value="24" step="0.2" />
+            <span class="val" id="watercolorWidthValue">24</span>
+          </div>
+
+          <div class="inspector-row">
+            <span class="lbl">Opacità</span>
+            <input type="range" id="watercolorFlowSlider" min="25" max="100" value="82" step="1" />
+            <span class="val" id="watercolorFlowValue">82%</span>
+          </div>
+
+          <div class="inspector-row">
+            <span class="lbl">Tono</span>
+            <input
+              type="range"
+              id="toneSlider"
+              min="1"
+              max="100"
+              value="48"
+              onmousedown="event.stopPropagation();"
+              onpointerdown="event.stopPropagation();"
+              ondragstart="return false;" />
+            <span class="val" id="toneValue">48%</span>
+          </div>
+
+          <div class="inspector-divider"></div>
+
+          <div class="inspector-row">
+            <span class="lbl">Rotaz. iniz.</span>
+            <input type="range" id="tipInitialRotationSlider" min="-180" max="180" value="0" step="0.1" />
+            <span class="val" id="tipInitialRotationValue">0.0°</span>
+          </div>
+
+          <div class="inspector-row">
+            <span class="lbl">Distanza</span>
+            <input type="range" id="stampSpacingSlider" min="0" max="280" value="65" step="0.2" />
+            <span class="val" id="stampSpacingValue">0.65×</span>
+          </div>
+
+          <div class="inspector-row">
+            <span class="lbl">Jitter pos.</span>
+            <input type="range" id="positionJitterSlider" min="0" max="28" value="11" step="0.5" />
+            <span class="val" id="positionJitterValue">11</span>
+          </div>
+
+          <div class="inspector-row">
+            <span class="lbl">Rotazione</span>
+            <input type="range" id="rotationJitterSlider" min="0" max="35" value="9.5" step="0.5" />
+            <span class="val" id="rotationJitterValue">9.5°</span>
+          </div>
+
+          <div class="inspector-row">
+            <span class="lbl">Sbavatura</span>
+            <input type="range" id="bleedSlider" min="0" max="18" value="3.2" step="0.1" />
+            <span class="val" id="bleedValue">3.2</span>
+          </div>
+
+          <div class="inspector-row">
+            <span class="lbl">Layers</span>
+            <input type="range" id="layersSlider" min="1" max="38" value="22" step="1" />
+            <span class="val" id="layersValue">22</span>
+          </div>
+
+          <div class="inspector-divider"></div>
+
+          <div class="inspector-row">
+            <span class="lbl">Punta</span>
+            <button
+              id="brushTipModalBtn"
+              style="
+                flex: 1;
+                background: #2b6cff;
+                color: #fff;
+                border: 0;
+                border-radius: 6px;
+                padding: 6px 10px;
+                font-size: 12px;
+                cursor: pointer;
+              ">
+              <span id="currentBrushTipName">watercolor-stamp</span>
+            </button>
+          </div>
+
+          <div class="inspector-row">
+            <span class="lbl">Mixing</span>
+            <select
+              id="watercolorCompositeSelect"
+              style="
+                flex: 1;
+                background: #2b2b2b;
+                color: #fff;
+                border: 1px solid #555;
+                border-radius: 6px;
+                padding: 4px 8px;
+                font-size: 12px;
+              ">
+              <option value="multiply" selected>Multiply (colore su colore)</option>
+              <option value="overlay">Overlay (somma colori)</option>
+              <option value="soft-light">Soft Light (somma delicato)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- ── TRIANGOLO (id="angleControlsContainer" per compat JS) ── -->
+        <div class="inspector-section" id="angleControlsContainer" data-section="triangle">
+          <p class="inspector-section-title">Triangolo · Angoli</p>
+          <div class="inspector-row">
+            <span class="lbl">α (gradi)</span>
+            <input type="range" id="angleAlpha" min="1" max="178" value="60" step="0.1" style="flex: 1" />
+            <span class="val" id="alphaValue">60.0°</span>
+          </div>
+          <div class="inspector-row">
+            <span class="lbl">β (gradi)</span>
+            <input type="range" id="angleBeta" min="1" max="178" value="60" step="0.1" style="flex: 1" />
+            <span class="val" id="betaValue">60.0°</span>
+          </div>
+          <div class="inspector-divider"></div>
+          <div style="font-size: 11px; color: var(--col-text-dim)">
+            Snap angolare: <strong id="snapStepLabel">0.1°</strong>
+          </div>
+        </div>
+
+        <!-- ── TRAPEZIO: il container #trapezoidControlsContainer viene creato/riempito
+             dinamicamente da renderer.js (ensureTrapezoidControlsExist) e appendChild
+             dentro #historyPanel grazie alla modifica al renderer.js. ── -->
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+     TEXTURE PANEL (a sinistra del leftToolbar)
+     ════════════════════════════════════════════════════════ -->
+    <div id="texturePanel">
+      <span class="texture-vlabel">Anteprima texture</span>
+      <div id="textureGrid"></div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+     BG PANEL (barra orizzontale sotto la topBar)
+     ════════════════════════════════════════════════════════ -->
+    <div id="bgPanel">
+      <div class="bgPanel-section">
+        <span class="bgPanel-label">Sfondo</span>
+        <div id="bgImport" style="display: flex; align-items: center; gap: 8px">
+          <div id="bgDrop" class="bg-drop">
+            <div id="bgDropHint">
+              Trascina qui o
+              <button
+                id="bgPickBtn"
+                class="smallbtn"
+                style="
+                  display: inline-block;
+                  vertical-align: middle;
+                  padding: 3px 8px;
+                  background: #2b6cff;
+                  color: #fff;
+                  border: 0;
+                  border-radius: 4px;
+                  cursor: pointer;
+                  font-size: 11px;
+                  margin-left: 4px;
+                ">
+                Scegli file
+              </button>
+            </div>
+            <input id="bgFileInput" type="file" accept="image/*" style="display: none" />
+          </div>
+        </div>
+      </div>
+
+      <div class="bgPanel-section">
+        <div id="bgPreviewWrap" style="display: flex; gap: 8px; align-items: center">
+          <img id="bgPreview" src="" alt="" style="display: none" />
+          <div id="bgInfo"></div>
+        </div>
+      </div>
+
+      <div class="bgPanel-section" id="bgControls" style="gap: 6px">
+        <button id="bgFitContain" class="bgBtn" title="Fit Contain">Contain</button>
+        <button id="bgFitCover" class="bgBtn secondary" title="Fit Cover">Cover</button>
+        <button id="bgRotateLeft" class="bgBtn" title="Ruota a sinistra">↶ Ruota</button>
+        <button id="bgRotateRight" class="bgBtn" title="Ruota a destra">Ruota ↷</button>
+        <button id="bgClearBtn" class="bgBtn danger" title="Rimuovi sfondo">🗑 Rimuovi</button>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         STATUS BAR (NUOVA)
+         ════════════════════════════════════════════════════════ -->
+    <div id="statusBar">
+      <div class="status-item">
+        <span class="label">Zoom</span>
+        <span class="value" id="statusZoom">100%</span>
+      </div>
+      <div class="status-item">
+        <span class="label">Cursore</span>
+        <span class="value" id="statusCoords">— mm</span>
+      </div>
+      <div class="status-item">
+        <span class="label">Selezione</span>
+        <span class="value" id="statusSelection">Nessuna</span>
+      </div>
+      <div class="status-item" id="statusAutoSave" style="display: none"></div>
+      <div class="status-item" style="margin-left: auto">
+        <span class="label">Calibrazione</span>
+        <span class="value" id="statusCalib">1.00</span>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         INPUT NASCOSTI (compat JS)
+         ════════════════════════════════════════════════════════ -->
+    <input id="textureFile" type="file" accept="image/*" aria-hidden="true" />
+    <div id="cssInchDetector" aria-hidden="true"></div>
+
+    <!-- Vecchi mini-icon mantenuti come placeholder nascosti per compat JS -->
+    <div id="calibMini" style="display: none">
+      <span id="miniValue">50 mm</span>
+    </div>
+    <div id="zoomMini" style="display: none"></div>
+
+    <!-- ════════════════════════════════════════════════════════
+         MODALE: Selettore linee freehand (invariato)
+         ════════════════════════════════════════════════════════ -->
+    <div
+      id="freehandListModal"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.92);
+        z-index: 20001;
+        align-items: center;
+        justify-content: center;
+      ">
+      <div
+        style="
+          background: #1f1f1f;
+          padding: 20px;
+          border-radius: 12px;
+          width: 560px;
+          max-height: 85vh;
+          overflow: auto;
+          color: #eee;
+          box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
+        ">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px">
+          <h3 style="margin: 0">
+            📋 Linee disegnate a mano libera <span id="freehandCount" style="font-size: 14px; opacity: 0.7"></span>
+          </h3>
+          <button
+            id="modalCloseBtn"
+            style="background: none; border: none; color: #aaa; font-size: 26px; cursor: pointer; line-height: 1">
+            ×
+          </button>
+        </div>
+        <div
+          id="freehandListItems"
+          style="max-height: 440px; overflow: auto; display: flex; flex-direction: column; gap: 10px"></div>
+        <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end">
+          <button
+            id="modalCancelBtn"
+            style="padding: 9px 18px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer">
+            Annulla
+          </button>
+          <button
+            id="modalDeleteSelectedBtn"
+            style="padding: 9px 18px; background: #e74c3c; border: 0; border-radius: 6px; color: #fff; cursor: pointer">
+            🗑️ Elimina selezionati
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         MODALE: Esporta disegno mano libera (invariato)
+         ════════════════════════════════════════════════════════ -->
+    <div
+      id="freehandExportModal"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.92);
+        z-index: 20002;
+        align-items: center;
+        justify-content: center;
+      ">
+      <div
+        style="
+          background: #1f1f1f;
+          padding: 20px;
+          border-radius: 12px;
+          width: 620px;
+          max-height: 88vh;
+          overflow: auto;
+          color: #eee;
+          box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
+        ">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px">
+          <h3 style="margin: 0">
+            ✏️ Esporta Disegno a Mano Libera <span id="exportCount" style="font-size: 14px; opacity: 0.7"></span>
+          </h3>
+          <button
+            id="exportModalCloseBtn"
+            style="background: none; border: none; color: #aaa; font-size: 26px; cursor: pointer; line-height: 1">
+            ×
+          </button>
+        </div>
+        <div
+          id="exportListItems"
+          style="max-height: 380px; overflow: auto; display: flex; flex-direction: column; gap: 10px"></div>
+        <div style="margin: 20px 0; padding: 12px; background: #2b2b2b; border-radius: 8px">
+          <div style="margin-bottom: 10px; font-weight: 600">Formato:</div>
+          <label style="margin-right: 20px"
+            ><input type="radio" name="exportFormat" value="svg" checked /> SVG vettoriale (perfetto)</label
+          >
+          <label><input type="radio" name="exportFormat" value="png" /> PNG alta risoluzione</label>
+          <div style="margin-top: 12px; font-weight: 600">Tipo esportazione:</div>
+          <label style="margin-right: 20px"
+            ><input type="radio" name="exportMode" value="single" checked /> Unico file</label
+          >
+          <label><input type="radio" name="exportMode" value="separate" /> File separati (uno per linea)</label>
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: flex-end">
+          <button
+            id="exportModalCancelBtn"
+            style="padding: 10px 20px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer">
+            Annulla
+          </button>
+          <button
+            id="exportConfirmBtn"
+            style="
+              padding: 10px 20px;
+              background: #28a745;
+              border: 0;
+              border-radius: 6px;
+              color: #fff;
+              cursor: pointer;
+              font-weight: 700;
+            ">
+            ✅ ESPORTA
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         MODALE: Selettore punta acquerello (invariato)
+         ════════════════════════════════════════════════════════ -->
+    <div
+      id="brushTipModal"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.92);
+        z-index: 20003;
+        align-items: center;
+        justify-content: center;
+      ">
+      <div
+        style="
+          background: #1f1f1f;
+          padding: 20px;
+          border-radius: 12px;
+          width: 640px;
+          max-height: 88vh;
+          overflow: auto;
+          color: #eee;
+          box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
+        ">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px">
+          <h3 style="margin: 0">🖌️ Seleziona Punta Pennello Acquerello</h3>
+          <button
+            id="brushTipModalCloseBtn"
+            style="background: none; border: none; color: #aaa; font-size: 26px; cursor: pointer; line-height: 1">
+            ×
+          </button>
+        </div>
+        <div
+          id="brushTipList"
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            max-height: 520px;
+            overflow: auto;
+          "></div>
+        <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end">
+          <button
+            id="brushTipModalCancelBtn"
+            style="padding: 10px 20px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer">
+            Annulla
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         MODALE: Esporta PDF (invariato)
+         ════════════════════════════════════════════════════════ -->
+    <div
+      id="pdfExportModal"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.92);
+        z-index: 20002;
+        align-items: center;
+        justify-content: center;
+      ">
+      <div
+        style="
+          background: #1f1f1f;
+          padding: 22px 24px;
+          border-radius: 12px;
+          width: 520px;
+          max-width: 92vw;
+          max-height: 90vh;
+          overflow: auto;
+          color: #eee;
+          box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
+        ">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px">
+          <h3 style="margin: 0; font-size: 17px">📄 Esporta PDF (A4) — Cosa vuoi includere?</h3>
+          <button
+            id="pdfExportCloseBtn"
+            title="Chiudi"
+            style="background: none; border: none; color: #aaa; font-size: 26px; cursor: pointer; line-height: 1">
+            ×
+          </button>
+        </div>
+        <div style="font-size: 12px; opacity: 0.75; margin-bottom: 14px">
+          Il PDF sarà salvato in formato A4 reale a 300 DPI (massima qualità).
+        </div>
+        <div id="pdfExportOptions" style="display: flex; flex-direction: column; gap: 10px">
+          <label class="pdfOpt" data-mode="full">
+            <input type="radio" name="pdfMode" value="full" checked />
+            <div>
+              <div class="pdfOptTitle">🖼️ Tutto il canvas completo (100%)</div>
+              <div class="pdfOptDesc">
+                Esporta esattamente ciò che vedi: sfondo, texture, acquerello, mano libera, forme.
+              </div>
+            </div>
+          </label>
+          <label class="pdfOpt" data-mode="shapesOnPaper">
+            <input type="radio" name="pdfMode" value="shapesOnPaper" />
+            <div>
+              <div class="pdfOptTitle">📜 Solo forme su texture carta</div>
+              <div class="pdfOptDesc">
+                Solo le forme geometriche, sopra la texture carta. Niente acquerello né mano libera.
+              </div>
+            </div>
+          </label>
+          <label class="pdfOpt" data-mode="shapesOnBg" id="pdfOptShapesOnBg">
+            <input type="radio" name="pdfMode" value="shapesOnBg" />
+            <div>
+              <div class="pdfOptTitle">🌄 Solo forme con immagine di sfondo</div>
+              <div class="pdfOptDesc">Solo le forme geometriche, sopra l'immagine di sfondo caricata.</div>
+            </div>
+          </label>
+          <label class="pdfOpt" data-mode="shapesOnWhite">
+            <input type="radio" name="pdfMode" value="shapesOnWhite" />
+            <div>
+              <div class="pdfOptTitle">⬜ Solo forme su sfondo bianco</div>
+              <div class="pdfOptDesc">Solo le forme geometriche, sfondo bianco solido. Ideale per stampa neutra.</div>
+            </div>
+          </label>
+          <label class="pdfOpt" data-mode="shapesOnTransparent">
+            <input type="radio" name="pdfMode" value="shapesOnTransparent" />
+            <div>
+              <div class="pdfOptTitle">🔲 Solo forme su sfondo trasparente</div>
+              <div class="pdfOptDesc">
+                Solo le forme. La maggior parte dei lettori PDF mostra il bianco; alcuni mostrano la trasparenza reale.
+              </div>
+            </div>
+          </label>
+        </div>
+        <div style="margin-top: 22px; display: flex; gap: 12px; justify-content: flex-end">
+          <button
+            id="pdfExportCancelBtn"
+            style="padding: 9px 18px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer">
+            Annulla
+          </button>
+          <button
+            id="pdfExportConfirmBtn"
+            style="
+              padding: 9px 22px;
+              background: #2e8b57;
+              border: 0;
+              border-radius: 6px;
+              color: #fff;
+              cursor: pointer;
+              font-weight: 600;
+            ">
+            ✅ Esporta PDF
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         MODALE: Esporta PNG/SVG (invariato)
+         ════════════════════════════════════════════════════════ -->
+    <div
+      id="pngSvgExportModal"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.92);
+        z-index: 20002;
+        align-items: center;
+        justify-content: center;
+      ">
+      <div
+        style="
+          background: #1f1f1f;
+          padding: 22px 24px;
+          border-radius: 12px;
+          width: 540px;
+          max-width: 92vw;
+          max-height: 90vh;
+          overflow: auto;
+          color: #eee;
+          box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
+        ">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px">
+          <h3 style="margin: 0; font-size: 17px">🖼️ Esporta PNG / SVG — Cosa preferisci?</h3>
+          <button
+            id="pngSvgExportCloseBtn"
+            title="Chiudi"
+            style="background: none; border: none; color: #aaa; font-size: 26px; cursor: pointer; line-height: 1">
+            ×
+          </button>
+        </div>
+        <div style="font-size: 12px; opacity: 0.75; margin-bottom: 14px">
+          Il PNG salva un'immagine raster ad alta risoluzione del canvas completo. L'SVG salva solo le forme geometriche
+          in formato vettoriale (sfondo trasparente, dimensioni reali in mm).
+        </div>
+        <div id="pngSvgExportOptions" style="display: flex; flex-direction: column; gap: 10px">
+          <label class="psOpt" data-mode="png_full">
+            <input type="radio" name="pngSvgMode" value="png_full" checked />
+            <div>
+              <div class="psOptTitle">🖼️ PNG completo del canvas</div>
+              <div class="psOptDesc">
+                Esporta tutto ciò che vedi: sfondo, texture carta, forme, mano libera, acquerello.
+              </div>
+            </div>
+          </label>
+          <label class="psOpt" data-mode="svg_filled">
+            <input type="radio" name="pngSvgMode" value="svg_filled" />
+            <div>
+              <div class="psOptTitle">🧩 SVG vettoriale — forme con riempimento</div>
+              <div class="psOptDesc">
+                Solo le forme geometriche, con il loro colore o texture di riempimento e la posizione esatta. Sfondo
+                trasparente.
+              </div>
+            </div>
+          </label>
+          <label class="psOpt" data-mode="svg_outline">
+            <input type="radio" name="pngSvgMode" value="svg_outline" />
+            <div>
+              <div class="psOptTitle">✏️ SVG vettoriale — solo contorni</div>
+              <div class="psOptDesc">
+                Solo i contorni delle forme: stroke del colore di riempimento se tinta unita, nero se la forma ha una
+                texture. Sfondo trasparente.
+              </div>
+            </div>
+          </label>
+        </div>
+        <div style="margin-top: 22px; display: flex; gap: 12px; justify-content: flex-end">
+          <button
+            id="pngSvgExportCancelBtn"
+            style="padding: 9px 18px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer">
+            Annulla
+          </button>
+          <button
+            id="pngSvgExportConfirmBtn"
+            style="
+              padding: 9px 22px;
+              background: #2e8b57;
+              border: 0;
+              border-radius: 6px;
+              color: #fff;
+              cursor: pointer;
+              font-weight: 600;
+            ">
+            ✅ Esporta
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         MODALE: Conferma Nuovo Progetto
+         ════════════════════════════════════════════════════════ -->
+    <div
+      id="newProjectConfirmModal"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.92);
+        z-index: 20002;
+        align-items: center;
+        justify-content: center;
+      ">
+      <div
+        style="
+          background: #1f1f1f;
+          padding: 22px 24px;
+          border-radius: 12px;
+          width: 460px;
+          max-width: 92vw;
+          max-height: 90vh;
+          overflow: auto;
+          color: #eee;
+          box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
+        ">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px">
+          <h3 style="margin: 0; font-size: 17px">🆕 Nuovo Progetto</h3>
+          <button
+            id="newProjectConfirmCloseBtn"
+            title="Chiudi"
+            style="background: none; border: none; color: #aaa; font-size: 26px; cursor: pointer; line-height: 1">
+            ×
+          </button>
+        </div>
+        <div style="font-size: 13px; line-height: 1.5; margin-bottom: 18px">
+          Verrà creato un nuovo progetto con canvas vuoto.
+          <br /><br />
+          <strong style="color: #ff9800">⚠️ Tutto il lavoro non salvato andrà perso</strong>
+          (forme, disegni a mano libera, acquerello, immagine di sfondo).
+          <br /><br />
+          <span style="opacity: 0.75">Vuoi procedere?</span>
+        </div>
+        <div style="margin-top: 22px; display: flex; gap: 12px; justify-content: flex-end">
+          <button
+            id="newProjectConfirmCancelBtn"
+            style="padding: 9px 18px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer">
+            Annulla
+          </button>
+          <button
+            id="newProjectConfirmOkBtn"
+            style="
+              padding: 9px 22px;
+              background: #6f42c1;
+              border: 0;
+              border-radius: 6px;
+              color: #fff;
+              cursor: pointer;
+              font-weight: 600;
+            ">
+            ✅ Crea nuovo progetto
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         MODALE: Impostazioni Tavoletta Wacom
+         ════════════════════════════════════════════════════════ -->
+    <div
+      id="wacomConfigModal"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.92);
+        z-index: 20004;
+        align-items: center;
+        justify-content: center;
+      ">
+      <div
+        style="
+          background: #1f1f1f;
+          padding: 22px 24px;
+          border-radius: 12px;
+          width: 680px;
+          max-width: 94vw;
+          max-height: 92vh;
+          overflow: auto;
+          color: #eee;
+          box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
+        ">
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px">
+          <h3 style="margin: 0; font-size: 17px">🖊️ Tavoletta Wacom — Impostazioni</h3>
+          <button
+            id="wacomConfigCloseBtn"
+            title="Chiudi"
+            style="background: none; border: none; color: #aaa; font-size: 26px; cursor: pointer; line-height: 1">
+            ×
+          </button>
+        </div>
+
+        <!-- Stato dispositivo -->
+        <div style="background: #2a2a2a; padding: 12px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 13px">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
+            <div id="wacomDeviceStatus" style="flex: 1">⌛ Rilevamento in corso...</div>
+            <button
+              id="wacomRedetectBtn"
+              style="
+                background: #3b3b3b;
+                border: 0;
+                color: #fff;
+                padding: 6px 12px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 12px;
+              ">
+              🔄 Rileva
+            </button>
+          </div>
+
+          <!-- Avviso Windows Ink (visibile solo se la modalità non è attiva) -->
+          <div
+            id="wacomInkWarning"
+            style="
+              display: none;
+              margin-top: 10px;
+              padding: 8px 10px;
+              background: #3d2a00;
+              border-left: 3px solid #fbbf24;
+              border-radius: 4px;
+              font-size: 12px;
+              color: #fde68a;
+            ">
+            ⚠️ La pressione non è disponibile. Apri <b>Wacom Tablet Properties</b> e attiva la modalità
+            <b>Windows Ink</b>, oppure aggiorna il driver Wacom.
+          </div>
+        </div>
+
+        <!-- Toggle integrazione -->
+        <label
+          style="
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            padding: 10px 12px;
+            background: #2a2a2a;
+            border-radius: 8px;
+            cursor: pointer;
+          ">
+          <input type="checkbox" id="wacomEnabledCheck" style="width: 18px; height: 18px; cursor: pointer" />
+          <span style="flex: 1">
+            <b>Abilita integrazione Wacom</b>
+            <div style="font-size: 11px; color: #aaa; margin-top: 2px">
+              Disattiva per tornare al comportamento solo-mouse
+            </div>
+          </span>
+        </label>
+
+        <!-- ────── PRESSIONE ────── -->
+        <div style="background: #222; padding: 14px 14px; border-radius: 8px; margin-bottom: 14px">
+          <div style="font-weight: 600; margin-bottom: 10px; color: #00c8ff">⚙️ Pressione</div>
+
+          <!-- Sensibilità -->
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px">
+            <label style="width: 140px; font-size: 13px">Sensibilità globale</label>
+            <input type="range" id="wacomSensitivitySlider" min="0" max="200" step="1" value="100" style="flex: 1" />
+            <span
+              id="wacomSensitivityValue"
+              style="width: 50px; text-align: right; font-family: monospace; font-size: 12px"
+              >100%</span
+            >
+          </div>
+
+          <!-- Curva -->
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px">
+            <label style="width: 140px; font-size: 13px">Curva di risposta</label>
+            <select
+              id="wacomCurveSelect"
+              style="
+                flex: 1;
+                background: #1b1b1b;
+                color: #fff;
+                border: 1px solid #555;
+                border-radius: 6px;
+                padding: 6px 10px;
+              ">
+              <option value="linear">📏 Lineare (default)</option>
+              <option value="soft">🪶 Soft (più sensibile a tocco leggero)</option>
+              <option value="hard">💪 Hard (serve premere forte)</option>
+              <option value="stairs">🪜 A gradini (5 livelli)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- ────── MODULAZIONI ────── -->
+        <div style="background: #222; padding: 14px 14px; border-radius: 8px; margin-bottom: 14px">
+          <div style="font-weight: 600; margin-bottom: 10px; color: #00c8ff">🎯 Cosa modula la pressione</div>
+
+          <!-- Spessore -->
+          <label
+            style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; cursor: pointer">
+            <input type="checkbox" id="wacomModulateWidthCheck" />
+            <b style="width: 120px">Spessore tratto</b>
+            <span style="font-size: 11px; color: #888">min</span>
+            <input type="range" id="wacomMinWidthSlider" min="0" max="100" step="1" style="flex: 1" />
+            <span id="wacomMinWidthValue" style="width: 40px; font-family: monospace; font-size: 11px">20%</span>
+          </label>
+          <label
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              margin-bottom: 12px;
+              padding-left: 148px;
+              font-size: 13px;
+            ">
+            <span style="font-size: 11px; color: #888">max</span>
+            <input type="range" id="wacomMaxWidthSlider" min="0" max="300" step="1" style="flex: 1" />
+            <span id="wacomMaxWidthValue" style="width: 40px; font-family: monospace; font-size: 11px">120%</span>
+          </label>
+
+          <!-- Opacità -->
+          <label
+            style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 13px; cursor: pointer">
+            <input type="checkbox" id="wacomModulateOpacityCheck" />
+            <b style="width: 120px">Opacità tratto</b>
+            <span style="font-size: 11px; color: #888">min</span>
+            <input type="range" id="wacomMinOpacitySlider" min="0" max="100" step="1" style="flex: 1" />
+            <span id="wacomMinOpacityValue" style="width: 40px; font-family: monospace; font-size: 11px">35%</span>
+          </label>
+
+          <!-- Flusso acquerello -->
+          <label
+            style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 13px; cursor: pointer">
+            <input type="checkbox" id="wacomModulateFlowCheck" />
+            <b style="width: 120px">Flusso acquerello</b>
+            <span style="font-size: 11px; color: #888">min</span>
+            <input type="range" id="wacomMinFlowSlider" min="0" max="100" step="1" style="flex: 1" />
+            <span id="wacomMinFlowValue" style="width: 40px; font-family: monospace; font-size: 11px">40%</span>
+          </label>
+        </div>
+
+        <!-- ────── TILT (inclinazione penna) ────── -->
+        <div style="background: #222; padding: 14px 14px; border-radius: 8px; margin-bottom: 14px">
+          <div style="font-weight: 600; margin-bottom: 10px; color: #00c8ff">🎯 Inclinazione penna (tilt)</div>
+
+          <label
+            style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; cursor: pointer">
+            <input type="checkbox" id="wacomModulateTiltCheck" />
+            <b style="width: 200px">Abilita modulazione tilt</b>
+            <span style="font-size: 11px; color: #888"
+              >Allarga + ruota il timbro acquerello a seconda dell'inclinazione della penna</span
+            >
+          </label>
+
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px">
+            <label style="width: 200px; font-size: 13px">Ampiezza allargamento</label>
+            <input type="range" id="wacomTiltWidthSlider" min="0" max="100" step="1" style="flex: 1" />
+            <span id="wacomTiltWidthValue" style="width: 40px; font-family: monospace; font-size: 11px">50%</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px">
+            <label style="width: 200px; font-size: 13px">Ampiezza rotazione timbro</label>
+            <input type="range" id="wacomTiltRotateSlider" min="0" max="100" step="1" style="flex: 1" />
+            <span id="wacomTiltRotateValue" style="width: 40px; font-family: monospace; font-size: 11px">100%</span>
+          </div>
+          <div style="margin-top: 8px; font-size: 11px; color: #888">
+            💡 La tilt agisce solo sull'acquerello. Penna inclinata di lato → pennellata più larga e con l'orientamento
+            del timbro che segue l'inclinazione reale (come un pennello vero).
+          </div>
+        </div>
+
+        <!-- ────── TASTI PENNA ────── -->
+        <div style="background: #222; padding: 14px 14px; border-radius: 8px; margin-bottom: 14px">
+          <div style="font-weight: 600; margin-bottom: 10px; color: #00c8ff">🔘 Tasti laterali della penna</div>
+
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px">
+            <label style="width: 140px; font-size: 13px">Tasto BASSO</label>
+            <select
+              id="wacomLowerBtnSelect"
+              style="
+                flex: 1;
+                background: #1b1b1b;
+                color: #fff;
+                border: 1px solid #555;
+                border-radius: 6px;
+                padding: 6px 10px;
+              "></select>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px">
+            <label style="width: 140px; font-size: 13px">Tasto ALTO</label>
+            <select
+              id="wacomUpperBtnSelect"
+              style="
+                flex: 1;
+                background: #1b1b1b;
+                color: #fff;
+                border: 1px solid #555;
+                border-radius: 6px;
+                padding: 6px 10px;
+              "></select>
+          </div>
+          <div style="margin-top: 8px; font-size: 11px; color: #888">
+            💡 Nota: sulla Bamboo CTL-460 il riconoscimento dei due tasti dipende dal driver. Se entrambi i tasti
+            eseguono la stessa azione, prova a invertire la configurazione nelle Wacom Tablet Properties.
+          </div>
+          <!-- Calibrazione tasti -->
+          <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #333">
+            <div style="font-weight: 600; margin-bottom: 8px; color: #00c8ff; font-size: 13px">
+              🎓 Calibrazione tasti
+            </div>
+            <div style="font-size: 11px; color: #888; margin-bottom: 10px">
+              Insegna a Mosaica quale codice button corrisponde a ciascun tasto della tua penna. Clicca un pulsante qui
+              sotto e poi premi il tasto corrispondente sulla penna entro 10 secondi.
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px">
+              <button
+                id="wacomCalibrateLowerBtn"
+                style="
+                  background: #3b3b3b;
+                  border: 0;
+                  color: #fff;
+                  padding: 6px 12px;
+                  border-radius: 5px;
+                  cursor: pointer;
+                  font-size: 12px;
+                ">
+                🎯 Calibra tasto BASSO
+              </button>
+              <button
+                id="wacomCalibrateUpperBtn"
+                style="
+                  background: #3b3b3b;
+                  border: 0;
+                  color: #fff;
+                  padding: 6px 12px;
+                  border-radius: 5px;
+                  cursor: pointer;
+                  font-size: 12px;
+                ">
+                🎯 Calibra tasto ALTO
+              </button>
+              <button
+                id="wacomCalibrateCancelBtn"
+                style="
+                  background: #4a2c2c;
+                  border: 0;
+                  color: #fff;
+                  padding: 6px 12px;
+                  border-radius: 5px;
+                  cursor: pointer;
+                  font-size: 12px;
+                ">
+                ✕ Annulla
+              </button>
+              <button
+                id="wacomCalibrateResetBtn"
+                style="
+                  background: #2c3a4a;
+                  border: 0;
+                  color: #fff;
+                  padding: 6px 12px;
+                  border-radius: 5px;
+                  cursor: pointer;
+                  font-size: 12px;
+                ">
+                🔄 Reset
+              </button>
+            </div>
+            <div
+              id="wacomCalibrationStatus"
+              style="padding: 6px 10px; background: #1b1b1b; border-radius: 4px; font-size: 12px; min-height: 20px">
+              <span style="color: #aaa">Stato calibrazione...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ────── TEST LIVE ────── -->
+        <div style="background: #222; padding: 14px 14px; border-radius: 8px; margin-bottom: 14px">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px">
+            <div style="font-weight: 600; color: #00c8ff">🎨 Test pressione dal vivo</div>
+            <button
+              id="wacomTestClearBtn"
+              style="
+                background: #3b3b3b;
+                border: 0;
+                color: #fff;
+                padding: 4px 10px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 11px;
+              ">
+              Pulisci
+            </button>
+          </div>
+          <canvas
+            id="wacomTestCanvas"
+            width="600"
+            height="120"
+            style="
+              display: block;
+              width: 100%;
+              height: 120px;
+              background: #181818;
+              border-radius: 6px;
+              border: 1px solid #333;
+              touch-action: none;
+              cursor: crosshair;
+            "></canvas>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              margin-top: 6px;
+              font-size: 11px;
+              color: #aaa;
+              font-family: monospace;
+              flex-wrap: wrap;
+              gap: 6px;
+            ">
+            <span>Pressione: <b id="wacomLivePressureValue" style="color: #00c8ff">0%</b></span>
+            <span>Tilt: <b id="wacomLiveTiltValue" style="color: #00c8ff">X:0° Y:0°</b></span>
+            <span>Inclinazione: <b id="wacomLiveTiltMagValue" style="color: #00c8ff">0%</b></span>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="display: flex; justify-content: space-between; gap: 10px">
+          <div style="display: flex; gap: 8px">
+            <button
+              id="wacomOpenAppBtn"
+              style="
+                background: #0066cc;
+                border: 0;
+                color: #fff;
+                padding: 9px 14px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 13px;
+              ">
+              🪟 Apri Wacom Preferenze
+            </button>
+            <button
+              id="wacomResetDefaultsBtn"
+              style="
+                background: #444;
+                border: 0;
+                color: #fff;
+                padding: 9px 14px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 13px;
+              ">
+              🔄 Ripristina default
+            </button>
+          </div>
+          <button
+            id="wacomConfigDoneBtn"
+            style="
+              background: #00c8ff;
+              border: 0;
+              color: #000;
+              padding: 9px 18px;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 13px;
+              font-weight: 600;
+            ">
+            Fatto
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════
+            SCRIPT: !!! RISPETTARE ORDINE DEI LINK !!! 
+         ══════════════════════════════════════════════════════ -->
+    <script src="libs/fabricV5.1.0.min.js"></script>
+    <script src="renderer.js"></script>
+    <script src="TriangleModel.js"></script>
+    <script src="TrapezoidModel.js"></script>
+    <script src="CircleSectorModel.js"></script>
+    <script src="freehandDrawing.js"></script>
+    <script src="watercolorStampBrush.js"></script>
+    <script src="keyboardShortcuts.js"></script>
+    <script src="svgExport.js"></script>
+    <script src="saveLoader.js"></script>
+    <script src="autoSave.js"></script>
+    <script src="mouseObserver.js"></script>
+    <script src="lassoSelection.js"></script>
+    <script src="wacomTablet.js"></script>
+    <script src="inputMapping.js"></script>
+    <script src="customShapeBuilder.js"></script>
+
+    <!-- ════════════════════════════════════════════════════════
+         BOOT-UI (NUOVO): apre/chiude dropdown, sincronizza Inspector
+         con strumento attivo + selezione, aggiorna status bar.
+         Caricato DOPO renderer.js così trova canvas e funzioni esistenti.
+         ════════════════════════════════════════════════════════ -->
+    <script>
+      (function bootMosaicaUI() {
+        // ── DROPDOWN topbar (File / Esporta / Calibrazione) ──
+        function bindDropdowns() {
+          const dropdowns = [
+            { dropdown: "fileMenuDropdown", toggle: "fileMenuToggle" },
+            { dropdown: "exportMenuDropdown", toggle: "exportMenuToggle" },
+            { dropdown: "calibDropdown", toggle: "calibDropdownToggle" }
+          ];
+          dropdowns.forEach(({ dropdown, toggle }) => {
+            const dd = document.getElementById(dropdown);
+            const tg = document.getElementById(toggle);
+            if (!dd || !tg) return;
+            tg.addEventListener("click", (e) => {
+              e.stopPropagation();
+              // chiudi gli altri
+              dropdowns.forEach((o) => {
+                if (o.dropdown !== dropdown) {
+                  const x = document.getElementById(o.dropdown);
+                  if (x) x.classList.remove("open");
+                }
+              });
+              dd.classList.toggle("open");
+            });
+            // click DENTRO le voci dropdown chiude (eccetto il popover calibrazione)
+            const content = dd.querySelector(".dropdown-content");
+            if (content && dropdown !== "calibDropdown") {
+              content.addEventListener("click", (e) => {
+                if (e.target.tagName === "BUTTON") {
+                  setTimeout(() => dd.classList.remove("open"), 50);
+                }
+              });
+            }
+          });
+
+          // click fuori chiude tutti
+          document.addEventListener("click", (e) => {
+            dropdowns.forEach(({ dropdown }) => {
+              const dd = document.getElementById(dropdown);
+              if (!dd) return;
+              if (!dd.contains(e.target)) dd.classList.remove("open");
+            });
+          });
+
+          // ESC chiude tutti
+          document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+              dropdowns.forEach(({ dropdown }) => {
+                const dd = document.getElementById(dropdown);
+                if (dd) dd.classList.remove("open");
+              });
+            }
+          });
+        }
+
+        // ── Aggiorna l'indicatore calibrazione (factor) in topbar + status bar ──
+        function updateCalibIndicators() {
+          try {
+            const factor =
+              (typeof window.calibrationFactor === "number" && window.calibrationFactor) ||
+              parseFloat(localStorage.getItem("mosaica_calibration_factor")) ||
+              1;
+            const ind = document.getElementById("calibFactorIndicator");
+            const sc = document.getElementById("statusCalib");
+            const txt = factor.toFixed(3);
+            if (ind) ind.textContent = txt;
+            if (sc) sc.textContent = txt;
+          } catch (e) {}
+        }
+
+        // ── Stato strumento attivo: leggiamo dalla classe .active dei pulsanti
+        //    che freehandDrawing.js gestisce internamente (variabili interne
+        //    isFreehandMode/isEraserMode/isWatercolorMode non sono globali). ──
+        function isFreehandOn() {
+          const b = document.getElementById("freehandBtn");
+          return !!(b && b.classList.contains("active"));
+        }
+        function isEraserOn() {
+          const b = document.getElementById("eraserBtn");
+          return !!(b && b.classList.contains("active"));
+        }
+        function isWatercolorOn() {
+          const b = document.getElementById("watercolorBtn");
+          return !!(b && b.classList.contains("active"));
+        }
+
+        // ── Toolbar sinistra: aggiorna anche il pulsante "Seleziona" come default
+        //    quando nessuno dei 3 strumenti è attivo. freehandDrawing.js gestisce
+        //    da solo le classi .active sui pulsanti freehand/eraser/watercolor. ──
+        function updateToolbarActive() {
+          const sel = document.getElementById("selectToolBtn");
+          if (sel) {
+            const anyToolOn = isFreehandOn() || isEraserOn() || isWatercolorOn();
+            sel.classList.toggle("active", !anyToolOn);
+          }
+        }
+
+        // ── Inspector: switch sezione in base a contesto ──
+        function setInspectorSection(name, subtitle) {
+          const sections = document.querySelectorAll("#historyPanel .inspector-section");
+          sections.forEach((s) => {
+            const match = s.dataset.section === name;
+            s.classList.toggle("active", match);
+          });
+          // Blocco "Colore corrente" sempre visibile sopra penna/acquerello
+          const colorBlock = document.getElementById("inspectorColorBlock");
+          if (colorBlock) {
+            colorBlock.style.display = name === "penna" || name === "acquerello" ? "block" : "none";
+          }
+          const sub = document.getElementById("inspectorSubtitle");
+          if (sub) sub.textContent = subtitle || "";
+        }
+        // Esposto globale così renderer.js può chiamarlo
+        window.setInspectorSection = setInspectorSection;
+
+        function refreshInspectorContext() {
+          // Priorità: forma selezionata > strumento attivo > default
+          try {
+            const c = window.canvas;
+            const obj = c && c.getActiveObject ? c.getActiveObject() : null;
+
+            // Triangolo selezionato
+            const isTri =
+              obj && (obj.__shapeType === "triangle" || (obj.type === "polygon" && obj.__shape && obj.__shape.angles));
+            if (isTri) {
+              setInspectorSection("triangle", "Triangolo selezionato");
+              return;
+            }
+
+            // Trapezio selezionato
+            const isTrap =
+              obj &&
+              (obj.__shapeType === "trapezoid" ||
+                (obj.type === "polygon" && obj.__shape && obj.__shape.type === "trapezoid"));
+            if (isTrap) {
+              setInspectorSection("trapezoid", "Trapezio selezionato");
+              return;
+            }
+
+            // Strumento attivo
+            if (isWatercolorOn()) {
+              setInspectorSection("acquerello", "Strumento: acquerello");
+              return;
+            }
+            if (isEraserOn()) {
+              setInspectorSection("penna", "Strumento: gomma");
+              return;
+            }
+            if (isFreehandOn()) {
+              setInspectorSection("penna", "Strumento: penna");
+              return;
+            }
+
+            // Selezione generica?
+            if (obj) {
+              setInspectorSection("default", `Oggetto selezionato (${obj.type || "—"})`);
+              return;
+            }
+
+            setInspectorSection("default", "Nessuna selezione");
+          } catch (err) {
+            console.warn("[bootUI] refreshInspectorContext err", err);
+          }
+        }
+        window.refreshInspectorContext = refreshInspectorContext;
+
+        // ── Status bar updates ──
+        function updateStatusZoom() {
+          const sz = document.getElementById("statusZoom");
+          const zp = document.getElementById("zoomPercent");
+          if (sz && zp) sz.textContent = zp.textContent;
+        }
+        function updateStatusCoords(xMM, yMM) {
+          const sc = document.getElementById("statusCoords");
+          if (!sc) return;
+          if (xMM == null || yMM == null) sc.textContent = "— mm";
+          else sc.textContent = `x ${xMM.toFixed(1)}  y ${yMM.toFixed(1)} mm`;
+        }
+        function updateStatusSelection() {
+          const ss = document.getElementById("statusSelection");
+          if (!ss) return;
+          try {
+            const c = window.canvas;
+            const obj = c && c.getActiveObject ? c.getActiveObject() : null;
+            if (!obj) {
+              ss.textContent = "Nessuna";
+              return;
+            }
+
+            if (obj.type === "activeSelection") {
+              ss.textContent = `${obj.getObjects().length} oggetti`;
+              return;
+            }
+
+            const t = obj.__shapeType || (obj.__shape && obj.__shape.type) || obj.type || "oggetto";
+
+            // ── Misure intrinseche della forma (senza rotazione AABB).
+            // Usiamo getScaledWidth/Height come fa updateMeasureOverlay: in questo modo
+            // i numeri restano coerenti con quelli mostrati sotto le maniglie e non si
+            // "gonfiano" quando l'oggetto è ruotato (cosa che invece accade con
+            // getBoundingRect, che restituisce il bbox dopo rotazione).
+            const wPx = typeof obj.getScaledWidth === "function" ? obj.getScaledWidth() : obj.width || 0;
+            const hPx = typeof obj.getScaledHeight === "function" ? obj.getScaledHeight() : obj.height || 0;
+
+            const toMm = (px) => (typeof window.px2mm === "function" ? window.px2mm(px) : px / 3.7795).toFixed(1);
+            ss.textContent = `${t} · ${toMm(wPx)} × ${toMm(hPx)} mm`;
+          } catch (e) {
+            ss.textContent = "—";
+          }
+        }
+        window.updateStatusSelection = updateStatusSelection;
+        window.updateStatusZoom = updateStatusZoom;
+
+        // ── Coords live: ascolta mousemove sul workspace ──
+        const ws = document.getElementById("workspace");
+        if (ws) {
+          ws.addEventListener("mousemove", (e) => {
+            try {
+              const c = window.canvas;
+              if (!c || !c.getPointer) {
+                updateStatusCoords(null, null);
+                return;
+              }
+              const p = c.getPointer(e);
+              const px2mm = (px) => (typeof window.px2mm === "function" ? window.px2mm(px) : px / 3.7795);
+              updateStatusCoords(px2mm(p.x), px2mm(p.y));
+            } catch (err) {}
+          });
+          ws.addEventListener("mouseleave", () => updateStatusCoords(null, null));
+        }
+
+        // ── Avvia tutto dopo che renderer.js ha inizializzato canvas ──
+        function init() {
+          bindDropdowns();
+          updateCalibIndicators();
+          updateToolbarActive();
+          refreshInspectorContext();
+
+          // Tool button "Seleziona" (default): se l'utente clicca disattiva tutti gli
+          // strumenti modali. freehandDrawing.js usa funzioni TOGGLE locali e tiene lo
+          // stato in variabili `let` (non globali), quindi non possiamo chiamarle
+          // direttamente: simuliamo un click sul pulsante per innescare il toggle off.
+          const selectBtn = document.getElementById("selectToolBtn");
+          if (selectBtn) {
+            selectBtn.addEventListener("click", () => {
+              try {
+                if (isWatercolorOn()) document.getElementById("watercolorBtn")?.click();
+                if (isEraserOn()) document.getElementById("eraserBtn")?.click();
+                if (isFreehandOn()) document.getElementById("freehandBtn")?.click();
+              } catch (e) {}
+              setTimeout(() => {
+                updateToolbarActive();
+                refreshInspectorContext();
+              }, 60);
+            });
+          }
+
+          // Wrappers leggeri sui bottoni strumento esistenti per refresh UI
+          ["freehandBtn", "eraserBtn", "watercolorBtn"].forEach((id) => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            btn.addEventListener("click", () => {
+              setTimeout(() => {
+                updateToolbarActive();
+                refreshInspectorContext();
+              }, 60);
+            });
+          });
+
+          // Hook su selection change del canvas (se canvas disponibile)
+          try {
+            const c = window.canvas;
+            if (c && c.on) {
+              c.on("selection:created", () => {
+                refreshInspectorContext();
+                updateStatusSelection();
+              });
+              c.on("selection:updated", () => {
+                refreshInspectorContext();
+                updateStatusSelection();
+              });
+              c.on("selection:cleared", () => {
+                refreshInspectorContext();
+                updateStatusSelection();
+              });
+              c.on("after:render", () => updateStatusZoom());
+            }
+          } catch (e) {}
+
+          // Polling leggero ogni 800ms per calib indicator (cattura ogni cambio fattore)
+          setInterval(updateCalibIndicators, 800);
+        }
+
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", () => setTimeout(init, 200));
+        } else {
+          setTimeout(init, 200);
+        }
+      })();
+    </script>
+  </body>
+</html>

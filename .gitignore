@@ -1,0 +1,39 @@
+# Dipendenze Node.js
+node_modules/
+
+# Output di build (non va su GitHub, viene generato dalle Actions)
+dist/
+out/
+
+# Log
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# File di sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Variabili ambiente
+.env
+.env.local
+.env.*.local
+
+# Cache
+.cache/
+
+# Backup
+*.bak
+*.orig
+*.tmp

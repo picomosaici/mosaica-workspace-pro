@@ -1,0 +1,71 @@
+# ===================================================================
+# Mosaica Workspace Pro - Build & Release automatico
+# ===================================================================
+# Si attiva quando:
+#  - si pubblica un tag git che inizia con "v" (es. v5.2026.0)
+#    -> builda l'installer Windows + crea una GitHub Release
+#  - si avvia manualmente dalla pagina "Actions" del repository
+#    -> builda solo, senza creare release
+# ===================================================================
+
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build installer Windows
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout del codice
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Installa dipendenze
+        run: npm ci
+
+      - name: Build installer Windows (x64)
+        run: npm run dist:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Carica artifact (per ogni esecuzione)
+        uses: actions/upload-artifact@v4
+        with:
+          name: MosaicaWorkspacePro-Installer
+          path: dist/*.exe
+          retention-days: 30
+
+      - name: Crea GitHub Release (solo su tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.exe
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+          name: "Mosaica Workspace Pro ${{ github.ref_name }}"
+          body: |
+            ## 🎨 Mosaica Workspace Pro ${{ github.ref_name }}
+
+            Scarica l'installer Windows qui sotto (file `.exe`) e lancialo per installare o aggiornare Mosaica.
+
+            ### Installazione
+            1. Scarica il file `MosaicaWorkspacePro-Setup-*.exe`
+            2. Eseguilo (se Windows mostra "Editore sconosciuto", clicca **Ulteriori informazioni → Esegui comunque**)
+            3. Segui le istruzioni dell'installer
+
+            ### Note di rilascio

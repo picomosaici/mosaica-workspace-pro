@@ -1,0 +1,106 @@
+{
+  "name": "mosaica-workspace-pro",
+  "version": "5.2026.0",
+  "description": "Mosaica Workspace Pro - Strumento professionale per mosaici, disegno a mano libera e acquerello digitale",
+  "author": {
+    "name": "Pico Mosaici",
+    "email": "picomosaici@gmail.com"
+  },
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "homepage": "https://github.com/picomosaici/mosaica-workspace-pro",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/picomosaici/mosaica-workspace-pro.git"
+  },
+  "bugs": {
+    "url": "https://github.com/picomosaici/mosaica-workspace-pro/issues"
+  },
+  "keywords": [
+    "mosaic",
+    "mosaico",
+    "drawing",
+    "watercolor",
+    "acquerello",
+    "electron",
+    "fabric.js"
+  ],
+  "main": "app/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "clean": "rimraf dist",
+    "pack": "electron-builder --dir",
+    "dist:win": "electron-builder --win --x64",
+    "dist": "npm run clean && npm run dist:win"
+  },
+  "build": {
+    "appId": "com.picomosaici.mosaicaworkspacepro",
+    "productName": "Mosaica Workspace Pro",
+    "copyright": "Copyright © 2026 Pico Mosaici. Tutti i diritti riservati.",
+    "artifactName": "MosaicaWorkspacePro-Setup-05.2026.${ext}",
+    "asar": true,
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "**/*",
+      "!dist/*",
+      "!build/*",
+      "!node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}"
+    ],
+    "extraResources": [
+      {
+        "from": "textures",
+        "to": "textures"
+      },
+      {
+        "from": "Guida_utente.html",
+        "to": "Guida_utente.html"
+      },
+      {
+        "from": "build/CHANGELOG.txt",
+        "to": "CHANGELOG.txt"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "app.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Mosaica Workspace Pro",
+      "menuCategory": "Mosaica",
+      "deleteAppDataOnUninstall": false,
+      "include": "build/installer.nsh",
+      "license": "build/LICENSE.txt",
+      "installerIcon": "app.ico",
+      "uninstallerIcon": "app.ico",
+      "installerHeaderIcon": "app.ico",
+      "runAfterFinish": true,
+      "displayLanguageSelector": true,
+      "multiLanguageInstaller": true,
+      "installerLanguages": ["it_IT", "en_US"],
+      "language": "1040",
+      "uninstallDisplayName": "Mosaica Workspace Pro 05.2026"
+    }
+  },
+  "devDependencies": {
+    "electron": "^41.3.0",
+    "electron-builder": "^26.8.1",
+    "rimraf": "^5.0.0"
+  },
+  "dependencies": {
+    "fabric": "^7.2.0",
+    "pdfkit": "^0.15.2"
+  }
+}

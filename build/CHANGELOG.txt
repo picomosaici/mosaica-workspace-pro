@@ -1,0 +1,29 @@
+============================================================
+MOSAICA WORKSPACE PRO - NOTE DI RILASCIO
+============================================================
+
+------------------------------------------------------------
+Versione 05.2026  (Maggio 2026)
+------------------------------------------------------------
+
+NOVITA':
+  + Nuovo installer professionale con dettagli installazione
+  + Pagina di benvenuto personalizzata
+  + Visualizzazione changelog post-installazione
+  + Selettore lingua italiano/inglese
+  + Branding personalizzato Pico Mosaici
+
+MIGLIORAMENTI:
+  * Risolto bug nella copia delle texture (mancavano nei
+    precedenti installer)
+  * Aggiunta licenza visibile in installazione
+  * Disinstallazione piu' pulita
+
+NOTE TECNICHE:
+  - Versione interna: 5.2026.0
+  - Electron: 41.x
+  - Fabric.js: 7.x (compatibilita' garantita da 5.1.0)
+
+============================================================
+Contatti: picomosaici@gmail.com
+============================================================
