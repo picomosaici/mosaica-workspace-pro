@@ -1335,8 +1335,7 @@
 <section id="punte">
   <div class="section-label">09</div>
   <h2>Punte Pennello</h2>
-  <p>Le punte del pennello sono file PNG in scala di grigi che definiscono la <strong>forma di ogni singolo timbro</strong>. Le zone scure ricevono più colore; le zone chiare sono quasi trasparenti. Inseriscile nella cartella:</p>
-  <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;">
+  <p>Le punte del pennello sono file <strong>PNG con canale alpha (sfondo trasparente)</strong> che definiscono la <strong>forma di ogni singolo timbro</strong>. Quello che conta è il <strong>canale alpha</strong>: dove l'alpha è pieno il pigmento viene applicato a piena intensità, dove l'alpha sfuma il colore diventa più trasparente, dove l'alpha è zero non viene disegnato nulla. Il colore RGB del file è irrilevante (viene sostituito dal colore selezionato), quindi puoi disegnare la silhouette in nero, grigio o qualunque tinta: l'importante è che lo sfondo sia trasparente. Inseriscile nella cartella:</p>  <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;">
     C:\Users\[utente]\AppData\Roaming\mosaica-workspace-pro\textures\brush\
   </div>
 
@@ -1373,10 +1372,10 @@
     </div>
   </div>
 
-  <div class="callout tip"><div class="callout-icon"></div><div>Puoi aggiungere le tue punte personalizzate: salva qualsiasi PNG in scala di grigi nella cartella <code>textures/brush/</code> e apparirà automaticamente nel modale "Punta" alla prossima apertura.</div></div>
+  <div class="callout tip"><div class="callout-icon"></div><div>Puoi aggiungere le tue punte personalizzate: salva qualsiasi <strong>PNG RGBA con sfondo trasparente</strong> nella cartella <code>textures/brush/</code> e apparirà automaticamente nel modale "Punta" alla prossima apertura. Risoluzione consigliata: 256–512 px sul lato maggiore.</div></div><div class="callout tip"><div class="callout-icon"></div><div>Puoi aggiungere le tue punte personalizzate: salva qualsiasi PNG in scala di grigi nella cartella <code>textures/brush/</code> e apparirà automaticamente nel modale "Punta" alla prossima apertura.</div></div>
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
-    <li>Per aggiungere punte personalizzate, salva file <strong>PNG in scala di grigi</strong> nella cartella <code>textures/brush/</code>: appariranno automaticamente nel modale alla prossima apertura dell'app.</li>
+    <li>Per aggiungere punte personalizzate, salva file <strong>PNG RGBA con sfondo trasparente</strong> nella cartella <code>textures/brush/</code>: appariranno automaticamente nel modale alla prossima apertura dell'app. Disegna la silhouette del pennello con il canale alpha (alpha pieno = pigmento, alpha sfumato = bordi morbidi).</li><li>Per aggiungere punte personalizzate, salva file <strong>PNG in scala di grigi</strong> nella cartella <code>textures/brush/</code>: appariranno automaticamente nel modale alla prossima apertura dell'app.</li>
     <li>Ogni punta ha la sua <strong>Rotazione iniziale</strong> indipendente: sperimenta angoli diversi per ogni texture per scoprire variazioni di tratto inaspettate.</li>
     <li>Le punte "dry brush" con buchi e striature (es. <code>brush_dry_grain.png</code>) danno effetti di velatura molto realistici quando combinate con la texture carta ruvida.</li>
     <li>Se una punta sembra troppo grande o troppo piccola rispetto al tratto, ricorda che la <strong>Larghezza</strong> globale del pennello scala tutte le punte proporzionalmente.</li>

@@ -1335,8 +1335,7 @@
 <section id="punte">
   <div class="section-label">09</div>
   <h2>Punte Pennello</h2>
-  <p>Le punte del pennello sono file PNG in scala di grigi che definiscono la <strong>forma di ogni singolo timbro</strong>. Le zone scure ricevono più colore; le zone chiare sono quasi trasparenti. Inseriscile nella cartella:</p>
-  <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;">
+  <p>Le punte del pennello sono file <strong>PNG con canale alpha (sfondo trasparente)</strong> che definiscono la <strong>forma di ogni singolo timbro</strong>. Quello che conta è il <strong>canale alpha</strong>: dove l'alpha è pieno il pigmento viene applicato a piena intensità, dove l'alpha sfuma il colore diventa più trasparente, dove l'alpha è zero non viene disegnato nulla. Il colore RGB del file è irrilevante (viene sostituito dal colore selezionato), quindi puoi disegnare la silhouette in nero, grigio o qualunque tinta: l'importante è che lo sfondo sia trasparente. Inseriscile nella cartella:</p>  <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;">
     C:\Users\[utente]\AppData\Roaming\mosaica-workspace-pro\textures\brush\
   </div>
 
