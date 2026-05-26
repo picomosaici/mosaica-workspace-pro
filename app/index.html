@@ -1150,6 +1150,31 @@
       .exportBtn:hover {
         transform: translateY(-1px);
       }
+      
+      /* ══════════════════════════════════════════════════════════
+   i18n — sezione lingua nel menu File
+   ══════════════════════════════════════════════════════════ */
+.dropdown-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--col-text-muted, #9aa3b2);
+  padding: 6px 8px 2px;
+  margin-top: 2px;
+  user-select: none;
+  cursor: default;
+}
+.language-btn.language-active {
+  background: rgba(43, 108, 255, 0.22) !important;
+  color: #fff !important;
+  font-weight: 600;
+}
+.language-btn.language-active::after {
+  content: " ✓";
+  color: #4ade80;
+  margin-left: 4px;
+}
     </style>
 
     <!-- Stili modali (PDF / PNG-SVG) — invariati -->
@@ -1377,7 +1402,7 @@
             <div id="appLoaderETA">⌛ —</div>
           </div>
         </div>
-        <div class="loaderNote">Caricamento…</div>
+        <div class="loaderNote" data-i18n="appLoader.loaderNote">Caricamento…</div>
       </div>
     </div>
 
@@ -1392,24 +1417,25 @@
          RADIAL MENU — INVARIATO
          ════════════════════════════════════════════════════════ -->
     <div id="radialMenu" style="display: none">
-      <div class="radial-btn" data-action="rotate" data-tooltip="Ruota l'oggetto (trascina o rotella)">↻</div>
-      <div class="radial-btn" data-action="duplicate" data-tooltip="Duplica oggetto">⎘</div>
-      <div class="radial-btn" data-action="scale" data-tooltip="Ridimensiona liberamente">⤢</div>
-      <div class="radial-btn" data-action="copyColor" data-tooltip="Cambia colore attuale">🎨</div>
-      <div class="radial-btn" data-action="pasteColor" data-tooltip="Incolla colore copiato">🖌️</div>
-      <div class="radial-btn" data-action="changeShape" data-tooltip="Cambia forma (triangolo/trapezio/settore)">
+      <div class="radial-btn" data-action="rotate" data-i18n-tooltip="radial.tooltip.rotate" data-tooltip="Ruota l'oggetto (trascina o rotella)">↻</div>
+      <div class="radial-btn" data-action="duplicate" data-i18n-tooltip="radial.tooltip.duplicate" data-tooltip="Duplica oggetto">⎘</div>
+      <div class="radial-btn" data-action="scale" data-i18n-tooltip="radial.tooltip.scale" data-tooltip="Ridimensiona liberamente">⤢</div>
+      <div class="radial-btn" data-action="copyColor" data-i18n-tooltip="radial.tooltip.copyColor" data-tooltip="Cambia colore attuale">🎨</div>
+      <div class="radial-btn" data-action="pasteColor" data-i18n-tooltip="radial.tooltip.pasteColor" data-tooltip="Incolla colore copiato">🖌️</div>
+      <div class="radial-btn" data-action="changeShape" data-i18n-tooltip="radial.tooltip.changeShape" data-tooltip="Cambia forma (triangolo/trapezio/settore)">
         🔄
       </div>
       <div
         class="radial-btn"
         data-action="sliceCircle"
+        data-i18n-tooltip="radial.tooltip.sliceCircle"
         data-tooltip="Dividi cerchio/ellisse (Click=4 quarti | Alt+Click=2 metà)">
         ◔
       </div>
-      <div class="radial-btn" data-action="lock" data-tooltip="Blocca oggetto (non selezionabile)">🔒</div>
-      <div class="radial-btn" data-action="delete" data-tooltip="Elimina oggetto (tasto Canc)">🗑️</div>
-      <div class="radial-btn" data-action="group" data-tooltip="Raggruppa oggetti selezionati">⎇</div>
-      <div class="radial-btn" data-action="ungroup" data-tooltip="Separa gruppo">⎆</div>
+      <div class="radial-btn" data-action="lock" data-i18n-tooltip="radial.tooltip.lock" data-tooltip="Blocca oggetto (non selezionabile)">🔒</div>
+      <div class="radial-btn" data-action="delete" data-i18n-tooltip="radial.tooltip.delete" data-tooltip="Elimina oggetto (tasto Canc)">🗑️</div>
+      <div class="radial-btn" data-action="group" data-i18n-tooltip="radial.tooltip.group" data-tooltip="Raggruppa oggetti selezionati">⎇</div>
+      <div class="radial-btn" data-action="ungroup" data-i18n-tooltip="radial.tooltip.ungroup" data-tooltip="Separa gruppo">⎆</div>
     </div>
     <div id="radialTooltip"></div>
 
@@ -1421,11 +1447,13 @@
         <button
           id="openColorBtn"
           class="smallbtn"
+          data-i18n="colorPopup.changeColor.label"
+          data-i18n-title="colorPopup.changeColor.tooltip"
           title="Cambia colore"
           style="padding: 6px 8px; border-radius: 6px; border: 0; background: #2b6cff; color: #fff; cursor: pointer">
           Cambia colore
         </button>
-        <input id="colorInput" type="color" value="#78a0ff" title="Scegli colore" />
+        <input id="colorInput" type="color" value="#78a0ff" data-i18n-title="colorPopup.colorInput.tooltip" title="Scegli colore" />
       </div>
       <div style="height: 8px"></div>
       <div style="display: flex; gap: 6px; flex-wrap: wrap; max-width: 240px">
@@ -1525,10 +1553,10 @@
     <!-- ════════════════════════════════════════════════════════
      LAZO — Popover sensibilità (right-click su #lassoSelectBtn)
      ════════════════════════════════════════════════════════ -->
-<div id="lassoSettingsPopover" aria-hidden="true" role="dialog" aria-label="Sensibilità Lazo">
+<div id="lassoSettingsPopover" aria-hidden="true" role="dialog" data-i18n-aria-label="lasso.popover.ariaLabel" aria-label="Sensibilità Lazo">
   <div class="lsp-header">
-    <span class="lsp-title">🎯 Sensibilità Lazo</span>
-    <button type="button" class="lsp-close" id="lassoSettingsClose" title="Chiudi">✕</button>
+    <span class="lsp-title" data-i18n="lasso.popover.title">🎯 Sensibilità Lazo</span>
+    <button type="button" class="lsp-close" id="lassoSettingsClose" data-i18n-title="lasso.popover.close" title="Chiudi">✕</button>
   </div>
   <div class="lsp-row">
     <input
@@ -1540,7 +1568,7 @@
       value="0.20" />
     <span id="lassoThresholdValue">0.20 (20%)</span>
   </div>
-  <p class="lsp-hint">
+  <p class="lsp-hint" data-i18n-html="lasso.popover.hint">
     Quanta parte di una tessera deve cadere dentro il tracciato del lazo perché venga
     selezionata. Più <b>basso</b> = più permissivo (utile fra tessere fitte con fughe
     strette dove il lazo deve per forza sfiorare le forme da prendere). Più
@@ -1551,6 +1579,8 @@
       type="button"
       class="lsp-btn lsp-btn-primary"
       id="lassoSettingsReset"
+      data-i18n="lasso.popover.resetLabel"
+      data-i18n-title="lasso.popover.resetTooltip"
       title="Ripristina il valore consigliato per mosaici fitti">
       Default (0.20)
     </button>
@@ -1565,7 +1595,7 @@
         <div class="measure measure-w"></div>
         <div class="measure measure-h"></div>
       </div>
-      <div class="radial-size-slider-wrap" title="Dimensione menu radiale (doppio click = reset)">
+      <div class="radial-size-slider-wrap" data-i18n-title="measure.radialSize.tooltip" title="Dimensione menu radiale (doppio click = reset)">
         <input type="range" id="radialSizeSlider" min="0" max="30" step="0.2" value="0" />
       </div>
     </div>
@@ -1582,28 +1612,40 @@
       <!-- File dropdown -->
       <div class="topbar-section">
         <div class="topbar-dropdown" id="fileMenuDropdown">
-          <button class="topbar-btn has-dropdown" id="fileMenuToggle">File</button>
+          <button class="topbar-btn has-dropdown" id="fileMenuToggle" data-i18n="menu.file.title">File</button>
           <div class="dropdown-content">
             <!-- projectControls vive QUI dentro: il JS fa appendChild di newProjectBtn dentro questo container -->
             <div id="projectControls">
-              <button id="openProjectBtn" title="Apri progetto">📂 Apri progetto…</button>
-              <button id="saveProjectBtn" title="Salva progetto">💾 Salva progetto</button>
-              <hr />
-              <label class="dropdown-checkbox">
-                <input type="checkbox" id="autoOpenCheckbox" />
-                <span>Apri progetto all'avvio</span>
-              </label>
-            </div>
+            <button id="openProjectBtn" data-i18n="menu.file.openProject.label" data-i18n-title="menu.file.openProject.tooltip" title="Apri progetto">📂 Apri progetto…</button>
+            <button id="saveProjectBtn" data-i18n="menu.file.saveProject.label" data-i18n-title="menu.file.saveProject.tooltip" title="Salva progetto">💾 Salva progetto</button>
+            <hr />
+            <label class="dropdown-checkbox">
+              <input type="checkbox" id="autoOpenCheckbox" />
+              <span data-i18n="menu.file.autoOpen.label">Apri progetto all'avvio</span>
+            </label>
+            <hr />
+            <!-- ── Sezione aggiornamenti ── -->
+            <button id="checkUpdatesBtn" data-i18n="menu.update.check.label" data-i18n-title="menu.update.check.tooltip" title="Verifica aggiornamenti">🔄 Verifica aggiornamenti</button>
+            <hr />
+            <!-- ── Sezione lingua interfaccia (i18n) ── -->
+            <div
+              class="dropdown-section-label"
+              data-i18n="menu.language.label"
+              data-i18n-title="menu.language.tooltip"
+              title="Cambia la lingua dell'interfaccia">🌐 Lingua</div>
+            <button id="languageBtn_it" class="language-btn" data-i18n="menu.language.it">🇮🇹 Italiano</button>
+            <button id="languageBtn_en" class="language-btn" data-i18n="menu.language.en">🇬🇧 English</button>
+          </div>
           </div>
         </div>
 
         <!-- Esporta dropdown -->
         <div class="topbar-dropdown" id="exportMenuDropdown">
-          <button class="topbar-btn has-dropdown" id="exportMenuToggle">Esporta</button>
+          <button class="topbar-btn has-dropdown" id="exportMenuToggle" data-i18n="menu.export.title">Esporta</button>
           <div class="dropdown-content">
-            <button id="exportPdfBtn" title="Esporta su PDF A4">📄 Esporta PDF (A4)</button>
-            <button id="exportPngBtn" title="Esporta immagine PNG/SVG">🖼️ Esporta PNG / SVG</button>
-            <button id="exportFreehandBtn" title="Esporta solo linee a mano libera">
+            <button id="exportPdfBtn" data-i18n="menu.export.pdf.label" data-i18n-title="menu.export.pdf.tooltip" title="Esporta su PDF A4">📄 Esporta PDF (A4)</button>
+            <button id="exportPngBtn" data-i18n="menu.export.png.label" data-i18n-title="menu.export.png.tooltip" title="Esporta immagine PNG/SVG">🖼️ Esporta PNG / SVG</button>
+            <button id="exportFreehandBtn" data-i18n="menu.export.freehand.label" data-i18n-title="menu.export.freehand.tooltip" title="Esporta solo linee a mano libera">
               ✏️ Esporta disegno mano libera
             </button>
           </div>
@@ -1612,16 +1654,16 @@
 
       <!-- Undo/Redo -->
       <div class="topbar-section">
-        <button id="undoBtn" class="topbar-icon-btn" disabled title="Annulla (Ctrl+Z)">↶</button>
-        <button id="redoBtn" class="topbar-icon-btn" disabled title="Ripristina (Ctrl+Y)">↷</button>
+        <button id="undoBtn" class="topbar-icon-btn" disabled data-i18n-title="topbar.undo.tooltip" title="Annulla (Ctrl+Z)">↶</button>
+        <button id="redoBtn" class="topbar-icon-btn" disabled data-i18n-title="topbar.redo.tooltip" title="Ripristina (Ctrl+Y)">↷</button>
       </div>
 
       <!-- Zoom (id="zoomPanel" mantenuto per compat JS) -->
       <div class="topbar-section" id="zoomPanel">
-        <button id="zoomOut" class="topbar-icon-btn" title="Zoom out">−</button>
+        <button id="zoomOut" class="topbar-icon-btn" data-i18n-title="topbar.zoom.out.tooltip" title="Zoom out">−</button>
         <span id="zoomPercent">100%</span>
-        <button id="zoomIn" class="topbar-icon-btn" title="Zoom in">+</button>
-        <button id="zoomReset" class="topbar-icon-btn" title="Reset zoom">⤾</button>
+        <button id="zoomIn" class="topbar-icon-btn" data-i18n-title="topbar.zoom.in.tooltip" title="Zoom in">+</button>
+        <button id="zoomReset" class="topbar-icon-btn" data-i18n-title="topbar.zoom.reset.tooltip" title="Reset zoom">⤾</button>
       </div>
 
       <div class="topbar-spacer"></div>
@@ -1629,32 +1671,32 @@
       <!-- Calibrazione popover (apre #calibPanel come dropdown) -->
       <div class="topbar-section">
         <div class="topbar-dropdown" id="calibDropdown">
-          <button class="topbar-btn has-dropdown" id="calibDropdownToggle" title="Calibrazione mm reale">
-            📏 <span>Calibrazione</span>
+          <button class="topbar-btn has-dropdown" id="calibDropdownToggle" data-i18n-title="calib.dropdown.tooltip" title="Calibrazione mm reale">
+            📏 <span data-i18n="calib.dropdown.label">Calibrazione</span>
             <span id="calibFactorIndicator">1.00</span>
           </button>
           <div class="dropdown-content">
             <!-- #calibPanel mantenuto come ID per compat JS -->
             <div id="calibPanel" aria-live="polite">
-              <h4>Calibrazione mm reale</h4>
+              <h4 data-i18n="calib.panel.title">Calibrazione mm reale</h4>
               <!-- vecchio bottone "—" lasciato per compat (nascosto via CSS) -->
               <button id="calibToggle" class="smallbtn" style="display: none">—</button>
-              <div>Passaggi rapidi:</div>
+              <div data-i18n="calib.panel.steps.intro">Passaggi rapidi:</div>
               <ol>
-                <li>Zoom browser al 100% + scaling OS al 100%</li>
-                <li><strong>Misura la striscia nera qui sotto</strong> con il calibro digitale</li>
-                <li>Inserisci il valore reale e premi "Applica calibrazione"</li>
+                <li data-i18n="calib.panel.step1">Zoom browser al 100% + scaling OS al 100%</li>
+                <li data-i18n-html="calib.panel.step2"><strong>Misura la striscia nera qui sotto</strong> con il calibro digitale</li>
+                <li data-i18n="calib.panel.step3">Inserisci il valore reale e premi "Applica calibrazione"</li>
               </ol>
               <div id="calibRect">
                 <div id="calibStrip" class="calibStrip">
-                  <span class="stripLabel">50 mm TEORICI</span>
+                  <span class="stripLabel" data-i18n="calib.panel.stripLabel">50 mm TEORICI</span>
                 </div>
               </div>
-              <label>Misura reale con calibro (mm):</label>
+              <label data-i18n="calib.panel.realMeasured.label">Misura reale con calibro (mm):</label>
               <input id="realMeasuredMM" type="number" value="50.00" step="0.01" min="1" />
-              <button id="applyCalib">Applica calibrazione</button>
-              <button id="resetCalib">Reset calibrazione (1.0)</button>
-              <div id="calibNote">La striscia è esattamente 50 mm teorici. Misurala fisicamente!</div>
+              <button id="applyCalib" data-i18n="calib.panel.apply">Applica calibrazione</button>
+              <button id="resetCalib" data-i18n="calib.panel.reset">Reset calibrazione (1.0)</button>
+              <div id="calibNote" data-i18n="calib.panel.note">La striscia è esattamente 50 mm teorici. Misurala fisicamente!</div>
             </div>
           </div>
         </div>
@@ -1668,11 +1710,12 @@
           <button
             id="enterFullscreenBtn"
             class="topbar-icon-btn"
+            data-i18n-title="topbar.fullscreen.enter.tooltip"
             title="Entra in modalità schermo intero"
             style="display: none">
             ⛶
           </button>
-          <button id="exitFullscreenBtn" class="topbar-icon-btn" title="Esci dalla modalità schermo intero (ESC)">
+          <button id="exitFullscreenBtn" class="topbar-icon-btn" data-i18n-title="topbar.fullscreen.exit.tooltip" title="Esci dalla modalità schermo intero (ESC)">
             🗗
           </button>
         </div>
@@ -1680,18 +1723,21 @@
 
       <!-- Guida + Wacom + Input Mapping -->
       <div class="topbar-section">
-        <button id="guideBtn" class="topbar-btn" title="Apri Guida Utente">📖 Guida</button>
+        <button id="guideBtn" class="topbar-btn" data-i18n="topbar.guide.label" data-i18n-title="topbar.guide.tooltip" title="Apri Guida Utente">📖 Guida</button>
         <button
           id="wacomToolbarBtn"
           class="topbar-btn"
+          data-i18n-title="topbar.wacom.tooltip"
           title="Tavoletta Wacom — clicca per impostazioni"
           style="position: relative">
-          🖊️ Wacom
+          <span data-i18n="topbar.wacom.label">🖊️ Wacom</span>
           <span class="wacom-dot" aria-hidden="true"></span>
         </button>
         <button
           id="inputMappingToolbarBtn"
           class="topbar-btn"
+          data-i18n="topbar.inputMapping.label"
+          data-i18n-title="topbar.inputMapping.tooltip"
           title="Mappatura Mouse & Tastiera — clicca per personalizzare">
           🖱️⌨️ Input
         </button>
@@ -1702,25 +1748,26 @@
      LEFT TOOLBAR (NUOVA)
      ════════════════════════════════════════════════════════ -->
     <div id="leftToolbar">
-      <button id="canvasVerticalBtn" class="tool-btn" title="Canvas Verticale (A4 Portrait)">
+      <button id="canvasVerticalBtn" class="tool-btn" data-i18n-title="leftToolbar.canvasVertical.tooltip" title="Canvas Verticale (A4 Portrait)">
         <svg width="18" height="22" viewBox="0 0 26 34" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="1" y="1" width="24" height="32" rx="3" stroke="currentColor" stroke-width="2.5" />
           <rect x="6" y="7" width="14" height="3" fill="currentColor" opacity="0.9" />
         </svg>
       </button>
-      <button id="canvasHorizontalBtn" class="tool-btn" title="Canvas Orizzontale (A4 Landscape)">
+      <button id="canvasHorizontalBtn" class="tool-btn" data-i18n-title="leftToolbar.canvasHorizontal.tooltip" title="Canvas Orizzontale (A4 Landscape)">
         <svg width="22" height="18" viewBox="0 0 34 26" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="1" y="1" width="32" height="24" rx="3" stroke="currentColor" stroke-width="2.5" />
           <rect x="7" y="9" width="20" height="3" fill="currentColor" opacity="0.9" />
         </svg>
       </button>
       <div class="tool-divider"></div>
-      <button id="selectToolBtn" class="tool-btn active" title="Seleziona / Sposta (default)">🖱️</button>
-      <button id="addShapeBtn" class="tool-btn" title="Aggiungi forma al centro del canvas">➕</button>
-      <button id="customShapeBtn" class="tool-btn" title="Crea forma personalizzata (poligono non standard)">✏️➕</button>
+      <button id="selectToolBtn" class="tool-btn active" data-i18n-title="leftToolbar.select.tooltip" title="Seleziona / Sposta (default)">🖱️</button>
+      <button id="addShapeBtn" class="tool-btn" data-i18n-title="leftToolbar.addShape.tooltip" title="Aggiungi forma al centro del canvas">➕</button>
+      <button id="customShapeBtn" class="tool-btn" data-i18n-title="leftToolbar.customShape.tooltip" title="Crea forma personalizzata (poligono non standard)">✏️➕</button>
       <button
         id="lassoSelectBtn"
         class="tool-btn"
+        data-i18n-title="leftToolbar.lasso.tooltip"
         title="Lazo — selezione libera (trascina per selezionare, si auto-disattiva al rilascio). Click destro per regolare la sensibilità.">
         <svg
           width="20"
@@ -1737,12 +1784,12 @@
         </svg>
       </button>
       <div class="tool-divider"></div>
-      <button id="freehandBtn" class="tool-btn" title="Penna — disegno a mano libera">✏️</button>
-      <button id="eraserBtn" class="tool-btn" title="Gomma — cancella tratti freehand">🧼</button>
-      <button id="watercolorBtn" class="tool-btn" title="Acquerello — pennellata con bleed">💧</button>
+      <button id="freehandBtn" class="tool-btn" data-i18n-title="leftToolbar.freehand.tooltip" title="Penna — disegno a mano libera">✏️</button>
+      <button id="eraserBtn" class="tool-btn" data-i18n-title="leftToolbar.eraser.tooltip" title="Gomma — cancella tratti freehand">🧼</button>
+      <button id="watercolorBtn" class="tool-btn" data-i18n-title="leftToolbar.watercolor.tooltip" title="Acquerello — pennellata con bleed">💧</button>
       <div class="tool-divider"></div>
-      <button id="selectFreehandBtn" class="tool-btn" title="Lista linee disegnate (selettore)">📋</button>
-      <button id="clearAllFreehandBtn" class="tool-btn danger" title="Cancella TUTTO il disegno a mano libera">
+      <button id="selectFreehandBtn" class="tool-btn" data-i18n-title="leftToolbar.selectFreehand.tooltip" title="Lista linee disegnate (selettore)">📋</button>
+      <button id="clearAllFreehandBtn" class="tool-btn danger" data-i18n-title="leftToolbar.clearAllFreehand.tooltip" title="Cancella TUTTO il disegno a mano libera">
         🗑️
       </button>
     </div>
@@ -1752,16 +1799,16 @@
          ════════════════════════════════════════════════════════ -->
     <div id="historyPanel" aria-hidden="false">
       <div class="inspector-header">
-        <p class="inspector-title">Inspector</p>
-        <p class="inspector-subtitle" id="inspectorSubtitle">Nessuna selezione</p>
+        <p class="inspector-title" data-i18n="inspector.title">Inspector</p>
+        <p class="inspector-subtitle" id="inspectorSubtitle" data-i18n="inspector.subtitle.empty">Nessuna selezione</p>
       </div>
       <div class="inspector-body">
         <!-- ── COLORE CORRENTE: sempre visibile, condiviso tra Penna/Acquerello ── -->
         <div id="inspectorColorBlock" style="display: none">
-          <p class="inspector-section-title">Colore corrente</p>
+          <p class="inspector-section-title" data-i18n="inspector.colorBlock.title">Colore corrente</p>
           <div class="inspector-row">
-            <span class="lbl">Tinta</span>
-            <input type="color" id="strokeColorPicker" value="#1a1a1a" title="Colore linea / acquerello" />
+            <span class="lbl" data-i18n="inspector.colorBlock.tinta">Tinta</span>
+            <input type="color" id="strokeColorPicker" value="#1a1a1a" data-i18n-title="inspector.colorBlock.tinta.tooltip" title="Colore linea / acquerello" />
             <span style="flex: 1"></span>
           </div>
           <div class="inspector-divider"></div>
@@ -1769,26 +1816,28 @@
 
         <!-- ── DIMENSIONI FORMA SELEZIONATA (sempre visibile sopra le sezioni) ── -->
         <div id="inspectorDimensionsBlock" style="display: none">
-          <p class="inspector-section-title">Dimensioni</p>
+          <p class="inspector-section-title" data-i18n="inspector.dimensions.title">Dimensioni</p>
           <div class="inspector-row">
-            <span class="lbl">Largh.</span>
+            <span class="lbl" data-i18n="inspector.dimensions.width">Largh.</span>
             <input
               type="number"
               id="inspectorShapeWidth"
               class="inspector-dim-input"
               step="0.1"
               min="0.5"
+              data-i18n-title="inspector.dimensions.width.tooltip"
               title="Larghezza in mm — Invio per applicare, Esc per annullare" />
             <span class="val">mm</span>
           </div>
           <div class="inspector-row">
-            <span class="lbl">Altezza</span>
+            <span class="lbl" data-i18n="inspector.dimensions.height">Altezza</span>
             <input
               type="number"
               id="inspectorShapeHeight"
               class="inspector-dim-input"
               step="0.1"
               min="0.5"
+              data-i18n-title="inspector.dimensions.height.tooltip"
               title="Altezza in mm — Invio per applicare, Esc per annullare" />
             <span class="val">mm</span>
           </div>
@@ -1797,7 +1846,7 @@
 
         <!-- ── DEFAULT (nessuna selezione, cursore attivo) ── -->
         <div class="inspector-section active" data-section="default">
-          <div class="inspector-empty">
+          <div class="inspector-empty" data-i18n-html="inspector.default.hint">
             Seleziona uno strumento dalla barra a sinistra<br />
             oppure crea/seleziona una forma sul canvas.<br /><br />
             <em style="opacity: 0.7">Doppio-click sul foglio = nuovo quadrato</em>
@@ -1806,14 +1855,14 @@
 
         <!-- ── PENNA / GOMMA ── -->
         <div class="inspector-section" data-section="penna">
-          <p class="inspector-section-title">Penna · Gomma</p>
+          <p class="inspector-section-title" data-i18n="inspector.penna.title">Penna · Gomma</p>
           <div class="inspector-row">
-            <span class="lbl">Larghezza</span>
+            <span class="lbl" data-i18n="inspector.penna.width">Larghezza</span>
             <input type="range" id="lineWidthSlider" min="1" max="60" value="4" step="0.2" />
             <span class="val" id="lineWidthValue">4</span>
           </div>
           <div class="inspector-divider"></div>
-          <div style="font-size: 11px; color: var(--col-text-dim); line-height: 1.5">
+          <div style="font-size: 11px; color: var(--col-text-dim); line-height: 1.5" data-i18n-html="inspector.penna.note">
             La penna disegna tratti vettoriali sopra le forme.<br />
             La gomma cancella solo i tratti a mano libera.
           </div>
@@ -1821,22 +1870,22 @@
 
         <!-- ── ACQUERELLO ── -->
         <div class="inspector-section" data-section="acquerello">
-          <p class="inspector-section-title">Acquerello</p>
+          <p class="inspector-section-title" data-i18n="inspector.acquerello.title">Acquerello</p>
 
           <div class="inspector-row">
-            <span class="lbl">Larghezza</span>
+            <span class="lbl" data-i18n="inspector.acquerello.width">Larghezza</span>
             <input type="range" id="watercolorWidthSlider" min="1" max="100" value="24" step="0.2" />
             <span class="val" id="watercolorWidthValue">24</span>
           </div>
 
           <div class="inspector-row">
-            <span class="lbl">Opacità</span>
+            <span class="lbl" data-i18n="inspector.acquerello.opacity">Opacità</span>
             <input type="range" id="watercolorFlowSlider" min="25" max="100" value="82" step="1" />
             <span class="val" id="watercolorFlowValue">82%</span>
           </div>
 
           <div class="inspector-row">
-            <span class="lbl">Tono</span>
+            <span class="lbl" data-i18n="inspector.acquerello.tone">Tono</span>
             <input
               type="range"
               id="toneSlider"
@@ -1852,37 +1901,37 @@
           <div class="inspector-divider"></div>
 
           <div class="inspector-row">
-            <span class="lbl">Rotaz. iniz.</span>
+            <span class="lbl" data-i18n="inspector.acquerello.initialRotation">Rotaz. iniz.</span>
             <input type="range" id="tipInitialRotationSlider" min="-180" max="180" value="0" step="0.1" />
             <span class="val" id="tipInitialRotationValue">0.0°</span>
           </div>
 
           <div class="inspector-row">
-            <span class="lbl">Distanza</span>
+            <span class="lbl" data-i18n="inspector.acquerello.distance">Distanza</span>
             <input type="range" id="stampSpacingSlider" min="0" max="280" value="65" step="0.2" />
             <span class="val" id="stampSpacingValue">0.65×</span>
           </div>
 
           <div class="inspector-row">
-            <span class="lbl">Jitter pos.</span>
+            <span class="lbl" data-i18n="inspector.acquerello.jitterPos">Jitter pos.</span>
             <input type="range" id="positionJitterSlider" min="0" max="28" value="11" step="0.5" />
             <span class="val" id="positionJitterValue">11</span>
           </div>
 
           <div class="inspector-row">
-            <span class="lbl">Rotazione</span>
+            <span class="lbl" data-i18n="inspector.acquerello.rotation">Rotazione</span>
             <input type="range" id="rotationJitterSlider" min="0" max="35" value="9.5" step="0.5" />
             <span class="val" id="rotationJitterValue">9.5°</span>
           </div>
 
           <div class="inspector-row">
-            <span class="lbl">Sbavatura</span>
+            <span class="lbl" data-i18n="inspector.acquerello.bleed">Sbavatura</span>
             <input type="range" id="bleedSlider" min="0" max="18" value="3.2" step="0.1" />
             <span class="val" id="bleedValue">3.2</span>
           </div>
 
           <div class="inspector-row">
-            <span class="lbl">Layers</span>
+            <span class="lbl" data-i18n="inspector.acquerello.layers">Layers</span>
             <input type="range" id="layersSlider" min="1" max="38" value="22" step="1" />
             <span class="val" id="layersValue">22</span>
           </div>
@@ -1890,7 +1939,7 @@
           <div class="inspector-divider"></div>
 
           <div class="inspector-row">
-            <span class="lbl">Punta</span>
+            <span class="lbl" data-i18n="inspector.acquerello.tip">Punta</span>
             <button
               id="brushTipModalBtn"
               style="
@@ -1908,7 +1957,7 @@
           </div>
 
           <div class="inspector-row">
-            <span class="lbl">Mixing</span>
+            <span class="lbl" data-i18n="inspector.acquerello.mixing">Mixing</span>
             <select
               id="watercolorCompositeSelect"
               style="
@@ -1920,29 +1969,29 @@
                 padding: 4px 8px;
                 font-size: 12px;
               ">
-              <option value="multiply" selected>Multiply (colore su colore)</option>
-              <option value="overlay">Overlay (somma colori)</option>
-              <option value="soft-light">Soft Light (somma delicato)</option>
+              <option value="multiply" selected data-i18n="inspector.acquerello.mixing.multiply">Multiply (colore su colore)</option>
+              <option value="overlay" data-i18n="inspector.acquerello.mixing.overlay">Overlay (somma colori)</option>
+              <option value="soft-light" data-i18n="inspector.acquerello.mixing.softLight">Soft Light (somma delicato)</option>
             </select>
           </div>
         </div>
 
         <!-- ── TRIANGOLO (id="angleControlsContainer" per compat JS) ── -->
         <div class="inspector-section" id="angleControlsContainer" data-section="triangle">
-          <p class="inspector-section-title">Triangolo · Angoli</p>
+          <p class="inspector-section-title" data-i18n="inspector.triangle.title">Triangolo · Angoli</p>
           <div class="inspector-row">
-            <span class="lbl">α (gradi)</span>
+            <span class="lbl" data-i18n="inspector.triangle.alpha">α (gradi)</span>
             <input type="range" id="angleAlpha" min="1" max="178" value="60" step="0.1" style="flex: 1" />
             <span class="val" id="alphaValue">60.0°</span>
           </div>
           <div class="inspector-row">
-            <span class="lbl">β (gradi)</span>
+            <span class="lbl" data-i18n="inspector.triangle.beta">β (gradi)</span>
             <input type="range" id="angleBeta" min="1" max="178" value="60" step="0.1" style="flex: 1" />
             <span class="val" id="betaValue">60.0°</span>
           </div>
           <div class="inspector-divider"></div>
           <div style="font-size: 11px; color: var(--col-text-dim)">
-            Snap angolare: <strong id="snapStepLabel">0.1°</strong>
+            <span data-i18n="inspector.triangle.snapPrefix">Snap angolare:</span> <strong id="snapStepLabel">0.1°</strong>
           </div>
         </div>
 
@@ -1956,7 +2005,7 @@
      TEXTURE PANEL (a sinistra del leftToolbar)
      ════════════════════════════════════════════════════════ -->
     <div id="texturePanel">
-      <span class="texture-vlabel">Anteprima texture</span>
+      <span class="texture-vlabel" data-i18n="texturePanel.label">Anteprima texture</span>
       <div id="textureGrid"></div>
     </div>
 
@@ -1965,11 +2014,11 @@
      ════════════════════════════════════════════════════════ -->
     <div id="bgPanel">
       <div class="bgPanel-section">
-        <span class="bgPanel-label">Sfondo</span>
+        <span class="bgPanel-label" data-i18n="bgPanel.label">Sfondo</span>
         <div id="bgImport" style="display: flex; align-items: center; gap: 8px">
           <div id="bgDrop" class="bg-drop">
             <div id="bgDropHint">
-              Trascina qui o
+              <span data-i18n="bgPanel.dropHintPrefix">Trascina qui o</span>
               <button
                 id="bgPickBtn"
                 class="smallbtn"
@@ -1984,7 +2033,8 @@
                   cursor: pointer;
                   font-size: 11px;
                   margin-left: 4px;
-                ">
+                "
+                data-i18n="bgPanel.pickBtn">
                 Scegli file
               </button>
             </div>
@@ -2001,11 +2051,11 @@
       </div>
 
       <div class="bgPanel-section" id="bgControls" style="gap: 6px">
-        <button id="bgFitContain" class="bgBtn" title="Fit Contain">Contain</button>
-        <button id="bgFitCover" class="bgBtn secondary" title="Fit Cover">Cover</button>
-        <button id="bgRotateLeft" class="bgBtn" title="Ruota a sinistra">↶ Ruota</button>
-        <button id="bgRotateRight" class="bgBtn" title="Ruota a destra">Ruota ↷</button>
-        <button id="bgClearBtn" class="bgBtn danger" title="Rimuovi sfondo">🗑 Rimuovi</button>
+        <button id="bgFitContain" class="bgBtn" data-i18n="bgPanel.fitContain.label" data-i18n-title="bgPanel.fitContain.tooltip" title="Fit Contain">Contain</button>
+        <button id="bgFitCover" class="bgBtn secondary" data-i18n="bgPanel.fitCover.label" data-i18n-title="bgPanel.fitCover.tooltip" title="Fit Cover">Cover</button>
+        <button id="bgRotateLeft" class="bgBtn" data-i18n="bgPanel.rotateLeft.label" data-i18n-title="bgPanel.rotateLeft.tooltip" title="Ruota a sinistra">↶ Ruota</button>
+        <button id="bgRotateRight" class="bgBtn" data-i18n="bgPanel.rotateRight.label" data-i18n-title="bgPanel.rotateRight.tooltip" title="Ruota a destra">Ruota ↷</button>
+        <button id="bgClearBtn" class="bgBtn danger" data-i18n="bgPanel.clear.label" data-i18n-title="bgPanel.clear.tooltip" title="Rimuovi sfondo">🗑 Rimuovi</button>
       </div>
     </div>
 
@@ -2014,20 +2064,20 @@
          ════════════════════════════════════════════════════════ -->
     <div id="statusBar">
       <div class="status-item">
-        <span class="label">Zoom</span>
+        <span class="label" data-i18n="statusBar.zoom">Zoom</span>
         <span class="value" id="statusZoom">100%</span>
       </div>
       <div class="status-item">
-        <span class="label">Cursore</span>
-        <span class="value" id="statusCoords">— mm</span>
+        <span class="label" data-i18n="statusBar.cursor">Cursore</span>
+        <span class="value" id="statusCoords" data-i18n="statusBar.cursor.empty">— mm</span>
       </div>
       <div class="status-item">
-        <span class="label">Selezione</span>
-        <span class="value" id="statusSelection">Nessuna</span>
+        <span class="label" data-i18n="statusBar.selection">Selezione</span>
+        <span class="value" id="statusSelection" data-i18n="statusBar.selection.empty">Nessuna</span>
       </div>
       <div class="status-item" id="statusAutoSave" style="display: none"></div>
       <div class="status-item" style="margin-left: auto">
-        <span class="label">Calibrazione</span>
+        <span class="label" data-i18n="statusBar.calibration">Calibrazione</span>
         <span class="value" id="statusCalib">1.00</span>
       </div>
     </div>
@@ -2071,7 +2121,7 @@
         ">
         <div style="display: flex; justify-content: space-between; margin-bottom: 15px">
           <h3 style="margin: 0">
-            📋 Linee disegnate a mano libera <span id="freehandCount" style="font-size: 14px; opacity: 0.7"></span>
+            <span data-i18n="freehandList.modal.title">📋 Linee disegnate a mano libera</span> <span id="freehandCount" style="font-size: 14px; opacity: 0.7"></span>
           </h3>
           <button
             id="modalCloseBtn"
@@ -2085,12 +2135,14 @@
         <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end">
           <button
             id="modalCancelBtn"
-            style="padding: 9px 18px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer">
+            style="padding: 9px 18px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer"
+            data-i18n="freehandList.modal.cancel">
             Annulla
           </button>
           <button
             id="modalDeleteSelectedBtn"
-            style="padding: 9px 18px; background: #e74c3c; border: 0; border-radius: 6px; color: #fff; cursor: pointer">
+            style="padding: 9px 18px; background: #e74c3c; border: 0; border-radius: 6px; color: #fff; cursor: pointer"
+            data-i18n="freehandList.modal.deleteSelected">
             🗑️ Elimina selezionati
           </button>
         </div>
@@ -2124,7 +2176,7 @@
         ">
         <div style="display: flex; justify-content: space-between; margin-bottom: 15px">
           <h3 style="margin: 0">
-            ✏️ Esporta Disegno a Mano Libera <span id="exportCount" style="font-size: 14px; opacity: 0.7"></span>
+            <span data-i18n="freehandExport.modal.title">✏️ Esporta Disegno a Mano Libera</span> <span id="exportCount" style="font-size: 14px; opacity: 0.7"></span>
           </h3>
           <button
             id="exportModalCloseBtn"
@@ -2136,21 +2188,22 @@
           id="exportListItems"
           style="max-height: 380px; overflow: auto; display: flex; flex-direction: column; gap: 10px"></div>
         <div style="margin: 20px 0; padding: 12px; background: #2b2b2b; border-radius: 8px">
-          <div style="margin-bottom: 10px; font-weight: 600">Formato:</div>
+          <div style="margin-bottom: 10px; font-weight: 600" data-i18n="freehandExport.modal.format">Formato:</div>
           <label style="margin-right: 20px"
-            ><input type="radio" name="exportFormat" value="svg" checked /> SVG vettoriale (perfetto)</label
+            ><input type="radio" name="exportFormat" value="svg" checked /> <span data-i18n="freehandExport.modal.formatSvg">SVG vettoriale (perfetto)</span></label
           >
-          <label><input type="radio" name="exportFormat" value="png" /> PNG alta risoluzione</label>
-          <div style="margin-top: 12px; font-weight: 600">Tipo esportazione:</div>
+          <label><input type="radio" name="exportFormat" value="png" /> <span data-i18n="freehandExport.modal.formatPng">PNG alta risoluzione</span></label>
+          <div style="margin-top: 12px; font-weight: 600" data-i18n="freehandExport.modal.type">Tipo esportazione:</div>
           <label style="margin-right: 20px"
-            ><input type="radio" name="exportMode" value="single" checked /> Unico file</label
+            ><input type="radio" name="exportMode" value="single" checked /> <span data-i18n="freehandExport.modal.typeSingle">Unico file</span></label
           >
-          <label><input type="radio" name="exportMode" value="separate" /> File separati (uno per linea)</label>
+          <label><input type="radio" name="exportMode" value="separate" /> <span data-i18n="freehandExport.modal.typeSeparate">File separati (uno per linea)</span></label>
         </div>
         <div style="display: flex; gap: 12px; justify-content: flex-end">
           <button
             id="exportModalCancelBtn"
-            style="padding: 10px 20px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer">
+            style="padding: 10px 20px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer"
+            data-i18n="freehandExport.modal.cancel">
             Annulla
           </button>
           <button
@@ -2163,7 +2216,8 @@
               color: #fff;
               cursor: pointer;
               font-weight: 700;
-            ">
+            "
+            data-i18n="freehandExport.modal.confirm">
             ✅ ESPORTA
           </button>
         </div>
@@ -2196,7 +2250,7 @@
           box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
         ">
         <div style="display: flex; justify-content: space-between; margin-bottom: 15px">
-          <h3 style="margin: 0">🖌️ Seleziona Punta Pennello Acquerello</h3>
+          <h3 style="margin: 0" data-i18n="brushTip.modal.title">🖌️ Seleziona Punta Pennello Acquerello</h3>
           <button
             id="brushTipModalCloseBtn"
             style="background: none; border: none; color: #aaa; font-size: 26px; cursor: pointer; line-height: 1">
@@ -2215,7 +2269,8 @@
         <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end">
           <button
             id="brushTipModalCancelBtn"
-            style="padding: 10px 20px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer">
+            style="padding: 10px 20px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer"
+            data-i18n="brushTip.modal.cancel">
             Annulla
           </button>
         </div>
@@ -2249,23 +2304,24 @@
           box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
         ">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px">
-          <h3 style="margin: 0; font-size: 17px">📄 Esporta PDF (A4) — Cosa vuoi includere?</h3>
+          <h3 style="margin: 0; font-size: 17px" data-i18n="pdfExport.modal.title">📄 Esporta PDF (A4) — Cosa vuoi includere?</h3>
           <button
             id="pdfExportCloseBtn"
+            data-i18n-title="pdfExport.modal.close.tooltip"
             title="Chiudi"
             style="background: none; border: none; color: #aaa; font-size: 26px; cursor: pointer; line-height: 1">
             ×
           </button>
         </div>
-        <div style="font-size: 12px; opacity: 0.75; margin-bottom: 14px">
+        <div style="font-size: 12px; opacity: 0.75; margin-bottom: 14px" data-i18n="pdfExport.modal.subtitle">
           Il PDF sarà salvato in formato A4 reale a 300 DPI (massima qualità).
         </div>
         <div id="pdfExportOptions" style="display: flex; flex-direction: column; gap: 10px">
           <label class="pdfOpt" data-mode="full">
             <input type="radio" name="pdfMode" value="full" checked />
             <div>
-              <div class="pdfOptTitle">🖼️ Tutto il canvas completo (100%)</div>
-              <div class="pdfOptDesc">
+              <div class="pdfOptTitle" data-i18n="pdfExport.modal.mode.full.title">🖼️ Tutto il canvas completo (100%)</div>
+              <div class="pdfOptDesc" data-i18n="pdfExport.modal.mode.full.desc">
                 Esporta esattamente ciò che vedi: sfondo, texture, acquerello, mano libera, forme.
               </div>
             </div>
@@ -2273,8 +2329,8 @@
           <label class="pdfOpt" data-mode="shapesOnPaper">
             <input type="radio" name="pdfMode" value="shapesOnPaper" />
             <div>
-              <div class="pdfOptTitle">📜 Solo forme su texture carta</div>
-              <div class="pdfOptDesc">
+              <div class="pdfOptTitle" data-i18n="pdfExport.modal.mode.shapesOnPaper.title">📜 Solo forme su texture carta</div>
+              <div class="pdfOptDesc" data-i18n="pdfExport.modal.mode.shapesOnPaper.desc">
                 Solo le forme geometriche, sopra la texture carta. Niente acquerello né mano libera.
               </div>
             </div>
@@ -2282,22 +2338,22 @@
           <label class="pdfOpt" data-mode="shapesOnBg" id="pdfOptShapesOnBg">
             <input type="radio" name="pdfMode" value="shapesOnBg" />
             <div>
-              <div class="pdfOptTitle">🌄 Solo forme con immagine di sfondo</div>
-              <div class="pdfOptDesc">Solo le forme geometriche, sopra l'immagine di sfondo caricata.</div>
+              <div class="pdfOptTitle" data-i18n="pdfExport.modal.mode.shapesOnBg.title">🌄 Solo forme con immagine di sfondo</div>
+              <div class="pdfOptDesc" data-i18n="pdfExport.modal.mode.shapesOnBg.desc">Solo le forme geometriche, sopra l'immagine di sfondo caricata.</div>
             </div>
           </label>
           <label class="pdfOpt" data-mode="shapesOnWhite">
             <input type="radio" name="pdfMode" value="shapesOnWhite" />
             <div>
-              <div class="pdfOptTitle">⬜ Solo forme su sfondo bianco</div>
-              <div class="pdfOptDesc">Solo le forme geometriche, sfondo bianco solido. Ideale per stampa neutra.</div>
+              <div class="pdfOptTitle" data-i18n="pdfExport.modal.mode.shapesOnWhite.title">⬜ Solo forme su sfondo bianco</div>
+              <div class="pdfOptDesc" data-i18n="pdfExport.modal.mode.shapesOnWhite.desc">Solo le forme geometriche, sfondo bianco solido. Ideale per stampa neutra.</div>
             </div>
           </label>
           <label class="pdfOpt" data-mode="shapesOnTransparent">
             <input type="radio" name="pdfMode" value="shapesOnTransparent" />
             <div>
-              <div class="pdfOptTitle">🔲 Solo forme su sfondo trasparente</div>
-              <div class="pdfOptDesc">
+              <div class="pdfOptTitle" data-i18n="pdfExport.modal.mode.shapesOnTransparent.title">🔲 Solo forme su sfondo trasparente</div>
+              <div class="pdfOptDesc" data-i18n="pdfExport.modal.mode.shapesOnTransparent.desc">
                 Solo le forme. La maggior parte dei lettori PDF mostra il bianco; alcuni mostrano la trasparenza reale.
               </div>
             </div>
@@ -2306,7 +2362,8 @@
         <div style="margin-top: 22px; display: flex; gap: 12px; justify-content: flex-end">
           <button
             id="pdfExportCancelBtn"
-            style="padding: 9px 18px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer">
+            style="padding: 9px 18px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer"
+            data-i18n="pdfExport.modal.cancel">
             Annulla
           </button>
           <button
@@ -2319,7 +2376,8 @@
               color: #fff;
               cursor: pointer;
               font-weight: 600;
-            ">
+            "
+            data-i18n="pdfExport.modal.confirm">
             ✅ Esporta PDF
           </button>
         </div>
@@ -2353,15 +2411,16 @@
           box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
         ">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px">
-          <h3 style="margin: 0; font-size: 17px">🖼️ Esporta PNG / SVG — Cosa preferisci?</h3>
+          <h3 style="margin: 0; font-size: 17px" data-i18n="pngSvgExport.modal.title">🖼️ Esporta PNG / SVG — Cosa preferisci?</h3>
           <button
             id="pngSvgExportCloseBtn"
+            data-i18n-title="pngSvgExport.modal.close.tooltip"
             title="Chiudi"
             style="background: none; border: none; color: #aaa; font-size: 26px; cursor: pointer; line-height: 1">
             ×
           </button>
         </div>
-        <div style="font-size: 12px; opacity: 0.75; margin-bottom: 14px">
+        <div style="font-size: 12px; opacity: 0.75; margin-bottom: 14px" data-i18n="pngSvgExport.modal.subtitle">
           Il PNG salva un'immagine raster ad alta risoluzione del canvas completo. L'SVG salva solo le forme geometriche
           in formato vettoriale (sfondo trasparente, dimensioni reali in mm).
         </div>
@@ -2369,8 +2428,8 @@
           <label class="psOpt" data-mode="png_full">
             <input type="radio" name="pngSvgMode" value="png_full" checked />
             <div>
-              <div class="psOptTitle">🖼️ PNG completo del canvas</div>
-              <div class="psOptDesc">
+              <div class="psOptTitle" data-i18n="pngSvgExport.modal.mode.pngFull.title">🖼️ PNG completo del canvas</div>
+              <div class="psOptDesc" data-i18n="pngSvgExport.modal.mode.pngFull.desc">
                 Esporta tutto ciò che vedi: sfondo, texture carta, forme, mano libera, acquerello.
               </div>
             </div>
@@ -2378,8 +2437,8 @@
           <label class="psOpt" data-mode="svg_filled">
             <input type="radio" name="pngSvgMode" value="svg_filled" />
             <div>
-              <div class="psOptTitle">🧩 SVG vettoriale — forme con riempimento</div>
-              <div class="psOptDesc">
+              <div class="psOptTitle" data-i18n="pngSvgExport.modal.mode.svgFilled.title">🧩 SVG vettoriale — forme con riempimento</div>
+              <div class="psOptDesc" data-i18n="pngSvgExport.modal.mode.svgFilled.desc">
                 Solo le forme geometriche, con il loro colore o texture di riempimento e la posizione esatta. Sfondo
                 trasparente.
               </div>
@@ -2388,8 +2447,8 @@
           <label class="psOpt" data-mode="svg_outline">
             <input type="radio" name="pngSvgMode" value="svg_outline" />
             <div>
-              <div class="psOptTitle">✏️ SVG vettoriale — solo contorni</div>
-              <div class="psOptDesc">
+              <div class="psOptTitle" data-i18n="pngSvgExport.modal.mode.svgOutline.title">✏️ SVG vettoriale — solo contorni</div>
+              <div class="psOptDesc" data-i18n="pngSvgExport.modal.mode.svgOutline.desc">
                 Solo i contorni delle forme: stroke del colore di riempimento se tinta unita, nero se la forma ha una
                 texture. Sfondo trasparente.
               </div>
@@ -2399,7 +2458,8 @@
         <div style="margin-top: 22px; display: flex; gap: 12px; justify-content: flex-end">
           <button
             id="pngSvgExportCancelBtn"
-            style="padding: 9px 18px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer">
+            style="padding: 9px 18px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer"
+            data-i18n="pngSvgExport.modal.cancel">
             Annulla
           </button>
           <button
@@ -2412,7 +2472,8 @@
               color: #fff;
               cursor: pointer;
               font-weight: 600;
-            ">
+            "
+            data-i18n="pngSvgExport.modal.confirm">
             ✅ Esporta
           </button>
         </div>
@@ -2446,15 +2507,16 @@
           box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
         ">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px">
-          <h3 style="margin: 0; font-size: 17px">🆕 Nuovo Progetto</h3>
+          <h3 style="margin: 0; font-size: 17px" data-i18n="newProject.modal.title">🆕 Nuovo Progetto</h3>
           <button
             id="newProjectConfirmCloseBtn"
+            data-i18n-title="newProject.modal.close.tooltip"
             title="Chiudi"
             style="background: none; border: none; color: #aaa; font-size: 26px; cursor: pointer; line-height: 1">
             ×
           </button>
         </div>
-        <div style="font-size: 13px; line-height: 1.5; margin-bottom: 18px">
+        <div style="font-size: 13px; line-height: 1.5; margin-bottom: 18px" data-i18n-html="newProject.modal.body">
           Verrà creato un nuovo progetto con canvas vuoto.
           <br /><br />
           <strong style="color: #ff9800">⚠️ Tutto il lavoro non salvato andrà perso</strong>
@@ -2465,7 +2527,8 @@
         <div style="margin-top: 22px; display: flex; gap: 12px; justify-content: flex-end">
           <button
             id="newProjectConfirmCancelBtn"
-            style="padding: 9px 18px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer">
+            style="padding: 9px 18px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer"
+            data-i18n="newProject.modal.cancel">
             Annulla
           </button>
           <button
@@ -2478,7 +2541,8 @@
               color: #fff;
               cursor: pointer;
               font-weight: 600;
-            ">
+            "
+            data-i18n="newProject.modal.confirm">
             ✅ Crea nuovo progetto
           </button>
         </div>
@@ -2513,9 +2577,10 @@
         ">
         <!-- Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px">
-          <h3 style="margin: 0; font-size: 17px">🖊️ Tavoletta Wacom — Impostazioni</h3>
+          <h3 style="margin: 0; font-size: 17px" data-i18n="wacom.modal.title">🖊️ Tavoletta Wacom — Impostazioni</h3>
           <button
             id="wacomConfigCloseBtn"
+            data-i18n-title="wacom.modal.close.tooltip"
             title="Chiudi"
             style="background: none; border: none; color: #aaa; font-size: 26px; cursor: pointer; line-height: 1">
             ×
@@ -2525,7 +2590,7 @@
         <!-- Stato dispositivo -->
         <div style="background: #2a2a2a; padding: 12px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 13px">
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
-            <div id="wacomDeviceStatus" style="flex: 1">⌛ Rilevamento in corso...</div>
+            <div id="wacomDeviceStatus" style="flex: 1" data-i18n="wacom.modal.detecting">⌛ Rilevamento in corso...</div>
             <button
               id="wacomRedetectBtn"
               style="
@@ -2536,7 +2601,8 @@
                 border-radius: 6px;
                 cursor: pointer;
                 font-size: 12px;
-              ">
+              "
+              data-i18n="wacom.modal.redetect">
               🔄 Rileva
             </button>
           </div>
@@ -2544,6 +2610,7 @@
           <!-- Avviso Windows Ink (visibile solo se la modalità non è attiva) -->
           <div
             id="wacomInkWarning"
+            data-i18n-html="wacom.modal.inkWarning"
             style="
               display: none;
               margin-top: 10px;
@@ -2573,8 +2640,8 @@
           ">
           <input type="checkbox" id="wacomEnabledCheck" style="width: 18px; height: 18px; cursor: pointer" />
           <span style="flex: 1">
-            <b>Abilita integrazione Wacom</b>
-            <div style="font-size: 11px; color: #aaa; margin-top: 2px">
+            <b data-i18n="wacom.modal.enable.title">Abilita integrazione Wacom</b>
+            <div style="font-size: 11px; color: #aaa; margin-top: 2px" data-i18n="wacom.modal.enable.desc">
               Disattiva per tornare al comportamento solo-mouse
             </div>
           </span>
@@ -2582,11 +2649,11 @@
 
         <!-- ────── PRESSIONE ────── -->
         <div style="background: #222; padding: 14px 14px; border-radius: 8px; margin-bottom: 14px">
-          <div style="font-weight: 600; margin-bottom: 10px; color: #00c8ff">⚙️ Pressione</div>
+          <div style="font-weight: 600; margin-bottom: 10px; color: #00c8ff" data-i18n="wacom.modal.pressure.title">⚙️ Pressione</div>
 
           <!-- Sensibilità -->
           <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px">
-            <label style="width: 140px; font-size: 13px">Sensibilità globale</label>
+            <label style="width: 140px; font-size: 13px" data-i18n="wacom.modal.pressure.sensitivity">Sensibilità globale</label>
             <input type="range" id="wacomSensitivitySlider" min="0" max="200" step="1" value="100" style="flex: 1" />
             <span
               id="wacomSensitivityValue"
@@ -2597,7 +2664,7 @@
 
           <!-- Curva -->
           <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px">
-            <label style="width: 140px; font-size: 13px">Curva di risposta</label>
+            <label style="width: 140px; font-size: 13px" data-i18n="wacom.modal.pressure.curve">Curva di risposta</label>
             <select
               id="wacomCurveSelect"
               style="
@@ -2608,24 +2675,24 @@
                 border-radius: 6px;
                 padding: 6px 10px;
               ">
-              <option value="linear">📏 Lineare (default)</option>
-              <option value="soft">🪶 Soft (più sensibile a tocco leggero)</option>
-              <option value="hard">💪 Hard (serve premere forte)</option>
-              <option value="stairs">🪜 A gradini (5 livelli)</option>
+              <option value="linear" data-i18n="wacom.modal.pressure.curveLinear">📏 Lineare (default)</option>
+              <option value="soft" data-i18n="wacom.modal.pressure.curveSoft">🪶 Soft (più sensibile a tocco leggero)</option>
+              <option value="hard" data-i18n="wacom.modal.pressure.curveHard">💪 Hard (serve premere forte)</option>
+              <option value="stairs" data-i18n="wacom.modal.pressure.curveStairs">🪜 A gradini (5 livelli)</option>
             </select>
           </div>
         </div>
 
         <!-- ────── MODULAZIONI ────── -->
         <div style="background: #222; padding: 14px 14px; border-radius: 8px; margin-bottom: 14px">
-          <div style="font-weight: 600; margin-bottom: 10px; color: #00c8ff">🎯 Cosa modula la pressione</div>
+          <div style="font-weight: 600; margin-bottom: 10px; color: #00c8ff" data-i18n="wacom.modal.modulations.title">🎯 Cosa modula la pressione</div>
 
           <!-- Spessore -->
           <label
             style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; cursor: pointer">
             <input type="checkbox" id="wacomModulateWidthCheck" />
-            <b style="width: 120px">Spessore tratto</b>
-            <span style="font-size: 11px; color: #888">min</span>
+            <b style="width: 120px" data-i18n="wacom.modal.modulations.width">Spessore tratto</b>
+            <span style="font-size: 11px; color: #888" data-i18n="wacom.modal.modulations.min">min</span>
             <input type="range" id="wacomMinWidthSlider" min="0" max="100" step="1" style="flex: 1" />
             <span id="wacomMinWidthValue" style="width: 40px; font-family: monospace; font-size: 11px">20%</span>
           </label>
@@ -2638,7 +2705,7 @@
               padding-left: 148px;
               font-size: 13px;
             ">
-            <span style="font-size: 11px; color: #888">max</span>
+            <span style="font-size: 11px; color: #888" data-i18n="wacom.modal.modulations.max">max</span>
             <input type="range" id="wacomMaxWidthSlider" min="0" max="300" step="1" style="flex: 1" />
             <span id="wacomMaxWidthValue" style="width: 40px; font-family: monospace; font-size: 11px">120%</span>
           </label>
@@ -2647,8 +2714,8 @@
           <label
             style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 13px; cursor: pointer">
             <input type="checkbox" id="wacomModulateOpacityCheck" />
-            <b style="width: 120px">Opacità tratto</b>
-            <span style="font-size: 11px; color: #888">min</span>
+            <b style="width: 120px" data-i18n="wacom.modal.modulations.opacity">Opacità tratto</b>
+            <span style="font-size: 11px; color: #888" data-i18n="wacom.modal.modulations.min">min</span>
             <input type="range" id="wacomMinOpacitySlider" min="0" max="100" step="1" style="flex: 1" />
             <span id="wacomMinOpacityValue" style="width: 40px; font-family: monospace; font-size: 11px">35%</span>
           </label>
@@ -2657,8 +2724,8 @@
           <label
             style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 13px; cursor: pointer">
             <input type="checkbox" id="wacomModulateFlowCheck" />
-            <b style="width: 120px">Flusso acquerello</b>
-            <span style="font-size: 11px; color: #888">min</span>
+            <b style="width: 120px" data-i18n="wacom.modal.modulations.flow">Flusso acquerello</b>
+            <span style="font-size: 11px; color: #888" data-i18n="wacom.modal.modulations.min">min</span>
             <input type="range" id="wacomMinFlowSlider" min="0" max="100" step="1" style="flex: 1" />
             <span id="wacomMinFlowValue" style="width: 40px; font-family: monospace; font-size: 11px">40%</span>
           </label>
@@ -2666,28 +2733,28 @@
 
         <!-- ────── TILT (inclinazione penna) ────── -->
         <div style="background: #222; padding: 14px 14px; border-radius: 8px; margin-bottom: 14px">
-          <div style="font-weight: 600; margin-bottom: 10px; color: #00c8ff">🎯 Inclinazione penna (tilt)</div>
+          <div style="font-weight: 600; margin-bottom: 10px; color: #00c8ff" data-i18n="wacom.modal.tilt.title">🎯 Inclinazione penna (tilt)</div>
 
           <label
             style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; cursor: pointer">
             <input type="checkbox" id="wacomModulateTiltCheck" />
-            <b style="width: 200px">Abilita modulazione tilt</b>
-            <span style="font-size: 11px; color: #888"
+            <b style="width: 200px" data-i18n="wacom.modal.tilt.enable">Abilita modulazione tilt</b>
+            <span style="font-size: 11px; color: #888" data-i18n="wacom.modal.tilt.desc"
               >Allarga + ruota il timbro acquerello a seconda dell'inclinazione della penna</span
             >
           </label>
 
           <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px">
-            <label style="width: 200px; font-size: 13px">Ampiezza allargamento</label>
+            <label style="width: 200px; font-size: 13px" data-i18n="wacom.modal.tilt.widthAmp">Ampiezza allargamento</label>
             <input type="range" id="wacomTiltWidthSlider" min="0" max="100" step="1" style="flex: 1" />
             <span id="wacomTiltWidthValue" style="width: 40px; font-family: monospace; font-size: 11px">50%</span>
           </div>
           <div style="display: flex; align-items: center; gap: 10px">
-            <label style="width: 200px; font-size: 13px">Ampiezza rotazione timbro</label>
+            <label style="width: 200px; font-size: 13px" data-i18n="wacom.modal.tilt.rotateAmp">Ampiezza rotazione timbro</label>
             <input type="range" id="wacomTiltRotateSlider" min="0" max="100" step="1" style="flex: 1" />
             <span id="wacomTiltRotateValue" style="width: 40px; font-family: monospace; font-size: 11px">100%</span>
           </div>
-          <div style="margin-top: 8px; font-size: 11px; color: #888">
+          <div style="margin-top: 8px; font-size: 11px; color: #888" data-i18n="wacom.modal.tilt.note">
             💡 La tilt agisce solo sull'acquerello. Penna inclinata di lato → pennellata più larga e con l'orientamento
             del timbro che segue l'inclinazione reale (come un pennello vero).
           </div>
@@ -2695,10 +2762,10 @@
 
         <!-- ────── TASTI PENNA ────── -->
         <div style="background: #222; padding: 14px 14px; border-radius: 8px; margin-bottom: 14px">
-          <div style="font-weight: 600; margin-bottom: 10px; color: #00c8ff">🔘 Tasti laterali della penna</div>
+          <div style="font-weight: 600; margin-bottom: 10px; color: #00c8ff" data-i18n="wacom.modal.buttons.title">🔘 Tasti laterali della penna</div>
 
           <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px">
-            <label style="width: 140px; font-size: 13px">Tasto BASSO</label>
+            <label style="width: 140px; font-size: 13px" data-i18n="wacom.modal.buttons.low">Tasto BASSO</label>
             <select
               id="wacomLowerBtnSelect"
               style="
@@ -2711,7 +2778,7 @@
               "></select>
           </div>
           <div style="display: flex; align-items: center; gap: 10px">
-            <label style="width: 140px; font-size: 13px">Tasto ALTO</label>
+            <label style="width: 140px; font-size: 13px" data-i18n="wacom.modal.buttons.high">Tasto ALTO</label>
             <select
               id="wacomUpperBtnSelect"
               style="
@@ -2723,16 +2790,16 @@
                 padding: 6px 10px;
               "></select>
           </div>
-          <div style="margin-top: 8px; font-size: 11px; color: #888">
+          <div style="margin-top: 8px; font-size: 11px; color: #888" data-i18n="wacom.modal.buttons.note">
             💡 Nota: sulla Bamboo CTL-460 il riconoscimento dei due tasti dipende dal driver. Se entrambi i tasti
             eseguono la stessa azione, prova a invertire la configurazione nelle Wacom Tablet Properties.
           </div>
           <!-- Calibrazione tasti -->
           <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #333">
-            <div style="font-weight: 600; margin-bottom: 8px; color: #00c8ff; font-size: 13px">
+            <div style="font-weight: 600; margin-bottom: 8px; color: #00c8ff; font-size: 13px" data-i18n="wacom.modal.buttons.calib.title">
               🎓 Calibrazione tasti
             </div>
-            <div style="font-size: 11px; color: #888; margin-bottom: 10px">
+            <div style="font-size: 11px; color: #888; margin-bottom: 10px" data-i18n="wacom.modal.buttons.calib.desc">
               Insegna a Mosaica quale codice button corrisponde a ciascun tasto della tua penna. Clicca un pulsante qui
               sotto e poi premi il tasto corrispondente sulla penna entro 10 secondi.
             </div>
@@ -2747,7 +2814,8 @@
                   border-radius: 5px;
                   cursor: pointer;
                   font-size: 12px;
-                ">
+                "
+                data-i18n="wacom.modal.buttons.calib.calibLow">
                 🎯 Calibra tasto BASSO
               </button>
               <button
@@ -2760,7 +2828,8 @@
                   border-radius: 5px;
                   cursor: pointer;
                   font-size: 12px;
-                ">
+                "
+                data-i18n="wacom.modal.buttons.calib.calibHigh">
                 🎯 Calibra tasto ALTO
               </button>
               <button
@@ -2773,7 +2842,8 @@
                   border-radius: 5px;
                   cursor: pointer;
                   font-size: 12px;
-                ">
+                "
+                data-i18n="wacom.modal.buttons.calib.cancel">
                 ✕ Annulla
               </button>
               <button
@@ -2786,14 +2856,15 @@
                   border-radius: 5px;
                   cursor: pointer;
                   font-size: 12px;
-                ">
+                "
+                data-i18n="wacom.modal.buttons.calib.reset">
                 🔄 Reset
               </button>
             </div>
             <div
               id="wacomCalibrationStatus"
               style="padding: 6px 10px; background: #1b1b1b; border-radius: 4px; font-size: 12px; min-height: 20px">
-              <span style="color: #aaa">Stato calibrazione...</span>
+              <span style="color: #aaa" data-i18n="wacom.modal.buttons.calib.statusEmpty">Stato calibrazione...</span>
             </div>
           </div>
         </div>
@@ -2801,7 +2872,7 @@
         <!-- ────── TEST LIVE ────── -->
         <div style="background: #222; padding: 14px 14px; border-radius: 8px; margin-bottom: 14px">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px">
-            <div style="font-weight: 600; color: #00c8ff">🎨 Test pressione dal vivo</div>
+            <div style="font-weight: 600; color: #00c8ff" data-i18n="wacom.modal.testLive.title">🎨 Test pressione dal vivo</div>
             <button
               id="wacomTestClearBtn"
               style="
@@ -2812,7 +2883,8 @@
                 border-radius: 5px;
                 cursor: pointer;
                 font-size: 11px;
-              ">
+              "
+              data-i18n="wacom.modal.testLive.clear">
               Pulisci
             </button>
           </div>
@@ -2841,9 +2913,9 @@
               flex-wrap: wrap;
               gap: 6px;
             ">
-            <span>Pressione: <b id="wacomLivePressureValue" style="color: #00c8ff">0%</b></span>
-            <span>Tilt: <b id="wacomLiveTiltValue" style="color: #00c8ff">X:0° Y:0°</b></span>
-            <span>Inclinazione: <b id="wacomLiveTiltMagValue" style="color: #00c8ff">0%</b></span>
+            <span><span data-i18n="wacom.modal.testLive.pressure">Pressione:</span> <b id="wacomLivePressureValue" style="color: #00c8ff">0%</b></span>
+            <span><span data-i18n="wacom.modal.testLive.tilt">Tilt:</span> <b id="wacomLiveTiltValue" style="color: #00c8ff">X:0° Y:0°</b></span>
+            <span><span data-i18n="wacom.modal.testLive.inclination">Inclinazione:</span> <b id="wacomLiveTiltMagValue" style="color: #00c8ff">0%</b></span>
           </div>
         </div>
 
@@ -2860,7 +2932,8 @@
                 border-radius: 6px;
                 cursor: pointer;
                 font-size: 13px;
-              ">
+              "
+              data-i18n="wacom.modal.footer.openApp">
               🪟 Apri Wacom Preferenze
             </button>
             <button
@@ -2873,7 +2946,8 @@
                 border-radius: 6px;
                 cursor: pointer;
                 font-size: 13px;
-              ">
+              "
+              data-i18n="wacom.modal.footer.resetDefaults">
               🔄 Ripristina default
             </button>
           </div>
@@ -2888,7 +2962,8 @@
               cursor: pointer;
               font-size: 13px;
               font-weight: 600;
-            ">
+            "
+            data-i18n="wacom.modal.footer.done">
             Fatto
           </button>
         </div>
@@ -2899,6 +2974,7 @@
             SCRIPT: !!! RISPETTARE ORDINE DEI LINK !!! 
          ══════════════════════════════════════════════════════ -->
     <script src="libs/fabricV5.1.0.min.js"></script>
+    <script src="i18n.js"></script>
     <script src="renderer.js"></script>
     <script src="TriangleModel.js"></script>
     <script src="TrapezoidModel.js"></script>
@@ -2913,6 +2989,7 @@
     <script src="lassoSelection.js"></script>
     <script src="wacomTablet.js"></script>
     <script src="inputMapping.js"></script>
+    <script src="updateChecker.js"></script>
     <script src="customShapeBuilder.js"></script>
 
     <!-- ════════════════════════════════════════════════════════

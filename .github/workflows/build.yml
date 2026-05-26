@@ -61,11 +61,36 @@ jobs:
           body: |
             ## 🎨 Mosaica Workspace Pro ${{ github.ref_name }}
 
-            Scarica l'installer Windows qui sotto (file `.exe`) e lancialo per installare o aggiornare Mosaica.
+            Versione **06.2026** — Mosaica diventa multilingue, lo zoom vola, e mouse e tastiera sono finalmente tuoi.
 
-            ### Installazione
-            1. Scarica il file `MosaicaWorkspacePro-Setup-*.exe`
-            2. Eseguilo (se Windows mostra "Editore sconosciuto", clicca **Ulteriori informazioni → Esegui comunque**)
-            3. Segui le istruzioni dell'installer
+            ### ✨ Cosa c'è di nuovo
 
-            ### Note di rilascio
+            - 🌍 **Interfaccia in Italiano e Inglese** — cambia lingua dal menu *File*, l'app si riavvia e si traduce tutto, guida utente compresa
+            - 🔍 **Zoom Photoshop-style** — la rotella ora è fluida anche su progetti pesanti (centinaia di tessere, sfondi grandi, decine di tratti acquerello). Niente più scatti o blocchi a metà gesto
+            - 🖱️ **Mappa mouse e tastiera come vuoi tu** — dal pulsante *Input* nella barra superiore puoi assegnare azioni a:
+              - Tasti singoli del mouse (compresi i laterali X1/X2 di mouse gaming e HP)
+              - Combinazioni di tasti mouse (es. sinistro + destro)
+              - Scorciatoie di tastiera personalizzate (es. Ctrl+L)
+              - Tasti come frecce direzionali (es. W/A/S/D)
+            - 🎁 **Installer multilingua** con selettore di lingua all'avvio e pannello dettagli tradotto
+
+            ### 🛡️ Cosa NON è cambiato (apposta)
+
+            - Le scorciatoie classiche (Ctrl+Z, Ctrl+C/V/X, Canc, Ctrl+/-, frecce) restano attive come sempre
+            - La rotazione fine col tasto destro sulle forme funziona ancora
+            - In modalità disegno (Penna/Acquerello/Gomma) il tasto sinistro disegna sempre, anche se l'hai mappato a qualcos'altro
+
+            ### 📥 Installazione
+
+            1. Scarica il file `MosaicaWorkspacePro-Setup-06.2026.exe` qui sotto
+            2. Eseguilo (se Windows mostra *"Editore sconosciuto"*, clicca **Ulteriori informazioni → Esegui comunque**)
+            3. Segui l'installer — puoi scegliere la lingua all'avvio
+
+            > 💡 Le tue tavole salvate, le calibrazioni e le preferenze vengono **conservate** durante l'aggiornamento.
+
+            ### 📝 Note tecniche
+
+            - Versione interna: `6.2026.0`
+            - Electron 41 · Fabric.js 7.x (compatibilità garantita da 5.1.0)
+            - 443 chiavi i18n simmetriche IT + EN
+            - Snapshot GPU cappato a 4096px lato lungo per non gonfiare la RAM

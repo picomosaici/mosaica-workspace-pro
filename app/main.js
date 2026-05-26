@@ -579,24 +579,47 @@ ipcMain.handle("papertexture:get", async () => {
 
 /* ===============================
    📖 GUIDA UTENTE (VERSIONE PRODUZIONE CORRETTA)
+   ------------------------------------------------------------
+   Multilingua: il renderer passa la lingua corrente (i18n) come
+   argomento. "en" → Guida_utente_EN.html, qualunque altro valore
+   (compreso undefined / "it" / lingue non ancora tradotte) →
+   Guida_utente.html (italiano, fallback sicuro).
 ================================ */
-ipcMain.handle("open-guide", async () => {
+ipcMain.handle("open-guide", async (_event, lang) => {
+  // Scelta del file in base alla lingua. Normalizziamo a minuscolo
+  // per accettare sia "en" che "EN", "en-US" ecc. Default = IT.
+  const langLower = typeof lang === "string" ? lang.toLowerCase() : "it";
+  const isEnglish = langLower === "en" || langLower.startsWith("en-") || langLower.startsWith("en_");
+  const guideFile = isEnglish ? "Guida_utente_EN.html" : "Guida_utente.html";
+
   let guidePath;
 
   if (app.isPackaged) {
     // ← Dopo l'installazione (exe / installer)
-    guidePath = path.join(process.resourcesPath, "Guida_utente.html");
+    guidePath = path.join(process.resourcesPath, guideFile);
   } else {
     // ← Sviluppo
-    guidePath = path.join(__dirname, "Guida_utente.html");
+    guidePath = path.join(__dirname, guideFile);
   }
 
   // Debug utile
+  console.log("[open-guide] Lingua richiesta:", langLower, "→ file:", guideFile);
   console.log("[open-guide] Tentativo apertura:", guidePath);
   console.log("[open-guide] File esiste?", fs.existsSync(guidePath));
 
+  // Fallback robusto: se il file specifico della lingua non esiste
+  // (es. lingua aggiunta in futuro senza guida tradotta), cadiamo
+  // sull'italiano invece di restituire errore — l'utente vede pur
+  // sempre una guida invece di un toast d'errore.
+  if (!fs.existsSync(guidePath) && isEnglish) {
+    console.warn("[open-guide] Guida EN non trovata, fallback a IT");
+    guidePath = app.isPackaged
+      ? path.join(process.resourcesPath, "Guida_utente.html")
+      : path.join(__dirname, "Guida_utente.html");
+  }
+
   if (!fs.existsSync(guidePath)) {
-    console.error("[open-guide] ❌ Guida_utente.html NON trovata!");
+    console.error("[open-guide] ❌ Guida utente NON trovata!");
     return { success: false, error: "File guida non trovato dopo l'installazione" };
   }
 
@@ -812,6 +835,354 @@ ipcMain.handle("wacom:get-info", async () => {
     platform: process.platform,
     supported: process.platform === "win32"
   };
+});
+
+/* ===============================
+   🌐 LINGUA (i18n)
+   ------------------------------------------------------------
+   Gestione della lingua dell'interfaccia utente.
+   Persistenza su userData/language.json: { "lang": "it" | "en" }.
+
+   Priorità all'avvio (resolveLanguage):
+     1) file language.json (scelta esplicita dell'utente)
+     2) argomento CLI --lang=XX (es. passato dall'installer NSIS)
+     3) locale di sistema mappato a una lingua supportata
+     4) default "it"
+
+   Cambio lingua: il renderer chiama "language:setLanguage" e poi
+   ricarica la finestra; nessun riavvio del processo main richiesto.
+================================ */
+
+const LANGUAGE_FILE = path.join(app.getPath("userData"), "language.json");
+const SUPPORTED_LANGS = ["it", "en"];
+const DEFAULT_LANG = "it";
+
+function parseCliLang() {
+  try {
+    const arg = process.argv.find((a) => /^--lang=/i.test(a));
+    if (!arg) return null;
+    const v = arg.split("=")[1];
+    return SUPPORTED_LANGS.includes(v) ? v : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function readLanguageFile() {
+  try {
+    if (!fs.existsSync(LANGUAGE_FILE)) return null;
+    const data = JSON.parse(fs.readFileSync(LANGUAGE_FILE, "utf8"));
+    return data && SUPPORTED_LANGS.includes(data.lang) ? data.lang : null;
+  } catch {
+    return null;
+  }
+}
+
+function resolveLanguage() {
+  // 1) File esplicito (scelta dell'utente)
+  const fromFile = readLanguageFile();
+  if (fromFile) return fromFile;
+
+  // 2) Argomento CLI (utile per l'installer NSIS: --lang=en)
+  //    Se presente, lo persistiamo subito così al prossimo avvio
+  //    non serve più rileggerlo dalla command line.
+  const fromCli = parseCliLang();
+  if (fromCli) {
+    try {
+      fs.writeFileSync(LANGUAGE_FILE, JSON.stringify({ lang: fromCli }, null, 2), "utf8");
+    } catch (_) {}
+    return fromCli;
+  }
+
+  // 3) Locale di sistema (disponibile dopo app.whenReady())
+  try {
+    const locale = typeof app.getLocale === "function" ? app.getLocale().toLowerCase() : "";
+    if (locale) {
+      const short = locale.split(/[-_]/)[0];
+      if (SUPPORTED_LANGS.includes(short)) return short;
+    }
+  } catch (_) {}
+
+  // 4) Default
+  return DEFAULT_LANG;
+}
+
+ipcMain.handle("language:getLanguage", async () => {
+  return resolveLanguage();
+});
+
+ipcMain.handle("language:setLanguage", async (_, lang) => {
+  if (!SUPPORTED_LANGS.includes(lang)) {
+    return { success: false, error: "Lingua non supportata" };
+  }
+  try {
+    fs.writeFileSync(LANGUAGE_FILE, JSON.stringify({ lang }, null, 2), "utf8");
+    return { success: true, lang };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+ipcMain.handle("language:getAvailableLanguages", async () => {
+  return SUPPORTED_LANGS.slice();
+});
+
+/* ===============================
+   🔄 SISTEMA AGGIORNAMENTI (GitHub Releases)
+   ------------------------------------------------------------
+   • update:get-platform-info  → versione locale + piattaforma + isPackaged
+   • update:fetch-latest       → JSON dell'ultima release da GitHub API
+   • update:download-asset     → scarica l'installer (.exe) con progress IPC
+   • update:cancel-download    → annulla il download in corso
+   • update:install-and-quit   → spawn detached + close finestra (autosave OK)
+   • update:get-settings / set-settings → persistenza su update-settings.json
+
+   Sicurezza:
+   • Solo URL su GitHub (github.com / githubusercontent.com).
+   • Validazione tag/asset nel renderer; qui niente esecuzione di codice
+     arrivato dall'API: ci limitiamo a fare GET + write su disco.
+================================ */
+const { net } = require("electron");
+
+const UPDATE_SETTINGS_FILE = path.join(app.getPath("userData"), "update-settings.json");
+let activeDownloadRequest = null;     // riferimento alla net.request in corso
+let activeDownloadStream = null;      // write stream del file in corso
+let activeDownloadPath = null;        // path dell'installer parziale
+let pendingInstallerPath = null;      // installer da lanciare al quit
+
+function _getUpdatesDir() {
+  const d = path.join(app.getPath("userData"), "updates");
+  if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
+  return d;
+}
+
+function _isGithubUrl(u) {
+  try {
+    const url = new URL(u);
+    return (
+      url.protocol === "https:" &&
+      (url.hostname === "github.com" ||
+        url.hostname === "api.github.com" ||
+        url.hostname.endsWith(".githubusercontent.com"))
+    );
+  } catch {
+    return false;
+  }
+}
+
+ipcMain.handle("update:get-platform-info", () => {
+  return {
+    platform: process.platform,
+    isPackaged: app.isPackaged,
+    version: app.getVersion()
+  };
+});
+
+ipcMain.handle("update:get-settings", () => {
+  try {
+    if (!fs.existsSync(UPDATE_SETTINGS_FILE)) {
+      return { autoCheckOnStartup: true, skipVersion: null, lastCheckTs: 0 };
+    }
+    const data = JSON.parse(fs.readFileSync(UPDATE_SETTINGS_FILE, "utf8"));
+    return {
+      autoCheckOnStartup: data.autoCheckOnStartup !== false,
+      skipVersion: data.skipVersion || null,
+      lastCheckTs: data.lastCheckTs || 0
+    };
+  } catch {
+    return { autoCheckOnStartup: true, skipVersion: null, lastCheckTs: 0 };
+  }
+});
+
+ipcMain.handle("update:set-settings", (_e, settings) => {
+  try {
+    const safe = {
+      autoCheckOnStartup: settings && settings.autoCheckOnStartup !== false,
+      skipVersion: (settings && settings.skipVersion) || null,
+      lastCheckTs: (settings && settings.lastCheckTs) || 0
+    };
+    fs.writeFileSync(UPDATE_SETTINGS_FILE, JSON.stringify(safe, null, 2), "utf8");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle("update:fetch-latest", (_e, owner, repo) => {
+  return new Promise((resolve, reject) => {
+    if (!owner || !repo || !/^[a-zA-Z0-9._-]+$/.test(owner) || !/^[a-zA-Z0-9._-]+$/.test(repo)) {
+      return reject(new Error("Owner/repo non validi"));
+    }
+    const url = `https://api.github.com/repos/${owner}/${repo}/releases/latest`;
+    const req = net.request({ method: "GET", url, redirect: "follow" });
+    req.setHeader("User-Agent", "Mosaica-Workspace-Pro-Updater");
+    req.setHeader("Accept", "application/vnd.github+json");
+
+    const timeoutId = setTimeout(() => {
+      try { req.abort(); } catch (_) {}
+      reject(new Error("Timeout richiesta GitHub"));
+    }, 15000);
+
+    req.on("response", (response) => {
+      let chunks = "";
+      response.on("data", (chunk) => { chunks += chunk.toString("utf8"); });
+      response.on("end", () => {
+        clearTimeout(timeoutId);
+        if (response.statusCode !== 200) {
+          return reject(new Error(`GitHub API HTTP ${response.statusCode}`));
+        }
+        try {
+          resolve(JSON.parse(chunks));
+        } catch (e) {
+          reject(new Error("Risposta GitHub non valida: " + e.message));
+        }
+      });
+      response.on("error", (err) => { clearTimeout(timeoutId); reject(err); });
+    });
+    req.on("error", (err) => { clearTimeout(timeoutId); reject(err); });
+    req.end();
+  });
+});
+
+ipcMain.handle("update:download-asset", (event, args) => {
+  return new Promise((resolve) => {
+    const { url, filename, expectedSize } = args || {};
+    if (!url || !_isGithubUrl(url)) {
+      return resolve({ ok: false, error: "URL non consentito (deve essere su github.com)" });
+    }
+    if (!filename || !/^[A-Za-z0-9._-]+\.exe$/i.test(filename)) {
+      return resolve({ ok: false, error: "Nome file installer non valido" });
+    }
+
+    // Cleanup di vecchi .exe nella cartella updates (teniamo solo il nuovo)
+    const dir = _getUpdatesDir();
+    try {
+      for (const f of fs.readdirSync(dir)) {
+        if (/\.exe$/i.test(f)) {
+          try { fs.unlinkSync(path.join(dir, f)); } catch (_) {}
+        }
+      }
+    } catch (_) {}
+
+    const destPath = path.join(dir, filename);
+    activeDownloadPath = destPath;
+
+    const stream = fs.createWriteStream(destPath);
+    activeDownloadStream = stream;
+
+    const req = net.request({ method: "GET", url, redirect: "follow" });
+    req.setHeader("User-Agent", "Mosaica-Workspace-Pro-Updater");
+    req.setHeader("Accept", "application/octet-stream");
+    activeDownloadRequest = req;
+
+    let total = expectedSize || 0;
+    let downloaded = 0;
+
+    req.on("response", (response) => {
+      if (response.statusCode !== 200) {
+        try { stream.close(); } catch (_) {}
+        try { fs.unlinkSync(destPath); } catch (_) {}
+        activeDownloadRequest = null;
+        activeDownloadStream = null;
+        activeDownloadPath = null;
+        return resolve({ ok: false, error: `HTTP ${response.statusCode}` });
+      }
+      const cl = parseInt(response.headers["content-length"] || "0", 10);
+      if (cl > 0) total = cl;
+
+      response.on("data", (chunk) => {
+        downloaded += chunk.length;
+        try { stream.write(chunk); } catch (_) {}
+        try {
+          event.sender.send("update:download-progress", { downloaded, total });
+        } catch (_) {}
+      });
+      response.on("end", () => {
+        stream.end();
+        stream.on("finish", () => {
+          activeDownloadRequest = null;
+          activeDownloadStream = null;
+          activeDownloadPath = null;
+          resolve({ ok: true, path: destPath, size: downloaded });
+        });
+      });
+      response.on("error", (err) => {
+        try { stream.close(); } catch (_) {}
+        try { fs.unlinkSync(destPath); } catch (_) {}
+        activeDownloadRequest = null;
+        activeDownloadStream = null;
+        activeDownloadPath = null;
+        resolve({ ok: false, error: err.message });
+      });
+    });
+
+    req.on("error", (err) => {
+      try { stream.close(); } catch (_) {}
+      try { fs.unlinkSync(destPath); } catch (_) {}
+      activeDownloadRequest = null;
+      activeDownloadStream = null;
+      activeDownloadPath = null;
+      resolve({ ok: false, error: err.message });
+    });
+
+    req.on("abort", () => {
+      try { stream.close(); } catch (_) {}
+      try { fs.unlinkSync(destPath); } catch (_) {}
+      activeDownloadRequest = null;
+      activeDownloadStream = null;
+      activeDownloadPath = null;
+      resolve({ ok: false, error: "Download annullato dall'utente" });
+    });
+
+    req.end();
+  });
+});
+
+ipcMain.handle("update:cancel-download", () => {
+  try {
+    if (activeDownloadRequest) activeDownloadRequest.abort();
+  } catch (_) {}
+  return { ok: true };
+});
+
+ipcMain.handle("update:install-and-quit", (_e, installerPath) => {
+  if (!installerPath || typeof installerPath !== "string") {
+    return { ok: false, error: "Path installer mancante" };
+  }
+  if (!fs.existsSync(installerPath) || !/\.exe$/i.test(installerPath)) {
+    return { ok: false, error: "Installer non trovato o non valido" };
+  }
+  // Salva il path: lo spawn detached avverrà in 'before-quit' DOPO che
+  // l'autosave del renderer ha completato e la finestra è stata distrutta.
+  pendingInstallerPath = installerPath;
+
+  // Triggera chiusura normale: passa per il close handler esistente, che
+  // attiva l'overlay di autoSave.js e poi chiama autosave:confirm-close.
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    setTimeout(() => {
+      try { mainWindow.close(); } catch (_) {}
+    }, 200);
+  }
+  return { ok: true };
+});
+
+// Quando l'app sta per chiudersi, se abbiamo un installer pendente, lo spawnamo
+// detached così sopravvive alla chiusura di Mosaica e parte in autonomia.
+app.on("before-quit", () => {
+  if (pendingInstallerPath) {
+    try {
+      const { spawn } = require("child_process");
+      const child = spawn(pendingInstallerPath, [], {
+        detached: true,
+        stdio: "ignore"
+      });
+      child.unref();
+      console.log("[update] installer avviato:", pendingInstallerPath);
+    } catch (e) {
+      console.error("[update] spawn installer fallito:", e);
+    }
+    pendingInstallerPath = null;
+  }
 });
 
 // Esegui all’avvio

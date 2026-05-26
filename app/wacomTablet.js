@@ -1,3 +1,27 @@
+// ============================================================
+//  i18n helper locale per wacomTablet.js (Fase 4)
+//  ------------------------------------------------------------
+//  Wrapper sicuro intorno a window.i18n.t() con fallback al
+//  testo italiano originale. Vedi commento equivalente in
+//  renderer.js. Nome univoco __wt per non collidere con __t.
+// ============================================================
+function __wt(key, params, fallback) {
+  try {
+    if (window.i18n && typeof window.i18n.t === "function") {
+      const v = window.i18n.t(key, params);
+      if (v === key && fallback != null) return fallback;
+      return v;
+    }
+  } catch (_) {}
+  let s = (fallback != null ? String(fallback) : key);
+  if (params) {
+    s = s.replace(/\{(\w+)\}/g, (m, k) =>
+      Object.prototype.hasOwnProperty.call(params, k) ? String(params[k]) : m
+    );
+  }
+  return s;
+}
+
 // wacomTablet.js — Mosaica Desktop Pro
 // =====================================================================
 //  Integrazione tavolette/penne Wacom — REVISIONATA
@@ -111,16 +135,21 @@
   // AZIONI MAPPABILI SUI TASTI PENNA
   // ════════════════════════════════════════════════════════════════════
   const PEN_BUTTON_ACTIONS = {
-    none: { label: "Nessuna azione", icon: "⊘" },
-    "right-click": { label: "Click destro (default)", icon: "🖱️" },
-    "double-click": { label: "Doppio click", icon: "⚡" },
-    eraser: { label: "Gomma rapida", icon: "🧼" },
-    pan: { label: "Pan canvas (Alt+drag)", icon: "✋" },
-    undo: { label: "Annulla (Ctrl+Z)", icon: "↩️" },
-    redo: { label: "Ripeti (Ctrl+Y)", icon: "↪️" },
-    "toggle-freehand": { label: "Toggle Penna", icon: "✏️" },
-    "toggle-watercolor": { label: "Toggle Acquerello", icon: "💧" },
-    "toggle-lasso": { label: "Toggle Lazo", icon: "⭕" }
+    // NB: le label vengono valutate ora alla creazione dell'oggetto.
+    // Poiché i18n.setLanguage() fa reload della finestra (vedi i18n.js),
+    // il modulo wacomTablet viene re-istanziato e le label nascono già
+    // tradotte. Il fallback IT garantisce funzionamento anche se window.i18n
+    // non è ancora pronto al primo passaggio.
+    none:               { label: __wt("wacom.action.none",            null, "Nessuna azione"),         icon: "⊘" },
+    "right-click":      { label: __wt("wacom.action.rightClick",      null, "Click destro (default)"),  icon: "🖱️" },
+    "double-click":     { label: __wt("wacom.action.doubleClick",     null, "Doppio click"),            icon: "⚡" },
+    eraser:             { label: __wt("wacom.action.eraser",          null, "Gomma rapida"),            icon: "🧼" },
+    pan:                { label: __wt("wacom.action.pan",             null, "Pan canvas (Alt+drag)"),   icon: "✋" },
+    undo:               { label: __wt("wacom.action.undo",            null, "Annulla (Ctrl+Z)"),        icon: "↩️" },
+    redo:               { label: __wt("wacom.action.redo",            null, "Ripeti (Ctrl+Y)"),         icon: "↪️" },
+    "toggle-freehand":  { label: __wt("wacom.action.toggleFreehand",  null, "Toggle Penna"),            icon: "✏️" },
+    "toggle-watercolor":{ label: __wt("wacom.action.toggleWatercolor",null, "Toggle Acquerello"),       icon: "💧" },
+    "toggle-lasso":     { label: __wt("wacom.action.toggleLasso",     null, "Toggle Lazo"),             icon: "⭕" }
   };
 
   // ════════════════════════════════════════════════════════════════════
@@ -441,7 +470,7 @@
         break;
       case "eraser":
         document.getElementById("eraserBtn")?.click();
-        if (typeof window.flashToast === "function") window.flashToast("🧼 Gomma (tasto penna)");
+        if (typeof window.flashToast === "function") window.flashToast(__wt("wacom.toast.eraser", null, "🧼 Gomma (tasto penna)"));
         break;
       case "pan":
         window.isAltPanning = true;
@@ -462,7 +491,7 @@
             bubbles: true
           })
         );
-        if (typeof window.flashToast === "function") window.flashToast("↩️ Annulla (tasto penna)");
+        if (typeof window.flashToast === "function") window.flashToast(__wt("wacom.toast.undo", null, "↩️ Annulla (tasto penna)"));
         break;
       case "redo":
         document.dispatchEvent(
@@ -473,7 +502,7 @@
             bubbles: true
           })
         );
-        if (typeof window.flashToast === "function") window.flashToast("↪️ Ripeti (tasto penna)");
+        if (typeof window.flashToast === "function") window.flashToast(__wt("wacom.toast.redo", null, "↪️ Ripeti (tasto penna)"));
         break;
       case "toggle-freehand":
         document.getElementById("freehandBtn")?.click();
@@ -577,7 +606,7 @@
         STATE.calibrationMode = null;
         _updateCalibrationUI();
         if (typeof window.flashToast === "function") {
-          window.flashToast("⏱️ Calibrazione tasto scaduta (10s) — riprova");
+          window.flashToast(__wt("wacom.toast.calib.timeout", null, "⏱️ Calibrazione tasto scaduta (10s) — riprova"));
         }
       }
     }, 10000);
@@ -607,7 +636,10 @@
     _updateCalibrationUI();
 
     if (typeof window.flashToast === "function") {
-      window.flashToast(`✅ Tasto ${which === "lower" ? "BASSO" : "ALTO"} calibrato (code=${buttonCode})`);
+      window.flashToast(__wt("wacom.toast.calib.success", {
+        which: which === "lower" ? __wt("wacom.toast.calib.whichLow", null, "BASSO") : __wt("wacom.toast.calib.whichHigh", null, "ALTO"),
+        code: buttonCode
+      }, `✅ Tasto ${which === "lower" ? "BASSO" : "ALTO"} calibrato (code=${buttonCode})`));
     }
   }
 
@@ -617,18 +649,27 @@
 
     function fmtCode(code) {
       if (code == null) return null;
-      if (code === -2) return "contextmenu (right-click sintetico)";
-      return `code ${code}`;
+      if (code === -2) return __wt("wacom.calib.codeContextmenu", null, "contextmenu (right-click sintetico)");
+      return __wt("wacom.calib.codePrefix", { code: code }, `code ${code}`);
     }
 
     if (STATE.calibrationMode === "lower") {
-      statusEl.innerHTML = `<span style="color:#fbbf24;font-weight:600;">⏳ Premi ora il tasto BASSO della penna...</span>`;
+      statusEl.innerHTML = `<span style="color:#fbbf24;font-weight:600;">${__wt("wacom.calib.pressLow", null, "⏳ Premi ora il tasto BASSO della penna...")}</span>`;
     } else if (STATE.calibrationMode === "upper") {
-      statusEl.innerHTML = `<span style="color:#fbbf24;font-weight:600;">⏳ Premi ora il tasto ALTO della penna...</span> <span style="color:#888;font-size:11px;">(se non viene rilevato dopo qualche tentativo, il driver Wacom potrebbe non emetterlo: vedi nota sotto)</span>`;
+      statusEl.innerHTML = `<span style="color:#fbbf24;font-weight:600;">${__wt("wacom.calib.pressHigh", null, "⏳ Premi ora il tasto ALTO della penna...")}</span> <span style="color:#888;font-size:11px;">${__wt("wacom.calib.pressHighHint", null, "(se non viene rilevato dopo qualche tentativo, il driver Wacom potrebbe non emetterlo: vedi nota sotto)")}</span>`;
     } else {
-      const lowerStr = fmtCode(prefs.learnedLowerButtonCode) || "non calibrato (uso euristica)";
-      const upperStr = fmtCode(prefs.learnedUpperButtonCode) || "non calibrato (uso euristica)";
-      statusEl.innerHTML = `<span style="color:#aaa;font-size:12px;">Basso: <b style="color:#4ade80;">${lowerStr}</b> · Alto: <b style="color:#4ade80;">${upperStr}</b></span>`;
+      const lowerStr = fmtCode(prefs.learnedLowerButtonCode) || __wt("wacom.calib.notCalibrated", null, "non calibrato (uso euristica)");
+      const upperStr = fmtCode(prefs.learnedUpperButtonCode) || __wt("wacom.calib.notCalibrated", null, "non calibrato (uso euristica)");
+      // La chiave wacom.calib.summary contiene "Basso: {low} · Alto: {high}" (IT)
+      // o "Low: {low} · High: {high}" (EN). Per preservare l'HTML, costruiamo
+      // il testo tradotto a partire dalla stringa template e poi reinseriamo i
+      // <b> attorno ai valori sostituendo i placeholder con segnaposto temporanei.
+      const summaryTpl = __wt("wacom.calib.summary", null, "Basso: {low} · Alto: {high}");
+      // Sostituiamo {low} / {high} con i tag <b> già pieni dei valori.
+      const summaryHTML = summaryTpl
+        .replace("{low}", `<b style="color:#4ade80;">${lowerStr}</b>`)
+        .replace("{high}", `<b style="color:#4ade80;">${upperStr}</b>`);
+      statusEl.innerHTML = `<span style="color:#aaa;font-size:12px;">${summaryHTML}</span>`;
     }
   }
 
@@ -676,8 +717,8 @@
     if (!btn) return;
     btn.classList.toggle("wacom-connected", STATE.isConnected);
     btn.title = STATE.isConnected
-      ? "Tavoletta Wacom connessa — clicca per impostazioni"
-      : "Tavoletta Wacom non rilevata — clicca per impostazioni";
+      ? __wt("wacom.toolbar.connectedTooltip", null, "Tavoletta Wacom connessa — clicca per impostazioni")
+      : __wt("wacom.toolbar.disconnectedTooltip", null, "Tavoletta Wacom non rilevata — clicca per impostazioni");
   }
 
   function _bindToolbarButton() {
@@ -695,19 +736,21 @@
   async function openWacomPreferencesApp() {
     try {
       if (!window.wacomAPI || typeof window.wacomAPI.openPreferences !== "function") {
-        if (typeof window.flashToast === "function") window.flashToast("⚠️ API Wacom non disponibile");
+        if (typeof window.flashToast === "function") window.flashToast(__wt("wacom.toast.api.unavailable", null, "⚠️ API Wacom non disponibile"));
         return { success: false, error: "API non disponibile" };
       }
       const res = await window.wacomAPI.openPreferences();
       if (res && res.success) {
         if (typeof window.flashToast === "function") {
-          window.flashToast("🪟 App Wacom aperta — " + (res.path ? res.path.split(/[\\/]/).pop() : ""));
+          window.flashToast(__wt("wacom.toast.app.opened", { path: res.path ? res.path.split(/[\\/]/).pop() : "" }, "🪟 App Wacom aperta — " + (res.path ? res.path.split(/[\\/]/).pop() : "")));
         }
       } else {
         if (typeof window.flashToast === "function") {
-          window.flashToast(
+          window.flashToast(__wt(
+            "wacom.toast.app.notFound",
+            { error: (res && res.error) || __wt("wacom.toast.app.notFoundFallback", null, "verifica installazione driver") },
             "⚠️ Wacom Preferenze non trovata: " + ((res && res.error) || "verifica installazione driver")
-          );
+          ));
         }
       }
       return res;
@@ -744,10 +787,13 @@
         const names =
           STATE.detectedDevices.length > 0
             ? STATE.detectedDevices.map((d) => d.name).join(", ")
-            : "Rilevata via input penna";
-        statusEl.innerHTML = `<span style="color:#4ade80;font-weight:600;">✓ Connessa</span> <span style="color:#aaa;">— ${escapeHTML(names)}</span>`;
+            : __wt("wacom.status.viaPenInput", null, "Rilevata via input penna");
+        const connLabel = __wt("wacom.status.connectedLabel", null, "✓ Connessa");
+        statusEl.innerHTML = `<span style="color:#4ade80;font-weight:600;">${connLabel}</span> <span style="color:#aaa;">— ${escapeHTML(names)}</span>`;
       } else {
-        statusEl.innerHTML = `<span style="color:#f87171;font-weight:600;">✗ Non rilevata</span> <span style="color:#aaa;">— collega la tavoletta o verifica i driver Wacom</span>`;
+        const discLabel = __wt("wacom.status.disconnectedLabel", null, "✗ Non rilevata");
+        const discHint = __wt("wacom.status.disconnectedHint", null, "collega la tavoletta o verifica i driver Wacom");
+        statusEl.innerHTML = `<span style="color:#f87171;font-weight:600;">${discLabel}</span> <span style="color:#aaa;">— ${escapeHTML(discHint)}</span>`;
       }
     }
 
@@ -832,7 +878,7 @@
 
     document.getElementById("wacomRedetectBtn")?.addEventListener("click", async () => {
       const el = document.getElementById("wacomDeviceStatus");
-      if (el) el.innerHTML = `<span style="color:#aaa;">⌛ Rilevamento in corso...</span>`;
+      if (el) el.innerHTML = `<span style="color:#aaa;">${__wt("wacom.status.detecting", null, "⌛ Rilevamento in corso...")}</span>`;
       await _detectDevicesFromMain();
       _refreshConfigModalUI();
     });
@@ -840,11 +886,11 @@
     document.getElementById("wacomOpenAppBtn")?.addEventListener("click", openWacomPreferencesApp);
 
     document.getElementById("wacomResetDefaultsBtn")?.addEventListener("click", () => {
-      if (!confirm("Ripristinare tutte le impostazioni Wacom ai valori predefiniti?")) return;
+      if (!confirm(__wt("wacom.confirm.resetPrefs", null, "Ripristinare tutte le impostazioni Wacom ai valori predefiniti?"))) return;
       prefs = { ...DEFAULT_PREFS };
       savePrefs();
       _refreshConfigModalUI();
-      if (typeof window.flashToast === "function") window.flashToast("🔄 Impostazioni Wacom ripristinate");
+      if (typeof window.flashToast === "function") window.flashToast(__wt("wacom.toast.prefs.reset", null, "🔄 Impostazioni Wacom ripristinate"));
     });
 
     document.getElementById("wacomEnabledCheck")?.addEventListener("change", (e) => {
@@ -942,7 +988,7 @@
       prefs.learnedUpperButtonCode = DEFAULT_PREFS.learnedUpperButtonCode;
       savePrefs();
       _updateCalibrationUI();
-      if (typeof window.flashToast === "function") window.flashToast("🔄 Calibrazione tasti reset");
+      if (typeof window.flashToast === "function") window.flashToast(__wt("wacom.toast.calib.reset", null, "🔄 Calibrazione tasti reset"));
     });
 
     _setupLiveTestPanel();
@@ -1642,8 +1688,9 @@
           const names =
             STATE.detectedDevices.length > 0
               ? STATE.detectedDevices.map((d) => d.name).join(", ")
-              : "Rilevata via input penna";
-          statusEl.innerHTML = `<span style="color:#4ade80;font-weight:600;">✓ Connessa</span> <span style="color:#aaa;">— ${escapeHTML(names)}</span>`;
+              : __wt("wacom.status.viaPenInput", null, "Rilevata via input penna");
+          const connLabel = __wt("wacom.status.connectedLabel", null, "✓ Connessa");
+          statusEl.innerHTML = `<span style="color:#4ade80;font-weight:600;">${connLabel}</span> <span style="color:#aaa;">— ${escapeHTML(names)}</span>`;
         }
       }
     }, 1500);

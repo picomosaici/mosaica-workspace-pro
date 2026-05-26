@@ -1,6 +1,48 @@
-// inputMapping.js — Mosaica Desktop Pro
+// ============================================================
+//  i18n helper locale per inputMapping.js (Fase 4)
+//  ------------------------------------------------------------
+//  Wrapper sicuro intorno a window.i18n.t() con fallback IT.
+//  Nome univoco __it (Input mapping T) per non collidere con
+//  __t (renderer.js) e __wt (wacomTablet.js).
+// ============================================================
+function __it(key, params, fallback) {
+  try {
+    if (window.i18n && typeof window.i18n.t === "function") {
+      const v = window.i18n.t(key, params);
+      if (v === key && fallback != null) return fallback;
+      return v;
+    }
+  } catch (_) {}
+  let s = (fallback != null ? String(fallback) : key);
+  if (params) {
+    s = s.replace(/\{(\w+)\}/g, (m, k) =>
+      Object.prototype.hasOwnProperty.call(params, k) ? String(params[k]) : m
+    );
+  }
+  return s;
+}
+
+// inputMapping.js — Mosaica Workspace Pro
 // =====================================================================
 //  Sistema di mapping personalizzabile per mouse e tastiera.
+//
+//  REVISIONE COMPLETA — fix cattura tasti che non scattava in calibrazione
+//  e in uso normale. Modifiche principali rispetto alla versione precedente:
+//   • isInputFocused() reso "smart": durante la calibrazione gli elementi
+//     dentro il nostro modale ([data-im-modal]) NON contano come "input
+//     focused", così slider/select/checkbox del modale non bloccano più
+//     la cattura tasti. <body>/<html> sono ignorati anche fuori cal.
+//   • Focus reset robusto: open/close modale fa blur esplicito di qualunque
+//     residuo focus su elementi del modale, così le scorciatoie tornano
+//     attive immediatamente alla chiusura.
+//   • Banner di calibrazione "floating" in posizione fixed sopra al modale
+//     (z-index alto), così è sempre visibile anche con modale lungo.
+//   • Escape annulla TUTTI i tipi di calibrazione (single/chord/shortcut/arrow).
+//   • Diagnostica console attivabile via window.InputMapping.debug(true).
+//     Mostra a console ogni evento ricevuto, perché viene scartato, e ogni
+//     match. Utile in caso di malfunzionamenti per capire dove si rompe.
+//   • Controllo esplicito di prefs.enabled all'avvio con warn in console
+//     se è false (è la causa più comune di "non funziona niente").
 //
 //  ESTENDE (NON sostituisce) i moduli esistenti:
 //    • keyboardShortcuts.js  — le scorciatoie hardcoded (Ctrl+Z, Ctrl+C/V/X,
@@ -25,6 +67,11 @@
 //    3. SCORCIATOIE TASTIERA CUSTOM — l'utente registra combinazioni di
 //       modificatori + tasto (es. Ctrl+L → toggle lazo) e le associa
 //       a un'azione.
+//    4. TASTI SINGOLI COME FRECCE — l'utente mappa tasti fisici (es. W/A/S/D)
+//       come frecce direzionali per spostare la forma selezionata. Le frecce
+//       native (↑↓←→) restano SEMPRE attive in parallelo (additivo, non
+//       sostitutivo). Step calibrato in mm: 0.1 default, 1 con Shift,
+//       0.01 con Ctrl. Riusa window.handleArrowMovement di keyboardShortcuts.js.
 //
 //  TASTI LATERALI MOUSE (X1/X2):
 //    Sui mouse HP modello HSA-P007M (e tutti i mouse "browser back/forward")
@@ -42,79 +89,93 @@
 //    toggle-lasso, toggle-freehand, toggle-watercolor,
 //    toggle-eraser, toggle-select-tool,
 //    pan-canvas (hold), double-click,
-//    save-project, open-project, deselect-all.
+//    save-project, open-project, deselect-all, duplicate-selection.
 //
 //  PERSISTENZA: localStorage "mosaica_input_mapping_settings"
 //
 //  COMPATIBILITÀ: Fabric ≥5.1.0 (non utilizza direttamente API di Fabric,
 //  invoca solo le funzioni globali esposte da renderer.js e dagli altri
 //  moduli — copySelected, paste, cutSelected, deleteSelected, zoomByFactor,
-//  resetZoomAndPan, pushState, flashToast).
+//  resetZoomAndPan, pushState, flashToast, handleArrowMovement).
 // =====================================================================
 
 (function () {
   "use strict";
 
   // ════════════════════════════════════════════════════════════════════
+  // DIAGNOSTICA (toggle via window.InputMapping.debug(true/false))
+  // ════════════════════════════════════════════════════════════════════
+  let DEBUG = false;
+  function dbg(...args) {
+    if (!DEBUG) return;
+    console.log("[InputMapping]", ...args);
+  }
+  function warn(...args) {
+    console.warn("[InputMapping]", ...args);
+  }
+
+  // ════════════════════════════════════════════════════════════════════
   // STATO INTERNO
   // ════════════════════════════════════════════════════════════════════
   const STATE = {
-    heldButtons: new Set(), // pulsanti mouse attualmente premuti
-    pendingSingleTimer: null, // timer per il defer del single mapping (chord disambiguation)
+    heldButtons: new Set(),               // pulsanti mouse attualmente premuti
+    pendingSingleTimer: null,             // timer per il defer del single mapping (chord disambiguation)
     pendingSingleEvent: null,
     pendingSingleButton: null,
-    capturedSingleButtonCode: null, // durante calibrazione button-single
-    capturedChordButtons: null, // durante calibrazione chord (Set)
+    capturedSingleButtonCode: null,       // durante calibrazione button-single
+    capturedChordButtons: null,           // durante calibrazione chord (Set)
     chordCalibrationCommitTimer: null,
-    capturedShortcut: null, // durante calibrazione keyboard
-    calibrationMode: null, // null | "single" | "chord" | "shortcut"
-    calibrationSlotIndex: null, // indice slot da scrivere
+    capturedShortcut: null,               // durante calibrazione keyboard
+    capturedArrowKey: null,               // durante calibrazione "arrow" (singolo tasto come freccia)
+    calibrationMode: null,                // null | "single" | "chord" | "shortcut" | "arrow"
+    calibrationSlotIndex: null,           // indice slot da scrivere
+    calibrationContext: null,             // dati ausiliari (es. { direction: "up" } per "arrow")
     calibrationTimeoutId: null,
-    lastChordExecutedAt: 0, // ms timestamp ultima esecuzione chord (per evitare double-fire del single)
-    lastChordButtons: null // Set ultima volta che un chord è scattato
+    lastChordExecutedAt: 0,               // ms timestamp ultima esecuzione chord (per evitare double-fire del single)
+    lastChordButtons: null,               // Set ultima volta che un chord è scattato
+    auxClickSuppressUntil: 0              // soppressione auxclick dopo mousedown
   };
 
   // ════════════════════════════════════════════════════════════════════
   // AZIONI DISPONIBILI
   // ════════════════════════════════════════════════════════════════════
-  // exec riceve l'evento originale (può essere usato per coordinate, target)
   const ACTIONS = {
-    none: { label: "Nessuna azione", icon: "⊘", exec: () => {} },
+    none: { label: __it("im.action.none", null, "Nessuna azione"), icon: "⊘", exec: () => {} },
 
     undo: {
-      label: "Annulla (Undo)",
+      label: __it("im.action.undo", null, "Annulla (Undo)"),
       icon: "↩️",
       exec: () => clickIfExists("undoBtn") || dispatchKey("z", { ctrlKey: true })
     },
     redo: {
-      label: "Ripeti (Redo)",
+      label: __it("im.action.redo", null, "Ripeti (Redo)"),
       icon: "↪️",
       exec: () => clickIfExists("redoBtn") || dispatchKey("z", { ctrlKey: true, shiftKey: true })
     },
 
     copy: {
-      label: "Copia",
+      label: __it("im.action.copy", null, "Copia"),
       icon: "📋",
       exec: () => (typeof window.copySelected === "function" ? window.copySelected() : null)
     },
     paste: {
-      label: "Incolla",
+      label: __it("im.action.paste", null, "Incolla"),
       icon: "📌",
       exec: () => (typeof window.paste === "function" ? window.paste() : null)
     },
     cut: {
-      label: "Taglia",
+      label: __it("im.action.cut", null, "Taglia"),
       icon: "✂️",
       exec: () => (typeof window.cutSelected === "function" ? window.cutSelected() : null)
     },
     delete: {
-      label: "Elimina selezione",
+      label: __it("im.action.delete", null, "Elimina selezione"),
       icon: "🗑️",
       exec: () => (typeof window.deleteSelected === "function" ? window.deleteSelected() : null)
     },
 
     "zoom-in": {
-      label: "Zoom in",
+      label: __it("im.action.zoomIn", null, "Zoom in"),
       icon: "🔍➕",
       exec: () => {
         if (typeof window.zoomByFactor === "function") {
@@ -123,7 +184,7 @@
       }
     },
     "zoom-out": {
-      label: "Zoom out",
+      label: __it("im.action.zoomOut", null, "Zoom out"),
       icon: "🔍➖",
       exec: () => {
         if (typeof window.zoomByFactor === "function") {
@@ -132,36 +193,36 @@
       }
     },
     "zoom-reset": {
-      label: "Reset zoom",
+      label: __it("im.action.zoomReset", null, "Reset zoom"),
       icon: "🔍⤾",
       exec: () => {
         if (typeof window.resetZoomAndPan === "function") window.resetZoomAndPan();
       }
     },
 
-    "toggle-lasso": { label: "Toggle Lazo", icon: "⭕", exec: () => clickIfExists("lassoSelectBtn") },
-    "toggle-freehand": { label: "Toggle Penna", icon: "✏️", exec: () => clickIfExists("freehandBtn") },
-    "toggle-watercolor": { label: "Toggle Acquerello", icon: "💧", exec: () => clickIfExists("watercolorBtn") },
-    "toggle-eraser": { label: "Toggle Gomma", icon: "🧼", exec: () => clickIfExists("eraserBtn") },
-    "toggle-select-tool": { label: "Strumento Selezione", icon: "🖱️", exec: () => clickIfExists("selectToolBtn") },
+    "toggle-lasso": { label: __it("im.action.toggleLasso", null, "Toggle Lazo"), icon: "⭕", exec: () => clickIfExists("lassoSelectBtn") },
+    "toggle-freehand": { label: __it("im.action.toggleFreehand", null, "Toggle Penna"), icon: "✏️", exec: () => clickIfExists("freehandBtn") },
+    "toggle-watercolor": { label: __it("im.action.toggleWatercolor", null, "Toggle Acquerello"), icon: "💧", exec: () => clickIfExists("watercolorBtn") },
+    "toggle-eraser": { label: __it("im.action.toggleEraser", null, "Toggle Gomma"), icon: "🧼", exec: () => clickIfExists("eraserBtn") },
+    "toggle-select-tool": { label: __it("im.action.toggleSelectTool", null, "Strumento Selezione"), icon: "🖱️", exec: () => clickIfExists("selectToolBtn") },
 
     "pan-canvas": {
-      label: "Pan canvas (tieni premuto)",
+      label: __it("im.action.panCanvas", null, "Pan canvas (tieni premuto)"),
       icon: "✋",
       exec: (e) => activateHoldPan(e)
     },
 
     "double-click": {
-      label: "Doppio click",
+      label: __it("im.action.doubleClick", null, "Doppio click"),
       icon: "⚡",
       exec: (e) => simulateDoubleClickAt(e)
     },
 
-    "save-project": { label: "Salva progetto", icon: "💾", exec: () => clickIfExists("saveProjectBtn") },
-    "open-project": { label: "Apri progetto", icon: "📂", exec: () => clickIfExists("openProjectBtn") },
+    "save-project": { label: __it("im.action.saveProject", null, "Salva progetto"), icon: "💾", exec: () => clickIfExists("saveProjectBtn") },
+    "open-project": { label: __it("im.action.openProject", null, "Apri progetto"), icon: "📂", exec: () => clickIfExists("openProjectBtn") },
 
     "deselect-all": {
-      label: "Deseleziona tutto",
+      label: __it("im.action.deselectAll", null, "Deseleziona tutto"),
       icon: "❎",
       exec: () => {
         if (window.canvas) {
@@ -173,7 +234,7 @@
     },
 
     "duplicate-selection": {
-      label: "Duplica selezione",
+      label: __it("im.action.duplicateSelection", null, "Duplica selezione"),
       icon: "🧬",
       exec: async () => {
         if (typeof window.copySelected === "function" && typeof window.paste === "function") {
@@ -191,21 +252,14 @@
 
   const DEFAULT_PREFS = {
     enabled: true,
-    // Mapping single button: chiave = "0"/"1"/"2"/"3"/"4" (button code)
-    // Solo i tasti laterali sono mappati di default per coerenza con il
-    // comportamento storico di Mosaica (sx=selezione, sx+drag=pan/draw,
-    // dx=rotazione su forme).
     mouseButtonActions: {
       0: "none",
       1: "none",
       2: "none",
       3: "undo", // X1 / Browser Back
-      4: "redo" // X2 / Browser Forward
+      4: "redo"  // X2 / Browser Forward
     },
-    // Combinazioni mouse: array di { id, buttons: [0,2], action: "..." }
     chordMappings: [],
-    // Scorciatoie tastiera custom: array di
-    //   { id, keys: { ctrl, shift, alt, meta, key }, action: "..." }
     keyboardShortcuts: [
       {
         id: "default-lasso",
@@ -213,16 +267,9 @@
         action: "toggle-lasso"
       }
     ],
-    // Tempo (ms) di attesa prima di scatenare un single quando potrebbe
-    // diventare un chord. 0 = scatta subito (può portare a "doppio fuoco":
-    // prima il single, poi il chord). Default 80ms = compromesso responsivo.
+    arrowKeyBindings: [],
     chordDelayMs: 80,
-    // Se true: i mapping single sul button=2 (destro) NON si attivano quando
-    // il puntatore è sopra una forma ruotabile (mouseObserver gestisce la
-    // rotazione fine). Sulle aree vuote il mapping si attiva normalmente.
     preserveRotationOnShapes: true,
-    // Se true: durante il drawing mode (Penna/Acquerello/Gomma) tutti i
-    // mapping single mouse sono sospesi (sx serve a disegnare).
     suspendDuringDrawingMode: true
   };
 
@@ -233,7 +280,6 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const saved = JSON.parse(raw);
-      // Merge difensivo
       if (typeof saved.enabled === "boolean") prefs.enabled = saved.enabled;
       if (saved.mouseButtonActions && typeof saved.mouseButtonActions === "object") {
         prefs.mouseButtonActions = { ...DEFAULT_PREFS.mouseButtonActions, ...saved.mouseButtonActions };
@@ -265,6 +311,22 @@
             action: s.action
           }));
       }
+      if (Array.isArray(saved.arrowKeyBindings)) {
+        const VALID_DIR = ["up", "down", "left", "right"];
+        const seenKeys = new Set();
+        prefs.arrowKeyBindings = saved.arrowKeyBindings
+          .filter((b) => b && typeof b.key === "string" && b.key.length > 0 && VALID_DIR.includes(b.direction))
+          .map((b) => ({
+            id: b.id || generateId(),
+            key: String(b.key).toLowerCase(),
+            direction: b.direction
+          }))
+          .filter((b) => {
+            if (seenKeys.has(b.key)) return false;
+            seenKeys.add(b.key);
+            return true;
+          });
+      }
       if (typeof saved.chordDelayMs === "number") {
         prefs.chordDelayMs = Math.max(0, Math.min(500, saved.chordDelayMs));
       }
@@ -275,7 +337,7 @@
         prefs.suspendDuringDrawingMode = saved.suspendDuringDrawingMode;
       }
     } catch (e) {
-      console.warn("[InputMapping] loadPrefs fallito, uso defaults:", e);
+      warn("loadPrefs fallito, uso defaults:", e);
       prefs = JSON.parse(JSON.stringify(DEFAULT_PREFS));
     }
   }
@@ -284,7 +346,7 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
     } catch (e) {
-      console.warn("[InputMapping] savePrefs fallito:", e);
+      warn("savePrefs fallito:", e);
     }
   }
 
@@ -332,9 +394,8 @@
   }
 
   function activateHoldPan(e) {
-    // Stesso pattern usato da wacomTablet.js per il tasto penna mappato a "pan"
     window.isAltPanning = true;
-    if (typeof window.flashToast === "function") window.flashToast("✋ Pan canvas attivo");
+    if (typeof window.flashToast === "function") window.flashToast(__it("im.toast.panActive", null, "✋ Pan canvas attivo"));
     const release = () => {
       window.isAltPanning = false;
       window.removeEventListener("mouseup", release, true);
@@ -360,18 +421,12 @@
 
   function buttonName(code) {
     switch (Number(code)) {
-      case 0:
-        return "Sinistro";
-      case 1:
-        return "Centrale (rotella)";
-      case 2:
-        return "Destro";
-      case 3:
-        return "X1 (laterale Back)";
-      case 4:
-        return "X2 (laterale Forward)";
-      default:
-        return `Button ${code}`;
+      case 0: return __it("im.button.left",   null, "Sinistro");
+      case 1: return __it("im.button.middle", null, "Centrale (rotella)");
+      case 2: return __it("im.button.right",  null, "Destro");
+      case 3: return __it("im.button.x1",     null, "X1 (laterale Back)");
+      case 4: return __it("im.button.x2",     null, "X2 (laterale Forward)");
+      default: return __it("im.button.generic", { code: code }, `Button ${code}`);
     }
   }
 
@@ -395,9 +450,6 @@
     return true;
   }
 
-  // Verifica se il puntatore è sopra una forma ruotabile (delega a mouseObserver
-  // sarebbe ideale, ma il modulo non espone helper: replichiamo la logica con
-  // findTarget standard di Fabric, sufficiente per il 99% dei casi).
   function pointerIsOverRotatableShape(e) {
     const c = window.canvas;
     if (!c || typeof c.findTarget !== "function") return false;
@@ -413,19 +465,42 @@
     }
   }
 
+  // isInputFocused() — versione "smart":
+  //  • Durante la calibrazione, gli elementi DENTRO il nostro modale
+  //    (data-im-modal) NON contano: slider/select/checkbox del modale
+  //    potrebbero essere stati toccati dall'utente prima di iniziare la
+  //    calibrazione, e non devono bloccare la cattura dei tasti.
+  //  • <body> e <html> non contano (in alcuni browser sono activeElement
+  //    di default).
+  //  • Considera input/textarea/select/contentEditable come "input focused"
+  //    quando NON in calibrazione → blocca le scorciatoie mentre l'utente
+  //    sta scrivendo in un campo testo.
   function isInputFocused() {
     const t = document.activeElement;
     if (!t) return false;
-    if (["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName)) return true;
+    if (t === document.body || t === document.documentElement) return false;
+    // Durante calibrazione: i controlli interni del nostro modale non bloccano
+    if (isCalibrating() && t.closest && t.closest("[data-im-modal]")) return false;
+    const tag = t.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
     if (t.isContentEditable) return true;
     return false;
   }
 
-  // Se il modale del modulo è aperto e siamo in calibrazione, blocchiamo
-  // l'esecuzione dei mapping (non vogliamo che la pressione di tasti durante
-  // la calibrazione esegua azioni).
   function isCalibrating() {
     return STATE.calibrationMode !== null;
+  }
+
+  // Spinge il focus su <body> (o sul container del modale se aperto) per
+  // assicurarsi che non resti un input/select/button con il focus che
+  // potrebbe disturbare la cattura tasti.
+  function releaseFocus() {
+    try {
+      const ae = document.activeElement;
+      if (ae && typeof ae.blur === "function" && ae !== document.body && ae !== document.documentElement) {
+        ae.blur();
+      }
+    } catch (_) {}
   }
 
   // ════════════════════════════════════════════════════════════════════
@@ -435,9 +510,10 @@
     if (!actionKey || actionKey === "none") return;
     const action = ACTIONS[actionKey];
     if (!action || typeof action.exec !== "function") {
-      console.warn("[InputMapping] azione sconosciuta:", actionKey);
+      warn("azione sconosciuta:", actionKey);
       return;
     }
+    dbg("EXEC →", actionKey);
     try {
       action.exec(originatingEvent);
     } catch (err) {
@@ -453,21 +529,33 @@
     const sortedHeld = [...buttonSet].sort((a, b) => a - b);
     const heldKey = sortedHeld.join(",");
     for (const chord of prefs.chordMappings) {
-      const chordKey = chord.buttons
-        .slice()
-        .sort((a, b) => a - b)
-        .join(",");
+      const chordKey = chord.buttons.slice().sort((a, b) => a - b).join(",");
       if (chordKey === heldKey) return chord;
     }
     return null;
   }
 
+  function chordCouldMatchWithMore(heldSet) {
+    for (const chord of prefs.chordMappings) {
+      const chordSet = new Set(chord.buttons);
+      if (chordSet.size <= heldSet.size) continue;
+      let containsAll = true;
+      for (const b of heldSet) {
+        if (!chordSet.has(b)) { containsAll = false; break; }
+      }
+      if (containsAll) return true;
+    }
+    return false;
+  }
+
   // ════════════════════════════════════════════════════════════════════
   // MOUSE EVENT HANDLERS
   // ════════════════════════════════════════════════════════════════════
-
   function onMouseDownCapture(e) {
-    if (!prefs.enabled) return;
+    if (!prefs.enabled) {
+      dbg("mousedown btn=" + e.button + " ignorato (prefs.enabled=false)");
+      return;
+    }
     if (isCalibrating()) {
       handleCalibrationMouseDown(e);
       return;
@@ -479,63 +567,56 @@
     // Per X1/X2 (button 3/4) preveniamo il default per evitare la navigation
     // history di Electron quando c'è un mapping attivo.
     if ((btn === 3 || btn === 4) && hasAnyMappingForButton(btn)) {
-      try {
-        e.preventDefault();
-      } catch (_) {}
+      try { e.preventDefault(); } catch (_) {}
     }
 
-    // Aggiungi al set held
     STATE.heldButtons.add(btn);
+    dbg("mousedown btn=" + btn + " held=[" + [...STATE.heldButtons].join(",") + "]");
 
-    // ── 1) Match CHORD (priorità massima) ───────────────────────────────
+    // ── 1) Match CHORD (priorità massima)
     const chord = findChordMatch(STATE.heldButtons);
     if (chord) {
-      // Annulla l'eventuale single pendente: vince il chord
       cancelPendingSingle();
-
       STATE.lastChordExecutedAt = Date.now();
       STATE.lastChordButtons = new Set(STATE.heldButtons);
-
-      // Stop completo: blocca anche mouseObserver (importante per chord che
-      // includono il button 2, altrimenti partirebbe la sessione di rotazione)
       try {
         e.preventDefault();
         e.stopPropagation();
         if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
       } catch (_) {}
-
+      dbg("CHORD match:", chord.buttons, "→", chord.action);
       executeAction(chord.action, e);
       return;
     }
 
-    // ── 2) Match SINGLE (se non è già un button parte di altro chord pendente) ──
+    // ── 2) Match SINGLE
     const singleAction = prefs.mouseButtonActions[String(btn)];
-    if (!singleAction || singleAction === "none") return;
+    if (!singleAction || singleAction === "none") {
+      dbg("nessun single mapping per btn=" + btn);
+      return;
+    }
 
-    // Filtri di sicurezza:
-    //  • Drawing mode: il sinistro serve a disegnare → non eseguire single mapping su button 0
     if (prefs.suspendDuringDrawingMode && window.canvas && window.canvas.isDrawingMode && btn === 0) {
+      dbg("single skip: drawing mode attivo + btn=0");
       return;
     }
-    //  • Tasto destro su forma ruotabile → cedere a mouseObserver (rotazione fine)
     if (btn === 2 && prefs.preserveRotationOnShapes && pointerIsOverRotatableShape(e)) {
+      dbg("single skip: btn=2 sopra forma ruotabile");
       return;
     }
-    //  • Click su UI critica: lasciar passare normalmente (NON consumare evento)
-    if (isClickOnUIControl(e)) return;
+    if (isClickOnUIControl(e)) {
+      dbg("single skip: click su UI control");
+      return;
+    }
 
-    // Defer per chord disambiguation: aspetta che eventualmente arrivino altri
-    // tasti del chord. Se nel frattempo si forma un chord matchato, il
-    // pendingSingle viene cancellato.
     if (prefs.chordDelayMs > 0 && chordCouldMatchWithMore(STATE.heldButtons)) {
+      dbg("single deferred (chord potenziale): btn=" + btn + " action=" + singleAction);
       schedulePendingSingle(btn, singleAction, e);
     } else {
-      // Per X1/X2 (browser back/forward) blocca il default browser
       if (btn === 3 || btn === 4) {
-        try {
-          e.preventDefault();
-        } catch (_) {}
+        try { e.preventDefault(); } catch (_) {}
       }
+      dbg("single immediate: btn=" + btn + " action=" + singleAction);
       executeAction(singleAction, e);
     }
   }
@@ -547,58 +628,45 @@
       return;
     }
     STATE.heldButtons.delete(e.button);
-    // Se rilasciamo tutto, resettiamo memoria last chord
     if (STATE.heldButtons.size === 0) {
       STATE.lastChordButtons = null;
     }
   }
 
-  // Alcuni driver/sistemi sparano i tasti laterali SOLO come auxclick
-  // (non come mousedown). Catturiamoli qui come fallback.
   function onAuxClickCapture(e) {
     if (!prefs.enabled) return;
-    if (isCalibrating()) return;
     const btn = e.button;
     if (btn !== 3 && btn !== 4) return;
-    // Se già gestito da onMouseDownCapture (mousedown ha sparato), heldButtons
-    // ha già rilasciato il tasto: nessun mapping da eseguire qui. Eseguiamo
-    // solo se nessun single è stato già fatto scattare in questo evento — per
-    // pragmatismo, controlliamo se l'azione è mappata e la eseguiamo
-    // SOLO se l'ultimo mousedown non è arrivato (heldButtons non ha mai
-    // contenuto questo button durante questo ciclo).
-    // Per evitare doppio fire, controlliamo che NON sia stato un mousedown→up
-    // recente per questo button. Usiamo un flag temporaneo.
     if (STATE.auxClickSuppressUntil && Date.now() < STATE.auxClickSuppressUntil) return;
+
+    if (isCalibrating()) {
+      if (STATE.calibrationMode !== "single" && STATE.calibrationMode !== "chord") return;
+      try {
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+      } catch (_) {}
+      if (STATE.calibrationMode === "single") {
+        STATE.capturedSingleButtonCode = btn;
+        commitSingleCalibration();
+      } else {
+        STATE.capturedChordButtons.add(btn);
+        if (STATE.chordCalibrationCommitTimer) clearTimeout(STATE.chordCalibrationCommitTimer);
+        STATE.chordCalibrationCommitTimer = setTimeout(() => { commitChordCalibration(); }, 500);
+        updateCalibrationUI();
+      }
+      return;
+    }
+
     const action = prefs.mouseButtonActions[String(btn)];
     if (!action || action === "none") return;
-
-    try {
-      e.preventDefault();
-    } catch (_) {}
+    try { e.preventDefault(); } catch (_) {}
+    dbg("auxclick fallback btn=" + btn + " action=" + action);
     executeAction(action, e);
   }
 
-  // Suppressione auxclick subito dopo un mousedown del medesimo button:
-  // alcuni sistemi sparano sia mousedown+mouseup sia auxclick.
   function markAuxClickHandled() {
     STATE.auxClickSuppressUntil = Date.now() + 80;
-  }
-
-  function chordCouldMatchWithMore(heldSet) {
-    // C'è almeno un chord mappato i cui pulsanti includono TUTTI quelli held
-    // e ne ha almeno uno in più? Se sì, conviene aspettare.
-    for (const chord of prefs.chordMappings) {
-      const chordSet = new Set(chord.buttons);
-      if (chordSet.size <= heldSet.size) continue;
-      let containsAll = true;
-      for (const b of heldSet)
-        if (!chordSet.has(b)) {
-          containsAll = false;
-          break;
-        }
-      if (containsAll) return true;
-    }
-    return false;
   }
 
   function schedulePendingSingle(button, action, originatingEvent) {
@@ -606,13 +674,8 @@
     STATE.pendingSingleButton = button;
     STATE.pendingSingleEvent = originatingEvent;
     STATE.pendingSingleTimer = setTimeout(() => {
-      // Verifica che il tasto sia ancora premuto (o sia stato rilasciato senza
-      // formare un chord) — il chord matching avviene già a ogni mousedown,
-      // quindi qui possiamo fidarci e scatenare.
       if (button === 3 || button === 4) {
-        try {
-          originatingEvent.preventDefault && originatingEvent.preventDefault();
-        } catch (_) {}
+        try { originatingEvent.preventDefault && originatingEvent.preventDefault(); } catch (_) {}
       }
       executeAction(action, originatingEvent);
       STATE.pendingSingleTimer = null;
@@ -642,28 +705,25 @@
   function isClickOnUIControl(e) {
     const t = e.target;
     if (!t || !t.closest) return false;
-    // Stessa lista usata da renderer.js per il pan check (line 729+)
     return !!(
-      (
-        t.closest("#calibPanel") ||
-        t.closest(".radial-btn") ||
-        t.closest("#measureOverlay") ||
-        t.closest("#colorPopup") ||
-        t.closest("#zoomPanel") ||
-        t.closest("#historyPanel") ||
-        t.closest(".topbar-btn") ||
-        t.closest(".tool-btn") ||
-        t.closest(".topbar-icon-btn") ||
-        t.closest("#topbar") ||
-        t.closest("#leftToolbar") ||
-        t.closest("#inspectorPanel") ||
-        t.closest(".inspector") ||
-        t.closest("input") ||
-        t.closest("button") ||
-        t.closest("select") ||
-        t.closest("textarea") ||
-        t.closest("[data-im-modal]")
-      ) // il NOSTRO modale
+      t.closest("#calibPanel") ||
+      t.closest(".radial-btn") ||
+      t.closest("#measureOverlay") ||
+      t.closest("#colorPopup") ||
+      t.closest("#zoomPanel") ||
+      t.closest("#historyPanel") ||
+      t.closest(".topbar-btn") ||
+      t.closest(".tool-btn") ||
+      t.closest(".topbar-icon-btn") ||
+      t.closest("#topbar") ||
+      t.closest("#leftToolbar") ||
+      t.closest("#inspectorPanel") ||
+      t.closest(".inspector") ||
+      t.closest("input") ||
+      t.closest("button") ||
+      t.closest("select") ||
+      t.closest("textarea") ||
+      t.closest("[data-im-modal]")
     );
   }
 
@@ -671,22 +731,24 @@
   // KEYBOARD EVENT HANDLER
   // ════════════════════════════════════════════════════════════════════
   function onKeyDownCapture(e) {
-    if (!prefs.enabled) return;
+    if (!prefs.enabled) {
+      dbg("keydown key='" + e.key + "' ignorato (prefs.enabled=false)");
+      return;
+    }
     if (isCalibrating()) {
       handleCalibrationKeyDown(e);
       return;
     }
-    if (isInputFocused()) return;
+    if (isInputFocused()) {
+      dbg("keydown key='" + e.key + "' ignorato (isInputFocused)");
+      return;
+    }
 
-    // ── Caso speciale: BrowserBack / BrowserForward generati da mouse laterali
-    // su alcuni driver Windows che li mappano a tastiera invece che a button 3/4.
+    // ── BrowserBack / BrowserForward da mouse laterali su driver Windows
     if (e.key === "BrowserBack" || e.code === "BrowserBack") {
       const a = prefs.mouseButtonActions["3"];
       if (a && a !== "none") {
-        try {
-          e.preventDefault();
-          e.stopPropagation();
-        } catch (_) {}
+        try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
         executeAction(a, e);
         return;
       }
@@ -694,12 +756,31 @@
     if (e.key === "BrowserForward" || e.code === "BrowserForward") {
       const a = prefs.mouseButtonActions["4"];
       if (a && a !== "none") {
-        try {
-          e.preventDefault();
-          e.stopPropagation();
-        } catch (_) {}
+        try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
         executeAction(a, e);
         return;
+      }
+    }
+
+    // ── Tasti singoli mappati come frecce direzionali
+    if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+      const arrowKey = (e.key || "").toLowerCase();
+      if (
+        arrowKey &&
+        !["control", "shift", "alt", "meta", "os"].includes(arrowKey) &&
+        prefs.arrowKeyBindings.length > 0
+      ) {
+        const binding = prefs.arrowKeyBindings.find((b) => b.key === arrowKey);
+        if (binding && typeof window.handleArrowMovement === "function") {
+          try {
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+          } catch (_) {}
+          dbg("ARROW binding match:", binding.key, "→", binding.direction);
+          window.handleArrowMovement(binding.direction, e);
+          return;
+        }
       }
     }
 
@@ -711,6 +792,7 @@
         e.stopPropagation();
         if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
       } catch (_) {}
+      dbg("SHORTCUT match:", shortcutToLabel(match.keys), "→", match.action);
       executeAction(match.action, e);
     }
   }
@@ -718,10 +800,7 @@
   function findShortcutMatch(e) {
     const key = (e.key || "").toLowerCase();
     if (!key) return null;
-    // Modificatori non considerati come "tasto principale"
     if (["control", "shift", "alt", "meta", "os"].includes(key)) return null;
-    // Ctrl e Cmd (meta) sono trattati come equivalenti: una scorciatoia
-    // salvata come "ctrl+L" matcha sia Ctrl+L su Windows/Linux sia Cmd+L su macOS.
     const evCtrl = !!e.ctrlKey || !!e.metaKey;
     for (const s of prefs.keyboardShortcuts) {
       if (s.keys.key.toLowerCase() !== key) continue;
@@ -736,31 +815,43 @@
   // ════════════════════════════════════════════════════════════════════
   // CALIBRAZIONE
   // ════════════════════════════════════════════════════════════════════
-  function startCalibration(mode, slotIndex) {
-    if (!["single", "chord", "shortcut"].includes(mode)) return;
+  function startCalibration(mode, slotIndex, context) {
+    if (!["single", "chord", "shortcut", "arrow"].includes(mode)) return;
+
+    // Libera il focus per evitare che residui su <input>/<select>/<range>
+    // del modale facciano scattare isInputFocused() FUORI calibrazione.
+    // Nota: isInputFocused() ora ignora già gli elementi del modale durante
+    // la calibrazione, quindi questo è una precauzione aggiuntiva.
+    releaseFocus();
+
     STATE.calibrationMode = mode;
     STATE.calibrationSlotIndex = slotIndex;
+    STATE.calibrationContext = context || null;
     STATE.capturedSingleButtonCode = null;
     STATE.capturedChordButtons = new Set();
     STATE.capturedShortcut = null;
+    STATE.capturedArrowKey = null;
 
     if (STATE.calibrationTimeoutId) clearTimeout(STATE.calibrationTimeoutId);
     STATE.calibrationTimeoutId = setTimeout(() => {
       cancelCalibration();
       if (typeof window.flashToast === "function") {
-        window.flashToast("⏱️ Calibrazione scaduta (15s) — riprova");
+        window.flashToast(__it("im.toast.calib.timeout", null, "⏱️ Calibrazione scaduta (15s) — riprova"));
       }
     }, 15000);
 
+    dbg("CALIBRATION start mode=" + mode + " slot=" + slotIndex);
     updateCalibrationUI();
   }
 
   function cancelCalibration() {
     STATE.calibrationMode = null;
     STATE.calibrationSlotIndex = null;
+    STATE.calibrationContext = null;
     STATE.capturedSingleButtonCode = null;
     STATE.capturedChordButtons = new Set();
     STATE.capturedShortcut = null;
+    STATE.capturedArrowKey = null;
     if (STATE.calibrationTimeoutId) {
       clearTimeout(STATE.calibrationTimeoutId);
       STATE.calibrationTimeoutId = null;
@@ -773,48 +864,95 @@
   }
 
   function handleCalibrationMouseDown(e) {
-    // Blocca il click di calibrazione SOLO se NON è dentro al nostro modale
-    // (clic sui bottoni del modale non devono essere intercettati come input
-    // da calibrare).
-    if (e.target && e.target.closest && e.target.closest("[data-im-modal]")) return;
+    if (STATE.calibrationMode !== "single" && STATE.calibrationMode !== "chord") return;
+
+    // Click sinistro su un controllo del modale: lasciamo passare (serve a
+    // interagire col modale stesso — bottoni "annulla", select, ecc.).
+    if (
+      e.button === 0 &&
+      e.target &&
+      e.target.closest &&
+      e.target.closest("button, select, input, textarea, a")
+    ) {
+      return;
+    }
 
     try {
       e.preventDefault();
       e.stopPropagation();
       if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
     } catch (_) {}
+
+    dbg("CAL mousedown btn=" + e.button + " mode=" + STATE.calibrationMode);
 
     if (STATE.calibrationMode === "single") {
       STATE.capturedSingleButtonCode = e.button;
       commitSingleCalibration();
     } else if (STATE.calibrationMode === "chord") {
       STATE.capturedChordButtons.add(e.button);
-      // commit dopo breve idle: l'utente ha finito di premere tasti
       if (STATE.chordCalibrationCommitTimer) clearTimeout(STATE.chordCalibrationCommitTimer);
-      STATE.chordCalibrationCommitTimer = setTimeout(() => {
-        commitChordCalibration();
-      }, 500);
+      STATE.chordCalibrationCommitTimer = setTimeout(() => { commitChordCalibration(); }, 500);
       updateCalibrationUI();
     }
   }
 
   function handleCalibrationMouseUp(e) {
-    if (e.target && e.target.closest && e.target.closest("[data-im-modal]")) return;
+    if (STATE.calibrationMode !== "single" && STATE.calibrationMode !== "chord") return;
+    if (
+      e.button === 0 &&
+      e.target &&
+      e.target.closest &&
+      e.target.closest("button, select, input, textarea, a")
+    ) {
+      return;
+    }
     try {
       e.preventDefault();
       e.stopPropagation();
       if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
     } catch (_) {}
-    // Nessuna logica particolare: mouseup non aggiunge tasti al chord
   }
 
   function handleCalibrationKeyDown(e) {
-    // Solo per la calibrazione di scorciatoie
+    const key = (e.key || "").toLowerCase();
+
+    // Escape annulla SEMPRE la calibrazione, qualunque mode
+    if (key === "escape") {
+      try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
+      dbg("CAL cancel via Escape (mode=" + STATE.calibrationMode + ")");
+      cancelCalibration();
+      return;
+    }
+
+    // Modalità "arrow"
+    if (STATE.calibrationMode === "arrow") {
+      if (isInputFocused()) return;
+      if (["control", "shift", "alt", "meta", "os"].includes(key)) return;
+
+      if (["arrowup", "arrowdown", "arrowleft", "arrowright"].includes(key)) {
+        try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
+        if (typeof window.flashToast === "function") {
+          window.flashToast(__it("im.toast.arrow.alreadyNative", null, "⚠️ Le frecce native sono già attive — scegli un tasto diverso"));
+        }
+        return;
+      }
+
+      try {
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+      } catch (_) {}
+
+      STATE.capturedArrowKey = key;
+      dbg("CAL arrow captured key='" + key + "'");
+      commitArrowCalibration();
+      return;
+    }
+
+    // Modalità "shortcut"
     if (STATE.calibrationMode !== "shortcut") return;
     if (isInputFocused()) return;
-
-    const key = (e.key || "").toLowerCase();
-    if (["control", "shift", "alt", "meta", "os"].includes(key)) return; // solo modificatori
+    if (["control", "shift", "alt", "meta", "os"].includes(key)) return;
 
     try {
       e.preventDefault();
@@ -829,6 +967,7 @@
       meta: !!e.metaKey,
       key: key
     };
+    dbg("CAL shortcut captured:", STATE.capturedShortcut);
     commitShortcutCalibration();
   }
 
@@ -836,14 +975,12 @@
     const code = STATE.capturedSingleButtonCode;
     if (code == null) return cancelCalibration();
     const codeKey = String(code);
-    // Garantisce che il codice rilevato sia presente nella mappa così l'utente
-    // può assegnargli un'azione dal menù. Non sovrascriviamo se già presente.
     if (!(codeKey in prefs.mouseButtonActions)) {
       prefs.mouseButtonActions[codeKey] = "none";
     }
     savePrefs();
     if (typeof window.flashToast === "function") {
-      window.flashToast(`🎯 Tasto rilevato: button code ${code} (${buttonName(code)}) — assegnagli un'azione dal menù`);
+      window.flashToast(__it("im.toast.button.detected", { code: code, name: buttonName(code) }, `🎯 Tasto rilevato: button code ${code} (${buttonName(code)}) — assegnagli un'azione dal menù`));
     }
     STATE.calibrationMode = null;
     STATE.calibrationSlotIndex = null;
@@ -858,12 +995,12 @@
     const set = STATE.capturedChordButtons;
     if (!set || set.size < 2) {
       if (typeof window.flashToast === "function") {
-        window.flashToast("⚠️ Servono almeno 2 tasti per un chord");
+        window.flashToast(__it("im.toast.chord.needTwo", null, "⚠️ Servono almeno 2 tasti per un chord"));
       }
       cancelCalibration();
       return;
     }
-    const slotIdx = STATE.calibrationSlotIndex; // indice in prefs.chordMappings ("new" per nuovo)
+    const slotIdx = STATE.calibrationSlotIndex;
     const buttons = [...set].sort((a, b) => a - b);
 
     if (slotIdx === "new") {
@@ -878,7 +1015,7 @@
 
     savePrefs();
     if (typeof window.flashToast === "function") {
-      window.flashToast(`✅ Combinazione registrata: ${buttonsToLabel(buttons)}`);
+      window.flashToast(__it("im.toast.chord.registered", { label: buttonsToLabel(buttons) }, `✅ Combinazione registrata: ${buttonsToLabel(buttons)}`));
     }
     cancelCalibration();
     refreshModalUI();
@@ -887,46 +1024,134 @@
   function commitShortcutCalibration() {
     const s = STATE.capturedShortcut;
     const slotIdx = STATE.calibrationSlotIndex;
-    if (!s) {
-      cancelCalibration();
-      return;
-    }
+    if (!s) { cancelCalibration(); return; }
     if (slotIdx === "new") {
-      prefs.keyboardShortcuts.push({
-        id: generateId(),
-        keys: s,
-        action: "none"
-      });
+      prefs.keyboardShortcuts.push({ id: generateId(), keys: s, action: "none" });
     } else if (typeof slotIdx === "number" && prefs.keyboardShortcuts[slotIdx]) {
       prefs.keyboardShortcuts[slotIdx].keys = s;
     }
     savePrefs();
     if (typeof window.flashToast === "function") {
-      window.flashToast(`✅ Scorciatoia registrata: ${shortcutToLabel(s)}`);
+      window.flashToast(__it("im.toast.shortcut.registered", { label: shortcutToLabel(s) }, `✅ Scorciatoia registrata: ${shortcutToLabel(s)}`));
     }
     cancelCalibration();
     refreshModalUI();
   }
 
+  function commitArrowCalibration() {
+    const key = STATE.capturedArrowKey;
+    const ctx = STATE.calibrationContext || {};
+    const direction = ctx.direction;
+    const slotIdx = STATE.calibrationSlotIndex;
+
+    if (!key || !["up", "down", "left", "right"].includes(direction)) {
+      cancelCalibration();
+      return;
+    }
+
+    const conflictIdx = prefs.arrowKeyBindings.findIndex(
+      (b, i) => b.key === key && (typeof slotIdx !== "number" || i !== slotIdx)
+    );
+    if (conflictIdx >= 0) {
+      if (typeof window.flashToast === "function") {
+        window.flashToast(__it("im.toast.arrow.keyAlreadyMapped", { key: key.toUpperCase() }, `⚠️ Il tasto "${key.toUpperCase()}" è già mappato a un'altra freccia`));
+      }
+      cancelCalibration();
+      return;
+    }
+
+    if (slotIdx === "new") {
+      prefs.arrowKeyBindings.push({ id: generateId(), key: key, direction: direction });
+    } else if (typeof slotIdx === "number" && prefs.arrowKeyBindings[slotIdx]) {
+      prefs.arrowKeyBindings[slotIdx].key = key;
+    }
+
+    savePrefs();
+    if (typeof window.flashToast === "function") {
+      const arrowSym = { up: "↑", down: "↓", left: "←", right: "→" }[direction];
+      window.flashToast(__it("im.toast.arrow.registered", { key: key.toUpperCase(), arrow: arrowSym }, `✅ ${key.toUpperCase()} → ${arrowSym}`));
+    }
+    cancelCalibration();
+    refreshModalUI();
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // BANNER DI CALIBRAZIONE (FLOATING, FIXED, SEMPRE VISIBILE)
+  // ════════════════════════════════════════════════════════════════════
+  function ensureCalibrationBanner() {
+    let banner = document.getElementById("imCalibrationBannerFloating");
+    if (banner) return banner;
+    banner = document.createElement("div");
+    banner.id = "imCalibrationBannerFloating";
+    banner.setAttribute("data-im-modal", "1");
+    banner.style.cssText = `
+      display:none;
+      position:fixed;
+      top:14px;
+      left:50%;
+      transform:translateX(-50%);
+      z-index:20010;
+      background:#3d2a00;
+      border:1px solid #fbbf24;
+      border-left:4px solid #fbbf24;
+      padding:12px 18px;
+      border-radius:6px;
+      font-size:13px;
+      color:#fde68a;
+      box-shadow:0 6px 24px rgba(0,0,0,0.6);
+      max-width:680px;
+      width:auto;
+    `;
+    document.body.appendChild(banner);
+    return banner;
+  }
+
   function updateCalibrationUI() {
-    const banner = document.getElementById("imCalibrationBanner");
-    if (!banner) return;
+    const banner = ensureCalibrationBanner();
     if (!STATE.calibrationMode) {
       banner.style.display = "none";
       banner.innerHTML = "";
+      // Aggiorno anche il banner interno al modale se esiste (legacy)
+      const inner = document.getElementById("imCalibrationBanner");
+      if (inner) { inner.style.display = "none"; inner.innerHTML = ""; }
       return;
     }
     banner.style.display = "block";
     let html = "";
     if (STATE.calibrationMode === "single") {
-      html = `⏳ <b>Premi ora il tasto del mouse</b> che vuoi rilevare... <span style="color:#888">(timeout 15s — <a href="#" id="imCancelCalib">annulla</a>)</span>`;
+      html = `⏳ <b>Premi ora il tasto del mouse</b> che vuoi rilevare... <span style="color:#aaa">(timeout 15s — <a href="#" id="imCancelCalib">annulla</a> · Esc per annullare)</span>`;
     } else if (STATE.calibrationMode === "chord") {
       const captured = [...(STATE.capturedChordButtons || [])].sort();
-      html = `⏳ <b>Premi simultaneamente i tasti del mouse</b> che formano la combinazione...<br/>
-              <span style="color:#aaa;font-size:12px;">Rilevati finora: ${captured.length ? buttonsToLabel(captured) : "nessuno"} — rilascia per confermare (0.5s).</span>
-              <span style="color:#888"> · <a href="#" id="imCancelCalib">annulla</a></span>`;
+      // i18n: il template è composto come nell'originale ma con stringhe tradotte.
+      // im.banner.chord.press contiene la headline grassetto, detectedSoFar il sottotitolo.
+      const chordHeadline = __it("im.banner.chord.press", null, "⏳ <b>Premi simultaneamente i tasti del mouse</b> che formano la combinazione...");
+      const chordCaptured = captured.length ? buttonsToLabel(captured) : __it("im.banner.chord.none", null, "nessuno");
+      const chordSub = __it("im.banner.chord.detectedSoFar", { captured: chordCaptured }, `Rilevati finora: ${chordCaptured} — rilascia per confermare (0.5s).`);
+      const cancelTxt = __it("im.banner.cancel", null, "annulla");
+      const escTxt = __it("im.banner.escToCancel", null, "Esc per annullare");
+      html = `${chordHeadline}<br/>
+              <span style="color:#fde68a;font-size:12px;">${chordSub}</span>
+              <span style="color:#aaa"> · <a href="#" id="imCancelCalib">${cancelTxt}</a> · ${escTxt}</span>`;
     } else if (STATE.calibrationMode === "shortcut") {
-      html = `⏳ <b>Premi la combinazione di tasti</b> (modificatori + tasto)... <span style="color:#888">(timeout 15s — <a href="#" id="imCancelCalib">annulla</a>)</span>`;
+      const headline = __it("im.banner.shortcut.press", null, "⏳ <b>Premi la combinazione di tasti</b> (modificatori + tasto)...");
+      const timeoutTxt = __it("im.banner.shortcut.timeout", null, "timeout 15s");
+      const cancelTxt = __it("im.banner.cancel", null, "annulla");
+      const escTxt = __it("im.banner.escToCancel", null, "Esc per annullare");
+      html = `${headline} <span style="color:#aaa">(${timeoutTxt} — <a href="#" id="imCancelCalib">${cancelTxt}</a> · ${escTxt})</span>`;
+    } else if (STATE.calibrationMode === "arrow") {
+      const dir = STATE.calibrationContext && STATE.calibrationContext.direction;
+      const arrowSym = { up: "↑", down: "↓", left: "←", right: "→" }[dir] || "?";
+      // arrowName usa le chiavi i18n im.arrow.upShort/downShort/leftShort/rightShort
+      const arrowKey = { up: "im.arrow.upShort", down: "im.arrow.downShort", left: "im.arrow.leftShort", right: "im.arrow.rightShort" }[dir];
+      const arrowFallback = { up: "su", down: "giù", left: "sinistra", right: "destra" }[dir] || "?";
+      const arrowName = arrowKey ? __it(arrowKey, null, arrowFallback) : "?";
+      const headline = __it("im.banner.arrow.press", null, "⏳ <b>Premi un tasto</b> da mappare come freccia");
+      const hint = __it("im.banner.arrow.hintSingle", null, "Solo tasti singoli, senza modificatori. Le frecce native (↑↓←→) sono già attive e non possono essere rimappate.");
+      const cancelTxt = __it("im.banner.cancel", null, "annulla");
+      const escTxt = __it("im.banner.escToCancel", null, "Esc per annullare");
+      html = `${headline} <span style="color:#4ade80;font-size:16px">${arrowSym}</span> (${arrowName}) <br/>
+              <span style="color:#fde68a;font-size:12px;">${hint}</span>
+              <span style="color:#aaa"> · <a href="#" id="imCancelCalib">${cancelTxt}</a> · ${escTxt}</span>`;
     }
     banner.innerHTML = html;
     const cancelLink = document.getElementById("imCancelCalib");
@@ -971,29 +1196,20 @@
       ">
         <!-- Header -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-          <h3 style="margin:0;font-size:17px">🖱️⌨️ Mappatura Mouse & Tastiera</h3>
-          <button id="imCloseBtn" title="Chiudi"
+          <h3 style="margin:0;font-size:17px" data-i18n="im.modal.title">🖱️⌨️ Mappatura Mouse & Tastiera</h3>
+          <button id="imCloseBtn" data-i18n-title="im.modal.close" title="Chiudi"
                   style="background:none;border:none;color:#aaa;font-size:26px;cursor:pointer;line-height:1">×</button>
         </div>
 
-        <!-- Banner calibrazione -->
-        <div id="imCalibrationBanner" style="
-          display:none;
-          background:#3d2a00;
-          border-left:3px solid #fbbf24;
-          padding:10px 12px;
-          border-radius:4px;
-          font-size:13px;
-          margin-bottom:14px;
-          color:#fde68a;
-        "></div>
+        <!-- Banner calibrazione interno (legacy, lasciato per compat ma nascosto) -->
+        <div id="imCalibrationBanner" style="display:none"></div>
 
         <!-- Toggle integrazione -->
         <label style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 12px;background:#2a2a2a;border-radius:8px;cursor:pointer">
           <input type="checkbox" id="imEnabledCheck" style="width:18px;height:18px;cursor:pointer"/>
           <span style="flex:1">
-            <b>Abilita mapping personalizzati</b>
-            <div style="font-size:11px;color:#aaa;margin-top:2px">
+            <b data-i18n="im.modal.enableLabel">Abilita mapping personalizzati</b>
+            <div style="font-size:11px;color:#aaa;margin-top:2px" data-i18n="im.modal.enableHint">
               Disattiva per tornare al comportamento standard (sx=selezione, dx=rotazione su forme)
             </div>
           </span>
@@ -1002,10 +1218,10 @@
         <!-- ════════ SEZIONE TASTI SINGOLI ════════ -->
         <div style="background:#2a2a2a;border-radius:8px;padding:14px;margin-bottom:14px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <h4 style="margin:0;font-size:14px;color:#fbbf24">🖱️ Tasti singoli del mouse</h4>
-            <button id="imLearnButton" class="im-secondary-btn">🎯 Rileva codice tasto</button>
+            <h4 style="margin:0;font-size:14px;color:#fbbf24" data-i18n="im.modal.singleTitle">🖱️ Tasti singoli del mouse</h4>
+            <button id="imLearnButton" class="im-secondary-btn" data-i18n="im.modal.learnButton">🎯 Rileva codice tasto</button>
           </div>
-          <div style="font-size:11px;color:#aaa;margin-bottom:10px">
+          <div style="font-size:11px;color:#aaa;margin-bottom:10px" data-i18n="im.modal.singleHint">
             I tasti laterali (X1/X2) sui mouse HP HSA-P007M, gaming e simili emettono
             di norma button code 3 (back) e 4 (forward). Mappali qui per evitare la navigazione
             del browser e usarli come scorciatoie a tua scelta.
@@ -1016,10 +1232,10 @@
         <!-- ════════ SEZIONE CHORD ════════ -->
         <div style="background:#2a2a2a;border-radius:8px;padding:14px;margin-bottom:14px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <h4 style="margin:0;font-size:14px;color:#fbbf24">🤝 Combinazioni (chord) — più tasti mouse insieme</h4>
-            <button id="imAddChord" class="im-secondary-btn">➕ Aggiungi combinazione</button>
+            <h4 style="margin:0;font-size:14px;color:#fbbf24" data-i18n="im.modal.chordTitle">🤝 Combinazioni (chord) — più tasti mouse insieme</h4>
+            <button id="imAddChord" class="im-secondary-btn" data-i18n="im.modal.addChord">➕ Aggiungi combinazione</button>
           </div>
-          <div style="font-size:11px;color:#aaa;margin-bottom:10px">
+          <div style="font-size:11px;color:#aaa;margin-bottom:10px" data-i18n-html="im.modal.chordHint">
             Esempio: <b>Sinistro + Destro</b> per Annulla. Le combinazioni hanno priorità sui
             tasti singoli: se il chord si completa, l'azione del singolo non scatta.
           </div>
@@ -1029,10 +1245,10 @@
         <!-- ════════ SEZIONE SCORCIATOIE TASTIERA ════════ -->
         <div style="background:#2a2a2a;border-radius:8px;padding:14px;margin-bottom:14px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <h4 style="margin:0;font-size:14px;color:#fbbf24">⌨️ Scorciatoie tastiera personalizzate</h4>
-            <button id="imAddShortcut" class="im-secondary-btn">➕ Aggiungi scorciatoia</button>
+            <h4 style="margin:0;font-size:14px;color:#fbbf24" data-i18n="im.modal.shortcutTitle">⌨️ Scorciatoie tastiera personalizzate</h4>
+            <button id="imAddShortcut" class="im-secondary-btn" data-i18n="im.modal.addShortcut">➕ Aggiungi scorciatoia</button>
           </div>
-          <div style="font-size:11px;color:#aaa;margin-bottom:10px">
+          <div style="font-size:11px;color:#aaa;margin-bottom:10px" data-i18n-html="im.modal.shortcutHint">
             Esempio: <b>Ctrl+L</b> → Toggle Lazo. ⚠️ Le scorciatoie di base di Mosaica
             (Ctrl+Z/C/V/X, Delete, Ctrl+/-, Ctrl+R, frecce) sono protette: per sovrascriverle,
             assegnale qui — la tua versione avrà la precedenza.
@@ -1041,31 +1257,60 @@
           <div id="imShortcutsList"></div>
         </div>
 
+        <!-- ════════ SEZIONE TASTI COME FRECCE ════════ -->
+        <div style="background:#2a2a2a;border-radius:8px;padding:14px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+            <h4 style="margin:0;font-size:14px;color:#fbbf24" data-i18n="im.modal.arrowTitle">🎮 Tasti come frecce direzionali</h4>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="im-secondary-btn" data-im-add-arrow="up" data-i18n="im.modal.arrowMapUp">➕ Mappa per ↑</button>
+              <button class="im-secondary-btn" data-im-add-arrow="down" data-i18n="im.modal.arrowMapDown">➕ Mappa per ↓</button>
+              <button class="im-secondary-btn" data-im-add-arrow="left" data-i18n="im.modal.arrowMapLeft">➕ Mappa per ←</button>
+              <button class="im-secondary-btn" data-im-add-arrow="right" data-i18n="im.modal.arrowMapRight">➕ Mappa per →</button>
+            </div>
+          </div>
+          <div style="font-size:11px;color:#aaa;margin-bottom:10px" data-i18n-html="im.modal.arrowHint">
+            Mappa tasti singoli (es. <b>W</b>→↑, <b>S</b>→↓, <b>A</b>→←, <b>D</b>→→) per spostare
+            la forma selezionata. <b>Le frecce native (↑↓←→) restano sempre attive in parallelo</b>.<br/>
+            Step di movimento: <b>0.1 mm</b> di default, <b>1 mm</b> con <kbd>Shift</kbd>,
+            <b>0.01 mm</b> con <kbd>Ctrl</kbd>. Senza selezione, fa pan della vista di 5 mm.<br/>
+            I tasti mappati scattano solo da soli o con <kbd>Shift</kbd>: le combinazioni con
+            <kbd>Ctrl</kbd>/<kbd>Alt</kbd>/<kbd>Cmd</kbd> restano libere per le scorciatoie.
+          </div>
+          <div id="imArrowBindingsList"></div>
+        </div>
+
         <!-- ════════ OPZIONI AVANZATE ════════ -->
         <details style="background:#2a2a2a;border-radius:8px;padding:14px;margin-bottom:14px">
-          <summary style="cursor:pointer;font-size:13px;color:#fbbf24;font-weight:600">⚙️ Opzioni avanzate</summary>
+          <summary style="cursor:pointer;font-size:13px;color:#fbbf24;font-weight:600" data-i18n="im.modal.advancedTitle">⚙️ Opzioni avanzate</summary>
           <div style="margin-top:10px;display:flex;flex-direction:column;gap:10px">
             <label style="display:flex;align-items:center;gap:10px;font-size:12px">
-              <span style="flex:1">Ritardo chord disambiguation (ms):
+              <span style="flex:1"><span data-i18n="im.modal.chordDelayLabel">Ritardo chord disambiguation (ms):</span>
                 <span id="imChordDelayVal" style="color:#4ade80;font-weight:600">80</span></span>
               <input type="range" id="imChordDelaySlider" min="0" max="300" step="10" style="width:180px"/>
             </label>
-            <div style="font-size:11px;color:#888;margin-top:-4px">
+            <div style="font-size:11px;color:#888;margin-top:-4px" data-i18n="im.modal.chordDelayHint">
               Quando un tasto premuto potrebbe far parte di una combinazione mappata,
               il suo mapping single attende N ms per dare tempo alla combinazione. 0 = scatta subito.
             </div>
             <label style="display:flex;align-items:center;gap:10px;font-size:12px">
               <input type="checkbox" id="imPreserveRotation" style="width:16px;height:16px"/>
               <span style="flex:1">
-                <b>Preserva rotazione fine sul tasto destro</b>
-                <div style="font-size:11px;color:#888">Il mapping del tasto destro non scatta sopra le forme (ruotabili).</div>
+                <b data-i18n="im.modal.preserveRotationLabel">Preserva rotazione fine sul tasto destro</b>
+                <div style="font-size:11px;color:#888" data-i18n="im.modal.preserveRotationHint">Il mapping del tasto destro non scatta sopra le forme (ruotabili).</div>
               </span>
             </label>
             <label style="display:flex;align-items:center;gap:10px;font-size:12px">
               <input type="checkbox" id="imSuspendDrawing" style="width:16px;height:16px"/>
               <span style="flex:1">
-                <b>Sospendi in modalità disegno</b>
-                <div style="font-size:11px;color:#888">Penna/Acquerello/Gomma: il tasto sinistro disegna, i mapping singoli sono sospesi.</div>
+                <b data-i18n="im.modal.suspendDrawingLabel">Sospendi in modalità disegno</b>
+                <div style="font-size:11px;color:#888" data-i18n="im.modal.suspendDrawingHint">Penna/Acquerello/Gomma: il tasto sinistro disegna, i mapping singoli sono sospesi.</div>
+              </span>
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;font-size:12px">
+              <input type="checkbox" id="imDebugCheck" style="width:16px;height:16px"/>
+              <span style="flex:1">
+                <b data-i18n="im.modal.debugLabel">Diagnostica console</b>
+                <div style="font-size:11px;color:#888" data-i18n="im.modal.debugHint">Stampa log dettagliati nella DevTools console (Ctrl+Shift+I). Utile per capire perché un mapping non scatta.</div>
               </span>
             </label>
           </div>
@@ -1073,17 +1318,28 @@
 
         <!-- Footer azioni -->
         <div style="display:flex;justify-content:space-between;gap:10px">
-          <button id="imResetDefaults" class="im-secondary-btn">🔄 Ripristina default</button>
+          <button id="imResetDefaults" class="im-secondary-btn" data-i18n="im.modal.resetDefaults">🔄 Ripristina default</button>
           <button id="imDone" style="
             background:#fbbf24;border:0;color:#000;padding:9px 18px;border-radius:6px;
-            cursor:pointer;font-size:13px;font-weight:600;">Fatto</button>
+            cursor:pointer;font-size:13px;font-weight:600;" data-i18n="im.modal.done">Fatto</button>
         </div>
       </div>
     `;
 
     document.body.appendChild(modal);
 
-    // Stile pulsanti secondari (iniettato 1 volta)
+    // i18n: applica le traduzioni sui marker data-i18n* statici del modale
+    // appena iniettato. È sicuro chiamare anche se window.i18n non c'è
+    // ancora (no-op). Senza questa chiamata, gli elementi marcati ma
+    // appendi DOPO il DOMContentLoaded iniziale rimarrebbero in italiano.
+    try {
+      if (window.i18n && typeof window.i18n.applyTranslations === "function") {
+        window.i18n.applyTranslations(modal);
+      }
+    } catch (e) {
+      console.warn("[inputMapping] applyTranslations sul modale fallito:", e);
+    }
+
     if (!document.getElementById("inputMappingStyle")) {
       const st = document.createElement("style");
       st.id = "inputMappingStyle";
@@ -1129,28 +1385,41 @@
     document.getElementById("imEnabledCheck").addEventListener("change", (e) => {
       prefs.enabled = !!e.target.checked;
       savePrefs();
+      if (!prefs.enabled) warn(__it("im.modal.disabledWarn", null, "⚠️ Mapping personalizzati DISATTIVATI — nessuna scorciatoia/chord/freccia personalizzata funzionerà"));
+      else dbg("Mapping personalizzati attivati");
     });
     document.getElementById("imResetDefaults").addEventListener("click", () => {
-      if (!confirm("Ripristinare tutti i mapping ai valori di default?")) return;
+      if (!confirm(__it("im.confirm.resetDefaults", null, "Ripristinare tutti i mapping ai valori di default?"))) return;
       prefs = JSON.parse(JSON.stringify(DEFAULT_PREFS));
       savePrefs();
       refreshModalUI();
-      if (typeof window.flashToast === "function") window.flashToast("🔄 Mapping ripristinati ai default");
+      if (typeof window.flashToast === "function") window.flashToast(__it("im.toast.prefs.reset", null, "🔄 Mapping ripristinati ai default"));
     });
     document.getElementById("imLearnButton").addEventListener("click", () => {
       startCalibration("single", "learn:any");
     });
     document.getElementById("imAddChord").addEventListener("click", () => {
       if (typeof window.flashToast === "function") {
-        window.flashToast('Premi "➕ Aggiungi combinazione" e premi simultaneamente i tasti del mouse che vuoi combinare.');
+        window.flashToast(__it("im.toast.chord.startPress", null, 'Premi simultaneamente i tasti del mouse che vuoi combinare.'));
       }
       startCalibration("chord", "new");
     });
     document.getElementById("imAddShortcut").addEventListener("click", () => {
       if (typeof window.flashToast === "function") {
-        window.flashToast('Premi "➕ Aggiungi scorciatoia" e premi la sequenza di tasti che vuoi aggiungere sulla tastiera.');
+        window.flashToast(__it("im.toast.shortcut.startPress", null, 'Premi la sequenza di tasti che vuoi aggiungere sulla tastiera.'));
       }
       startCalibration("shortcut", "new");
+    });
+
+    modal.querySelectorAll("button[data-im-add-arrow]").forEach((b) => {
+      b.addEventListener("click", () => {
+        const direction = b.getAttribute("data-im-add-arrow");
+        if (typeof window.flashToast === "function") {
+          const arrowSym = { up: "↑", down: "↓", left: "←", right: "→" }[direction] || "?";
+          window.flashToast(__it("im.toast.arrow.startPress", { arrow: arrowSym }, `Premi un tasto da mappare a ${arrowSym}`));
+        }
+        startCalibration("arrow", "new", { direction });
+      });
     });
 
     document.getElementById("imChordDelaySlider").addEventListener("input", (e) => {
@@ -1166,10 +1435,14 @@
       prefs.suspendDuringDrawingMode = !!e.target.checked;
       savePrefs();
     });
+    document.getElementById("imDebugCheck").addEventListener("change", (e) => {
+      DEBUG = !!e.target.checked;
+      console.log("[InputMapping] DEBUG =", DEBUG);
+    });
 
-    // Chiusura cliccando lo sfondo
+    // Chiusura cliccando lo sfondo — disabilitata durante calibrazione
     modal.addEventListener("click", (e) => {
-      if (e.target === modal) closeModal();
+      if (e.target === modal && !isCalibrating()) closeModal();
     });
   }
 
@@ -1177,12 +1450,19 @@
     ensureModal();
     refreshModalUI();
     document.getElementById("inputMappingModal").style.display = "flex";
+    // Libera il focus dal toolbar button che ha aperto il modale, così i
+    // keydown durante eventuali calibrazioni vengono catturati subito.
+    releaseFocus();
   }
 
   function closeModal() {
     cancelCalibration();
     const m = document.getElementById("inputMappingModal");
     if (m) m.style.display = "none";
+    // CRITICO: libera il focus da qualunque elemento del modale (select,
+    // checkbox, slider, button) — altrimenti isInputFocused() bloccherebbe
+    // tutte le scorciatoie successive finché l'utente non clicca altrove.
+    releaseFocus();
   }
 
   function refreshModalUI() {
@@ -1193,10 +1473,13 @@
     document.getElementById("imChordDelayVal").textContent = String(prefs.chordDelayMs);
     document.getElementById("imPreserveRotation").checked = prefs.preserveRotationOnShapes;
     document.getElementById("imSuspendDrawing").checked = prefs.suspendDuringDrawingMode;
+    const dbgCheck = document.getElementById("imDebugCheck");
+    if (dbgCheck) dbgCheck.checked = DEBUG;
 
     renderSingleButtons();
     renderChords();
     renderShortcuts();
+    renderArrowBindings();
     updateCalibrationUI();
   }
 
@@ -1214,8 +1497,6 @@
     const container = document.getElementById("imSingleButtonsList");
     if (!container) return;
 
-    // Garantiamo le 5 righe standard (button 0..4) + eventuali codici "esotici"
-    // imparati dall'utente.
     const standardCodes = ["0", "1", "2", "3", "4"];
     const allCodes = Array.from(new Set([...standardCodes, ...Object.keys(prefs.mouseButtonActions)]));
     allCodes.sort((a, b) => Number(a) - Number(b));
@@ -1257,7 +1538,7 @@
     if (!container) return;
 
     if (prefs.chordMappings.length === 0) {
-      container.innerHTML = `<div style="color:#888;font-size:12px;font-style:italic;padding:8px 4px">Nessuna combinazione configurata. Premi "➕ Aggiungi combinazione" e premi i tasti del mouse insieme.</div>`;
+      container.innerHTML = `<div style="color:#888;font-size:12px;font-style:italic;padding:8px 4px">${__it("im.placeholder.noChord", null, "Nessuna combinazione configurata. Premi \"➕ Aggiungi combinazione\" e premi i tasti del mouse insieme.")}</div>`;
       return;
     }
 
@@ -1267,7 +1548,7 @@
         <div class="im-row">
           <span class="im-label">${escapeHTML(buttonsToLabel(c.buttons))}</span>
           <select data-im-chord-idx="${idx}">${actionsDropdownHTML(c.action)}</select>
-          <button class="im-relearn" data-im-relearn-chord="${idx}">🎯 Riapprendi</button>
+          <button class="im-relearn" data-im-relearn-chord="${idx}">${__it("im.modal.relearn", null, "🎯 Riapprendi")}</button>
           <button class="im-del" data-im-remove-chord="${idx}">✕</button>
         </div>
       `;
@@ -1304,7 +1585,7 @@
     if (!container) return;
 
     if (prefs.keyboardShortcuts.length === 0) {
-      container.innerHTML = `<div style="color:#888;font-size:12px;font-style:italic;padding:8px 4px">Nessuna scorciatoia personalizzata. Premi "➕ Aggiungi scorciatoia" e digita la combinazione (es. Ctrl+L).</div>`;
+      container.innerHTML = `<div style="color:#888;font-size:12px;font-style:italic;padding:8px 4px">${__it("im.placeholder.noShortcut", null, "Nessuna scorciatoia personalizzata. Premi \"➕ Aggiungi scorciatoia\" e digita la combinazione (es. Ctrl+L).")}</div>`;
       return;
     }
 
@@ -1346,6 +1627,59 @@
     });
   }
 
+  function renderArrowBindings() {
+    const container = document.getElementById("imArrowBindingsList");
+    if (!container) return;
+
+    if (prefs.arrowKeyBindings.length === 0) {
+      container.innerHTML = `<div style="color:#888;font-size:12px;font-style:italic;padding:8px 4px">${__it("im.placeholder.noArrow", null, "Nessun tasto mappato come freccia. Premi uno dei \"➕ Mappa per ↑/↓/←/→\" qui sopra per assegnare un tasto fisico a una direzione.")}</div>`;
+      return;
+    }
+
+    const arrowSym = { up: "↑", down: "↓", left: "←", right: "→" };
+    // arrowName tradotto via i18n (chiavi im.arrow.up/down/left/right). Fallback IT integrato.
+    const arrowName = {
+      up:    __it("im.arrow.up",    null, "freccia su"),
+      down:  __it("im.arrow.down",  null, "freccia giù"),
+      left:  __it("im.arrow.left",  null, "freccia sinistra"),
+      right: __it("im.arrow.right", null, "freccia destra")
+    };
+
+    let html = "";
+    prefs.arrowKeyBindings.forEach((b, idx) => {
+      const keyLabel = b.key.length === 1 ? b.key.toUpperCase() : b.key;
+      html += `
+        <div class="im-row">
+          <span class="im-label" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <kbd style="background:#3b3b3b;padding:3px 10px;border-radius:3px;font-family:monospace;font-size:13px;font-weight:600">${escapeHTML(keyLabel)}</kbd>
+            <span style="color:#888">→</span>
+            <span style="color:#4ade80;font-size:18px;font-weight:600">${arrowSym[b.direction]}</span>
+            <span class="im-meta">${arrowName[b.direction]}</span>
+          </span>
+          <button class="im-relearn" data-im-relearn-arrow="${idx}">${__it("im.modal.relearnArrow", null, "🎯 Riapprendi tasto")}</button>
+          <button class="im-del" data-im-remove-arrow="${idx}">✕</button>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+
+    container.querySelectorAll("button[data-im-relearn-arrow]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.getAttribute("data-im-relearn-arrow"), 10);
+        const b = prefs.arrowKeyBindings[idx];
+        if (b) startCalibration("arrow", idx, { direction: b.direction });
+      });
+    });
+    container.querySelectorAll("button[data-im-remove-arrow]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.getAttribute("data-im-remove-arrow"), 10);
+        prefs.arrowKeyBindings.splice(idx, 1);
+        savePrefs();
+        renderArrowBindings();
+      });
+    });
+  }
+
   // ════════════════════════════════════════════════════════════════════
   // TOOLBAR BUTTON BINDING
   // ════════════════════════════════════════════════════════════════════
@@ -1361,11 +1695,8 @@
   // ATTACH LISTENERS (sempre in CAPTURE su window)
   // ════════════════════════════════════════════════════════════════════
   function attachListeners() {
-    // Mouse — capture su window per battere mouseObserver
     window.addEventListener("mousedown", onMouseDownCapture, true);
     window.addEventListener("mouseup", onMouseUpCapture, true);
-
-    // auxclick fallback per X1/X2 su driver che non emettono mousedown
     window.addEventListener("auxclick", onAuxClickCapture, true);
 
     // Marca auxclick da sopprimere dopo un mousedown normale
@@ -1377,10 +1708,8 @@
       true
     );
 
-    // Tastiera — capture su window per battere keyboardShortcuts.js (su document)
     window.addEventListener("keydown", onKeyDownCapture, true);
 
-    // Reset stato al blur della finestra
     window.addEventListener("blur", () => {
       STATE.heldButtons.clear();
       cancelPendingSingle();
@@ -1394,7 +1723,10 @@
     loadPrefs();
     attachListeners();
     bindToolbarButton();
-    console.log("[InputMapping] modulo inizializzato — prefs:", prefs);
+    if (!prefs.enabled) {
+      warn("⚠️ Mapping personalizzati DISATTIVATI in localStorage (prefs.enabled=false). Apri il modale e abilita il checkbox per attivarli.");
+    }
+    console.log("[InputMapping] modulo inizializzato — enabled=" + prefs.enabled + " shortcuts=" + prefs.keyboardShortcuts.length + " chords=" + prefs.chordMappings.length + " arrows=" + prefs.arrowKeyBindings.length);
   }
 
   // ════════════════════════════════════════════════════════════════════
@@ -1406,12 +1738,24 @@
     closeModal,
     getPrefs: () => JSON.parse(JSON.stringify(prefs)),
     savePrefs,
-    setEnabled: (b) => {
-      prefs.enabled = !!b;
-      savePrefs();
-    },
+    setEnabled: (b) => { prefs.enabled = !!b; savePrefs(); },
     listActions: () => Object.keys(ACTIONS).map((k) => ({ key: k, label: ACTIONS[k].label, icon: ACTIONS[k].icon })),
-    executeAction
+    executeAction,
+    debug: (b) => { DEBUG = !!b; console.log("[InputMapping] DEBUG =", DEBUG); return DEBUG; },
+    diagnose: () => {
+      console.group("[InputMapping] Stato diagnostico");
+      console.log("DEBUG:", DEBUG);
+      console.log("prefs.enabled:", prefs.enabled);
+      console.log("prefs.mouseButtonActions:", JSON.parse(JSON.stringify(prefs.mouseButtonActions)));
+      console.log("prefs.chordMappings:", JSON.parse(JSON.stringify(prefs.chordMappings)));
+      console.log("prefs.keyboardShortcuts:", JSON.parse(JSON.stringify(prefs.keyboardShortcuts)));
+      console.log("prefs.arrowKeyBindings:", JSON.parse(JSON.stringify(prefs.arrowKeyBindings)));
+      console.log("activeElement:", document.activeElement && document.activeElement.tagName, document.activeElement);
+      console.log("isInputFocused():", isInputFocused());
+      console.log("isCalibrating():", isCalibrating(), STATE.calibrationMode);
+      console.log("STATE.heldButtons:", [...STATE.heldButtons]);
+      console.groupEnd();
+    }
   };
 
   // Auto-init

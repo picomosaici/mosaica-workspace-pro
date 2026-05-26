@@ -1,0 +1,2097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Guide — Mosaica Workspace Pro</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --ink: #1a1a2e;
+    --paper: #f5f0e8;
+    --paper-dark: #ede8df;
+    --blue: #2b6cff;
+    --blue-light: #e8eeff;
+    --green: #28a745;
+    --green-light: #e6f4ea;
+    --orange: #ff9800;
+    --orange-light: #fff3e0;
+    --red: #e74c3c;
+    --red-light: #fdecea;
+    --cyan: #00c8ff;
+    --muted: #6b7280;
+    --border: rgba(0,0,0,0.10);
+    --shadow: 0 2px 16px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    color: #fff;
+    padding: 60px 48px 52px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, #2b6cff22 0%, transparent 65%),
+                radial-gradient(ellipse at 20% 80%, #00c8ff11 0%, transparent 55%);
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    right: -60px; top: -60px;
+    width: 400px; height: 400px;
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 50%;
+  }
+  .header-inner { position: relative; max-width: 900px; margin: 0 auto; }
+  .logo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 100px;
+    padding: 6px 16px 6px 8px;
+    margin-bottom: 28px;
+    font-size: 13px;
+    color: #aac4ff;
+    font-weight: 500;
+  }
+  .logo-dot {
+    width: 24px; height: 24px;
+    background: linear-gradient(135deg, #2b6cff, #00c8ff);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+  }
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 400;
+    line-height: 1.12;
+    color: #fff;
+    margin-bottom: 16px;
+  }
+  h1 em { font-style: italic; color: #7aadff; }
+  .header-sub {
+    font-size: 16px;
+    color: rgba(255,255,255,0.55);
+    font-weight: 300;
+    max-width: 520px;
+  }
+  .header-flag {
+    position: absolute;
+    right: 0; top: 0;
+    font-size: 48px;
+    opacity: 0.18;
+  }
+
+  /* ── NAV ── */
+  nav {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 0 var(--border);
+    }
+  .nav-inner {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+    align-items: center;
+  }
+  nav a {
+    display: block;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+  }
+  nav a:hover {
+    color: var(--ink);
+    border-color: var(--blue);
+  }
+
+  /* ── LAYOUT ── */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 56px 48px 100px;
+  }
+
+  /* ── SECTIONS ── */
+  section { margin-bottom: 72px; }
+  section + section { border-top: 1px solid var(--border); padding-top: 64px; }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--blue-light);
+    max-width: 80px;
+  }
+
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    color: var(--ink);
+  }
+  h3 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 32px 0 12px;
+    color: var(--ink);
+  }
+  h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+  p { margin-bottom: 14px; color: #374151; }
+  p:last-child { margin-bottom: 0; }
+  strong { color: var(--ink); font-weight: 600; }
+  em { font-style: italic; color: #4a5568; }
+  code {
+    background: var(--paper-dark);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: #6b3aa0;
+  }
+  kbd {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--ink);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+    margin: 0 2px;
+  }
+  ul, ol { margin-left: 24px; margin-bottom: 14px; color: #374151; }
+  li { margin-bottom: 6px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 22px 26px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .card-grid {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .card-grid.col2 { grid-template-columns: 1fr 1fr; }
+  .card-grid.col3 { grid-template-columns: 1fr 1fr 1fr; }
+  .card-mini {
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 16px 18px;
+    font-size: 14px;
+    box-shadow: var(--shadow);
+  }
+  .card-mini h4 { margin-bottom: 6px; }
+  .card-mini p { font-size: 13px; color: var(--muted); line-height: 1.55; margin-bottom: 0; }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-left: 4px solid var(--blue);
+    background: var(--blue-light);
+    padding: 14px 18px;
+    border-radius: 6px;
+    margin: 20px 0;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .callout.tip { border-color: var(--blue); background: var(--blue-light); }
+  .callout.tip .callout-icon::before { content: '💡'; }
+  .callout.warning { border-color: var(--orange); background: var(--orange-light); }
+  .callout.warning .callout-icon::before { content: '⚠️'; }
+  .callout.success { border-color: var(--green); background: var(--green-light); }
+  .callout.success .callout-icon::before { content: '✅'; }
+  .callout.danger { border-color: var(--red); background: var(--red-light); }
+  .callout.danger .callout-icon::before { content: '🚨'; }
+  .callout-icon { font-size: 18px; flex-shrink: 0; line-height: 1.4; }
+  .callout > div:last-child { flex: 1; font-size: 14px; line-height: 1.65; color: #374151; }
+
+  /* ── STEP LIST ── */
+  .step-list {
+    list-style: none;
+    margin-left: 0;
+    counter-reset: step;
+  }
+  .step-list > li {
+    counter-increment: step;
+    padding: 16px 0 16px 56px;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .step-list > li:last-child { border-bottom: none; }
+  .step-list > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 16px;
+    width: 36px;
+    height: 36px;
+    background: var(--blue);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    font-family: 'DM Mono', monospace;
+  }
+  .step-title { font-weight: 600; margin-bottom: 4px; color: var(--ink); }
+  .step-body { font-size: 14px; color: var(--muted); line-height: 1.55; }
+
+  /* ── SHORTCUT TABLE ── */
+  .shortcut-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .shortcut-table th {
+    background: var(--ink);
+    color: #fff;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+  .shortcut-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    vertical-align: middle;
+  }
+  .shortcut-table tr:last-child td { border-bottom: none; }
+  .shortcut-table td:first-child { width: 38%; }
+
+  /* ── RADIAL GRID ── */
+  .radial-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .radial-item {
+    background: #fff;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .radial-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .radial-icon.green { background: var(--green); }
+  .radial-icon.orange { background: var(--orange); }
+  .radial-icon.red { background: var(--red); }
+  .radial-label { font-weight: 600; font-size: 14px; margin-bottom: 4px; color: var(--ink); }
+  .radial-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── WATERCOLOR CONTROLS ── */
+  .wc-control {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 16px;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--border);
+  }
+  .wc-control:last-child { border-bottom: none; }
+  .wc-name { font-weight: 600; font-size: 14px; color: var(--ink); }
+  .wc-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
+  .wc-range {
+    display: inline-block;
+    background: var(--blue-light);
+    color: var(--blue);
+    border-radius: 12px;
+    padding: 2px 10px;
+    margin-top: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  /* ── BRUSH PREVIEW ── */
+  .brush-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .brush-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+  .brush-preview {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    background: var(--paper-dark);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .brush-preview-stroke {
+    width: 60px;
+    height: 14px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(43,108,255,0.7) 0%, transparent 70%);
+  }
+  .brush-preview-stroke.flat {
+    height: 8px;
+    width: 64px;
+    background: linear-gradient(90deg, transparent 0%, rgba(43,108,255,0.7) 20%, rgba(43,108,255,0.7) 80%, transparent 100%);
+    border-radius: 2px;
+  }
+  .brush-preview-stroke.dry {
+    height: 12px;
+    width: 64px;
+    background: repeating-linear-gradient(90deg, rgba(43,108,255,0.7) 0px, rgba(43,108,255,0.7) 4px, transparent 4px, transparent 7px);
+  }
+  .brush-info { flex: 1; }
+  .brush-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; color: var(--ink); }
+  .brush-file {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--blue);
+    background: var(--blue-light);
+    border-radius: 4px;
+    padding: 2px 8px;
+    display: inline-block;
+    margin-bottom: 8px;
+  }
+  .brush-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── UI DIAGRAM ── */
+  .ui-diagram {
+    background: #1a1a2e;
+    border-radius: 12px;
+    padding: 22px 24px;
+    margin: 24px 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+  .ui-diagram::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(#3a3a3a 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.35;
+  }
+  .ui-diagram-inner {
+    position: relative;
+    display: grid;
+    grid-template-columns: 50px 50px 1fr 200px;
+    grid-template-rows: 36px 50px 1fr 24px;
+    gap: 4px;
+    min-height: 320px;
+    color: #fff;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+  }
+  .uib {
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 4px;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 1.3;
+    background: rgba(43,108,255,0.10);
+  }
+  .uib.canvas {
+    background: #f8f6f0;
+    color: #888;
+    grid-column: 3 / 4;
+    grid-row: 3 / 4;
+  }
+  .uib.topbar { grid-column: 1 / -1; grid-row: 1 / 2; background: rgba(0,200,255,0.10); }
+  .uib.bgbar  { grid-column: 1 / -1; grid-row: 2 / 3; background: rgba(255,152,0,0.10); }
+  .uib.texturep { grid-column: 1 / 2; grid-row: 3 / 4; writing-mode: vertical-rl; transform: rotate(180deg); }
+  .uib.lefttool { grid-column: 2 / 3; grid-row: 3 / 4; writing-mode: vertical-rl; transform: rotate(180deg); }
+  .uib.inspector { grid-column: 4 / 5; grid-row: 3 / 4; }
+  .uib.statusbar { grid-column: 1 / -1; grid-row: 4 / 5; background: rgba(40,167,69,0.10); font-size: 10px; }
+
+  /* ── PANEL DIAGRAM (legacy) ── */
+  .new-feature {
+    background: #e8f4ff;
+    border-left: 4px solid #2b6cff;
+    padding: 12px 16px;
+    margin: 12px 0;
+    border-radius: 6px;
+  }
+
+  .bgBtn {
+    padding: 6px;
+    border-radius: 6px;
+    border: 0;
+    background: #2b6cff;
+    color: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    flex: 1;
+    white-space: nowrap;
+  }
+  .bgBtn.secondary { background: #28a745; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--ink);
+    color: rgba(255,255,255,0.4);
+    padding: 32px 48px;
+    text-align: center;
+    font-size: 13px;
+  }
+  footer strong { color: rgba(255,255,255,0.7); }
+
+  @media (max-width: 700px) {
+    main { padding: 32px 20px 60px; }
+    header { padding: 40px 20px 36px; }
+    .nav-inner { padding: 0 20px; }
+    .card-grid.col2, .card-grid.col3 { grid-template-columns: 1fr; }
+    .radial-grid { grid-template-columns: 1fr 1fr; }
+    .brush-cards { grid-template-columns: 1fr; }
+  }
+
+  /* ── PRACTICAL TIPS ── */
+  .tips-box {
+    background: #e6f4ea;
+    border-left: 4px solid #28a745;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 24px 0 0 0;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    font-size: 14px;
+    line-height: 1.6;
+    box-shadow: 0 2px 8px rgba(40,167,69,0.10);
+  }
+  .tips-box .tips-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .tips-box strong {
+    color: #1a1a2e;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 8px;
+    font-size: 15px;
+  }
+  .tips-box ul {
+    margin: 0 0 0 18px;
+    padding: 0;
+    color: #374151;
+  }
+  .tips-box li { margin-bottom: 6px; }
+  .tips-box li:last-child { margin-bottom: 0; }
+
+</style>
+<base target="_blank">
+</head>
+<body>
+
+<!-- ════════════════════════════════ HEADER ════════════════════════════════ -->
+<header>
+  <div class="header-inner">
+    <div class="logo-badge">
+      <div class="logo-dot">🎨</div>
+      User Guide · V 5.2026
+    </div>
+    <h1>Mosaica<br><em>Workspace Pro</em></h1>
+    <p class="header-sub">Complete guide to using the application for real-scale mosaic design, freehand drawing, digital watercolor, and laser CAM export.</p>
+    <span class="header-flag">🇬🇧</span>
+  </div>
+</header>
+
+<!-- ════════════════════════════════ NAV ════════════════════════════════ -->
+<nav>
+  <div class="nav-inner">
+    <a href="#interfaccia">Interface</a>
+    <a href="#calibrazione">Calibration</a>
+    <a href="#rotazione">Canvas Rotation</a>
+    <a href="#forme">Shapes</a>
+    <a href="#radiale">Radial Menu</a>
+    <a href="#lazo">Lasso</a>
+    <a href="#disegno">Freehand Drawing</a>
+    <a href="#acquerello">Watercolor</a>
+    <a href="#punte">Brush Tips</a>
+    <a href="#sfondo">Background</a>
+    <a href="#progetti">Projects</a>
+    <a href="#autosave">Auto-Save</a>
+    <a href="#autoopen">Auto-Open</a>
+    <a href="#fullscreen">Full Screen</a>
+    <a href="#esporta">Export</a>
+    <a href="#wacom">Wacom Tablet</a>
+    <a href="#inputmapping">Input Mapping</a>
+    <a href="#scorciatoie">Shortcuts</a>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════ MAIN ════════════════════════════════ -->
+<main>
+
+<!-- ── INTERFACE ── -->
+<section id="interfaccia">
+  <div class="section-label">01</div>
+  <h2>The Interface</h2>
+  <p>Mosaica Workspace Pro displays a <strong>white A4 sheet</strong> on a dark dotted background. All work happens on the sheet. Around the sheet are <strong>six fixed panels</strong> enclosing the canvas: top bar, background panel, texture panel, tools toolbar, contextual inspector, and status bar.</p>
+
+  <div class="ui-diagram">
+    <div class="ui-diagram-inner">
+      <div class="uib topbar">Top Bar — File · Export · Undo/Redo · Zoom · Calibration · Full Screen · Guide</div>
+      <div class="uib bgbar">BG Panel — Background loading and management (Drop · Contain · Cover · Rotate · Remove)</div>
+      <div class="uib texturep">Texture Panel</div>
+      <div class="uib lefttool">Left Toolbar</div>
+      <div class="uib canvas">A4 Sheet (Workspace)</div>
+      <div class="uib inspector">Contextual Inspector<br>(selected tool or shape)</div>
+      <div class="uib statusbar">Status Bar — Zoom · Coordinates (mm) · Selection · Auto-save · Calibration</div>
+    </div>
+  </div>
+
+  <h3>The Six Panels</h3>
+  <div class="card-grid col2">
+  <div class="card-mini">
+      <h4>① Top Bar (at the top)</h4>
+      <p>Logo, <strong>File</strong> dropdown (Open/Save/New Project + auto-open), <strong>Export</strong> dropdown (PDF, PNG/SVG, freehand), <strong>Undo/Redo</strong> buttons, <strong>Zoom</strong> controls (+/−/reset with live percentage), <strong>Calibration</strong> dropdown, <strong>full screen</strong> toggle (⛶/🗗), <strong>📖 Guide</strong> button, <strong>🖊️ Wacom</strong> button (tablet settings with connection status indicator), and <strong>🖱️⌨️ Input</strong> button (custom mouse and keyboard mapping).</p>
+    </div>
+    <div class="card-mini">
+      <h4>② BG Panel (right below)</h4>
+      <p>Horizontal bar dedicated to the <strong>background image</strong>: drop area, thumbnail preview, Contain/Cover buttons, rotation (↶ ↷), and removal.</p>
+    </div>
+    <div class="card-mini">
+      <h4>③ Texture Panel (far left)</h4>
+      <p>Narrow vertical column with the <strong>available texture grid</strong>. Click a thumbnail to apply the texture to the selected object.</p>
+    </div>
+    <div class="card-mini">
+      <h4>④ Left Toolbar (after textures)</h4>
+      <p>All <strong>tools</strong>: canvas rotation (Portrait/Landscape), Select (default), Add shape, Lasso, Pen, Eraser, Watercolor, Line list, Clear all.</p>
+    </div>
+    <div class="card-mini">
+      <h4>⑤ Inspector (on the right)</h4>
+      <p><strong>Contextual</strong> panel that changes automatically based on the active tool or selected shape: pen/watercolor parameters, triangle angle sliders, trapezoid controls, dimensions in mm.</p>
+    </div>
+    <div class="card-mini">
+      <h4>⑥ Status Bar (at the bottom)</h4>
+      <p>Zoom %, <strong>cursor coordinates in mm</strong>, type and size of the selection, auto-save status, calibration factor.</p>
+    </div>
+  </div>
+
+  <h3>Top Bar — File Dropdown</h3>
+  <p>Clicking <strong>File</strong> in the top bar opens a menu with three actions and a checkbox:</p>
+  <ul>
+    <li><strong>📂 Open Project…</strong> — opens an existing <code>.msp.json</code> file.</li>
+    <li><strong>💾 Save Project</strong> — saves the current project in <code>.msp.json</code> format.</li>
+    <li><strong>New Project</strong> (purple button) — clears the canvas and creates a blank sheet with a small reference rectangle. Opens a <strong>confirmation modal</strong> first because this action deletes all unsaved work.</li>
+    <li><strong>☐ Open project at startup</strong> — checkbox to enable automatic opening of the last saved project (see dedicated section).</li>
+  </ul>
+
+  <h3>Top Bar — Export Dropdown</h3>
+  <p>Clicking <strong>Export</strong> in the top bar opens a menu with three items, each opening a detailed choice modal:</p>
+  <ul>
+    <li><strong>📄 Export PDF (A4)</strong> — 5 export modes, see "Export" section.</li>
+    <li><strong>🖼️ Export PNG / SVG</strong> — full PNG or vector SVG (filled or outlines only).</li>
+    <li><strong>✏️ Export freehand drawing</strong> — exports only freehand and watercolor strokes as SVG or PNG.</li>
+  </ul>
+
+  <h3>Status Bar — Reading the Numbers</h3>
+  <p>The status bar at the bottom shows in real time:</p>
+  <ul>
+    <li><strong>Zoom</strong> — current zoom percentage (100% = 1:1 scale with calibration). Available range: <strong>40%–800%</strong>.</li>
+    <li><strong>Cursor</strong> — X, Y coordinates in real millimeters (zero = top-left corner of the A4 sheet).</li>
+    <li><strong>Selection</strong> — type of the selected object + dimensions in real mm (e.g. <em>rect · 25.4 × 18.0 mm</em>), or the number of objects if it is a multi-selection.</li>
+    <li><strong>Auto-save</strong> — appears only during an ongoing auto-save, then becomes "✔ Auto-saved" for 2 seconds.</li>
+    <li><strong>Calibration</strong> — applied corrective scale factor (default 1.000).</li>
+  </ul>
+
+  <h3>Navigating the View</h3>
+  <div class="card-grid col3">
+    <div class="card-mini">
+      <h4>🖱️ Mouse Wheel</h4>
+      <p>Zoom centered on the cursor. Precise and fluid. <strong>Range 40%–800%</strong>: beyond these limits the value snaps to the extreme.</p>
+    </div>
+    <div class="card-mini">
+      <h4>⌥ Alt + Drag</h4>
+      <p>Hold Alt and drag to pan (move the view).</p>
+    </div>
+    <div class="card-mini">
+      <h4>⌨️ Arrow Keys</h4>
+      <p>With no object selected, arrows pan. With an object selected, they move the object (1 px, 10 px with Shift).</p>
+    </div>
+  </div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li>Use <strong>Alt + drag</strong> to navigate the sheet without leaving the active tool; the cursor changes to "pan" automatically.</li>
+    <li><strong>Wheel zoom</strong> is centered on the cursor: place the mouse exactly where you want to zoom in so you don't lose your working point.</li>
+    <li>If you are in pen, eraser, or watercolor mode and want to return to selecting shapes, click <strong>🖱️ Select</strong> in the left toolbar: it automatically deactivates all modal tools.</li>
+    <li>The <strong>Status Bar</strong> shows coordinates in <em>real mm</em>: use it for precise positioning to the tenth of a millimeter. Coordinates disappear when the mouse leaves the workspace.</li>
+    <li>If you lose sight of the sheet, press <strong>Ctrl + 0</strong> to return to 100% zoom and center the canvas.</li>
+    <li>The app starts in <strong>full screen mode</strong>: the 🗗 button at the top right (or <strong>ESC</strong>) exits it.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── CALIBRATION ── -->
+<section id="calibrazione">
+  <div class="section-label">02</div>
+  <h2>Screen Calibration</h2>
+  <p>Mosaica works in real millimeters. To do this correctly, it needs to know how many pixels correspond to 1 millimeter on your screen. Calibration is done once per monitor.</p>
+
+  <h3>Where to Find Calibration</h3>
+  <p>In the <strong>top bar at the top right</strong> you will find the <strong>📏 Calibration</strong> button with a numeric indicator next to it (e.g. <code>1.000</code>). Clicking it opens a popover with all the necessary tools.</p>
+
+  <ol class="step-list">
+    <li>
+      <div>
+        <div class="step-title">Open the calibration panel</div>
+        <div class="step-body">Click <strong>📏 Calibration</strong> in the top bar. A popover opens with a <strong>gray strip</strong> with a white border, exactly 50 mm theoretical length.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Verify OS and browser zoom at 100%</div>
+        <div class="step-body">Before measuring, make sure the <strong>operating system zoom is at 100%</strong> (display scaling) and that no filters are active.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Measure the strip with a caliper</div>
+        <div class="step-body">Place a <strong>digital caliper</strong> (or a rigid metal ruler) directly on the screen, on the strip labeled "50 mm THEORETICAL". Record the actual measurement.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Enter the real measurement</div>
+        <div class="step-body">Type the measured value into the "Real measurement with caliper (mm)" field — e.g. <code>47.85</code> if the strip measures 47.85 mm.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Click "Apply Calibration"</div>
+        <div class="step-body">The calibration factor is calculated, saved, and applied instantly. The indicator in the top bar and the one in the status bar update. All app measurements are recalibrated.</div>
+      </div>
+    </li>
+  </ol>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Calibration is <strong>automatically saved</strong> in the <code>calibration.json</code> file inside <code>%APPDATA%\mosaica-workspace-pro\</code>. There is no need to recalibrate every time you open the app, only if you change monitor or resolution.</div></div>
+
+  <p>The <strong>Reset calibration (1.0)</strong> button resets the factor to 1.000 (no correction).</p>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li>Use a <strong>digital caliper</strong> or a rigid physical ruler (metal or hard plastic) instead of a flexible tape measure: the reading is more precise to the hundredth of a millimeter.</li>
+    <li>If you change monitor, resolution, or screen orientation, <strong>recalibrate</strong>: the factor is tied to that specific display.</li>
+    <li>To verify calibration, double-click on the sheet to create a square and check that the dimensions shown in the Inspector and in the <em>status bar</em> match the measurement of the caliper placed on the screen.</li>
+    <li>The calibration factor indicator is always visible both in the top bar button and in the right side of the status bar: at a glance you know whether you are calibrated or have a corrective factor applied.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── CANVAS ROTATION ── -->
+<section id="rotazione">
+  <div class="section-label">03</div>
+  <h2>Canvas Rotation (Portrait ↔ Landscape)</h2>
+  <p>The two buttons at the top of the <strong>Left Toolbar</strong> let you instantly switch between <strong>vertical (A4 portrait, 210 × 297 mm)</strong> and <strong>horizontal (A4 landscape, 297 × 210 mm)</strong> orientation, geometrically rotating the entire sheet content.</p>
+
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>"Portrait" Button</h4>
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <button class="bgBtn" title="Canvas Portrait (A4 Portrait)" style="cursor:default;">
+          <svg width="26" height="34" viewBox="0 0 26 34" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:4px;">
+            <rect x="1" y="1" width="24" height="32" rx="3" stroke="#ffffff" stroke-width="2.5"/>
+            <rect x="6" y="7" width="14" height="3" fill="#ffffff" opacity="0.9"/>
+          </svg><br>Portrait
+        </button>
+      </div>
+      <p>Sets the canvas to A4 portrait format (210 × 297 mm).</p>
+    </div>
+    <div class="card-mini">
+      <h4>"Landscape" Button</h4>
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <button class="bgBtn secondary" title="Canvas Landscape (A4 Landscape)" style="cursor:default;">
+          <svg width="34" height="26" viewBox="0 0 34 26" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:4px;">
+            <rect x="1" y="1" width="32" height="24" rx="3" stroke="#ffffff" stroke-width="2.5"/>
+            <rect x="7" y="9" width="20" height="3" fill="#ffffff" opacity="0.9"/>
+          </svg><br>Landscape
+        </button>
+      </div>
+      <p>Sets the canvas to A4 landscape format (297 × 210 mm).</p>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon"></div>
+    <div>Rotation is <strong>geometric and precise</strong>:<br>
+    • All shapes, freehand strokes, and watercolor are rotated.<br>
+    • The paper texture is automatically recreated to the new dimensions.<br>
+    • The background image is readjusted.<br>
+    • The mm calibration remains unchanged.<br>
+    • Undo/Redo works normally after rotation.</div>
+  </div>
+
+  <p>The current orientation is saved in the <code>.msp.json</code> project file and restored on opening. PDF export also respects the sheet orientation (portrait/landscape).</p>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li>Before rotating the canvas, position all shapes where you want them: rotation occurs around the <strong>geometric center of the A4 sheet</strong>.</li>
+    <li>After a rotation, check the background image: if you were using <strong>Contain</strong> or <strong>Cover</strong>, you may need to readjust the background rotation separately (using the ↶ Rotate buttons in the BG Panel).</li>
+    <li>The <strong>paper texture</strong> automatically regenerates with the correct orientation: you do not need to reload it manually.</li>
+    <li>Undo/Redo works normally even after an orientation change, so you can undo the rotation if the result is not satisfactory.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── SHAPES ── -->
+<section id="forme">
+  <div class="section-label">04</div>
+  <h2>Creating and Managing Shapes</h2>
+
+  <h3>Four Ways to Create a Shape</h3>
+  <ul>
+    <li><strong>Double-click</strong> on an empty area of the sheet → creates a ~10 mm square at the clicked point.</li>
+    <li><strong>➕ Add Shape</strong> button in the Left Toolbar → creates a ~10 mm square <em>at the center of the visible canvas portion</em>, independent of zoom and pan. Handy if you have zoomed far away and don't want to return to the sheet to insert a shape.</li>
+    <li><strong>✏️➕ Create Custom Shape</strong> button in the Left Toolbar → opens a dedicated modal where you draw a <em>non-standard</em> polygon by tracing its vertices click after click, modify them vertex by vertex, and then insert it into the canvas. See the dedicated paragraph below.</li>
+    <li>When starting a <strong>New Project</strong> a reference rectangle is created at the center of the sheet.</li>
+  </ul>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>The rectangle is the starting shape for "regular" polygons. Use the <strong>🔄 Change Shape</strong> button in the radial menu to transform it into a circle, trapezoid, triangle, or circle sector. For free shapes (stars, arrows, irregular silhouettes) use the <strong>✏️➕ Create Custom Shape</strong> builder instead.</div></div>
+
+  <h3>Selecting and Moving</h3>
+  <p>Click a shape to select it. <strong>Blue control handles</strong> will appear at the edges and corners for resizing, and the <strong>↻</strong> symbol for rotation. Drag the shape to move it.</p>
+
+  <h3>Multi-Selection</h3>
+  <p>You have three ways:</p>
+  <ul>
+    <li><strong>Drag</strong> on an empty area of the sheet → classic selection box.</li>
+    <li><strong>Shift + click</strong> on multiple shapes → adds or removes shapes from the current selection.</li>
+    <li><strong>Lasso</strong> (see dedicated section) → trace a freehand polygon to select irregularly arranged shapes.</li>
+  </ul>
+
+  <h3>Measurements in Millimeters</h3>
+  <p>When a shape is selected, <strong>two labels</strong> appear above it with the real measurements (Width × Height) in mm. <strong>Clicking on the W or H label</strong> lets you manually enter the desired dimension: type the value, press Enter to apply or Esc to cancel.</p>
+
+  <p>In addition, when a single shape is selected, at the top of the <strong>Inspector on the right</strong> you see the <strong>Dimensions</strong> block with two fields <code>Width</code> and <code>Height</code> in mm, always editable.</p>
+
+  <h3>Shape Cycle</h3>
+  <p>The <strong>🔄 Change Shape</strong> button in the radial menu cycles through:</p>
+  <div class="card" style="display:flex;flex-wrap:wrap;gap:10px;padding:18px 22px;">
+    <span style="background:var(--blue-light);color:var(--blue);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">Rectangle</span>
+    <span style="background:var(--blue-light);color:var(--blue);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">Circle / Ellipse</span>
+    <span style="background:var(--blue-light);color:var(--blue);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">Trapezoid</span>
+    <span style="background:var(--blue-light);color:var(--blue);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">Isosceles Triangle</span>
+    <span style="background:var(--blue-light);color:var(--blue);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">Scalene Triangle</span>
+    <span style="background:var(--blue-light);color:var(--blue);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">Equilateral Triangle</span>
+    <span style="background:var(--blue-light);color:var(--blue);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">Right Triangle</span>
+    <span style="background:var(--blue-light);color:var(--blue);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">Acute Triangle</span>
+    <span style="background:var(--blue-light);color:var(--blue);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">Obtuse Triangle</span>
+  </div>
+
+  <h3>Inspector — Triangle (Angle Sliders)</h3>
+  <p>When you select a triangle, the Inspector automatically shows the <strong>"Triangle · Angles"</strong> section with two sliders:</p>
+  <ul>
+    <li><strong>α (alpha)</strong> — bottom-left angle, 1°–178°</li>
+    <li><strong>β (beta)</strong> — bottom-right angle, 1°–178°</li>
+  </ul>
+  <p>The third angle γ is calculated automatically (sum = 180°). The visual dimensions of the triangle are preserved while you change the angles. Snap is 0.1°.</p>
+
+  <h3>Inspector — Trapezoid</h3>
+  <p>When you select a trapezoid, the Inspector shows the dedicated section with sliders for:</p>
+  <ul>
+    <li><strong>Top base</strong> (in mm)</li>
+    <li><strong>Bottom base</strong> (in mm)</li>
+    <li><strong>Height</strong> (in mm)</li>
+    <li><strong>Offset</strong> — horizontal shift of the top base relative to the center (changes the "category": rectangle, isosceles, scalene)</li>
+  </ul>
+
+<h3>Divide Circle into Sectors</h3>
+  <p>Select a circle or ellipse, then use the <strong>◔ Divide</strong> button in the radial menu:</p>
+  <ul>
+    <li><strong>Normal click</strong> → divides into 4 quarters (90° each)</li>
+    <li><strong>Alt + Click</strong> → divides into 2 halves (180° each)</li>
+  </ul>
+  <p>Each sector becomes an independent object, resizable and modifiable.</p>
+
+  <h3>Custom Shapes (Non-Standard)</h3>
+  <p>When regular shapes (rectangle, circle, triangle, trapezoid, sector) are not enough — for example for stars, arrows, petals, irregular silhouettes, irregular tile outlines for your mosaics — use the <strong>custom shape builder</strong> from the Left Toolbar (button <strong>✏️➕</strong> right next to <strong>➕ Add Shape</strong>).</p>
+
+  <p>The builder opens a <strong>dedicated modal</strong> with a preview area equipped with <strong>real millimeter rulers</strong> (top and left), <strong>zoom</strong> and <strong>pan</strong> independent from the main canvas, and works in two phases: first you trace the vertices, then you freely modify vertices and the curvature of individual sides before inserting it into the canvas.</p>
+
+  <h4 style="margin:14px 0 6px;">The drawing area: rulers, zoom, pan</h4>
+  <ul>
+    <li><strong>Real mm rulers</strong> at the top and left: they use the <em>same calibration</em> as the main canvas, so the millimeters you see in the builder correspond exactly to those on the A4 sheet. Major ticks every <strong>10 mm</strong> (labeled), medium ticks every <strong>5 mm</strong>, fine ticks every <strong>1 mm</strong> (visible when zoom is high enough). Label density auto-regulates based on zoom.</li>
+    <li><strong>Drawing area zoom</strong>: mouse wheel for cursor-centered zoom, or the <strong>−</strong> / <strong>+</strong> / <strong>⟲</strong> buttons at the top right. Range <strong>25% – 800%</strong> (wider than the main canvas, because fine precision on handles is often needed here). The percentage label is always visible next to the buttons.</li>
+    <li><strong>Drawing area pan</strong>: <kbd>Alt</kbd> + left-button drag (same logic as the main canvas). The middle mouse button (pressed wheel) also works for pan.</li>
+    <li><strong>Cursor coordinates in mm</strong>: at the bottom right of the drawing area there is a live indicator <code>x: … mm  y: … mm</code> showing the cursor position in real millimeters — useful for drawing to scale.</li>
+  </ul>
+
+  <h4 style="margin:14px 0 6px;">Phase 1 — Tracing Sides (Drawing)</h4>
+  <ul>
+    <li><strong>1st click</strong> on the preview area → sets the first vertex. From that moment a dashed blue line <em>follows the mouse without needing to hold down</em>, extending and tilting freely.</li>
+    <li><strong>2nd click</strong> → sets the end of the first line. The second line automatically starts from the last vertex and follows the mouse.</li>
+    <li><strong>3rd click, 4th click… Nth click</strong> → each click adds a vertex and starts the next side. You can place as many vertices as you want.</li>
+    <li><strong>Backspace</strong> (or <strong>↶ Vertex</strong> button) → removes the last placed vertex if you made a mistake.</li>
+    <li><strong>🔄 Restart</strong> → clears everything and starts over (also resets zoom).</li>
+  </ul>
+
+  <h4 style="margin:14px 0 6px;">Closing the Shape</h4>
+  <p>With <strong>at least 3 vertices</strong> you can close the polygon in two ways:</p>
+  <ul>
+    <li><strong>Move the mouse close to the first vertex</strong> (the green one): when you enter the snap radius the first vertex enlarges and the ghost line becomes <span style="color:#16a34a;font-weight:600;">solid green</span>. Click → the shape closes.</li>
+    <li><strong>Press Enter</strong> → the shape closes by joining the last vertex to the first, regardless of where the mouse is.</li>
+  </ul>
+
+  <h4 style="margin:14px 0 6px;">Phase 2 — Editing Vertices and Curving Sides (Editing)</h4>
+  <p>As soon as the shape is closed, a <strong>solid blue dot handle</strong> appears on <strong>every vertex</strong> and a small <strong>semi-transparent round blue handle at the center</strong> appears on <strong>every side</strong>. For example a six-pointed star will have six vertex handles and six side handles.</p>
+
+  <p><strong>Moving a vertex:</strong></p>
+  <ul>
+    <li><strong>Click and drag</strong> a vertex handle → the corresponding vertex moves, and the two sides forming it <em>lengthen and tilt</em> in real time until you release the mouse. If one of the two sides was curved, the curvature follows the vertex (the curve deforms accordingly).</li>
+  </ul>
+
+  <p><strong>Curving a single side:</strong></p>
+  <ul>
+    <li><strong>Click and drag</strong> the round blue handle at the center of the side → the side transforms into a <strong>quadratic Bézier curve</strong> that passes exactly <em>through the point where you are dragging the handle</em>. The further you drag from the original straight line, the more pronounced the curve becomes.</li>
+    <li>When a side is curved, its handle becomes <span style="color:#b45309;font-weight:600;">solid orange</span> to distinguish it at a glance from the handles of still-straight sides.</li>
+    <li>You can curve <strong>as many sides as you want</strong>, even all of them, each independently. Every curve is stored separately — modifying the curvature of one side does not alter the others.</li>
+    <li>Even the <strong>closing side</strong> (the one joining the last vertex to the first) is curvable like all the others.</li>
+  </ul>
+
+  <p><strong>Resetting a curved side to straight:</strong></p>
+  <ul>
+    <li><strong>Double-click</strong> on the orange handle of the curved side → the side immediately becomes straight again.</li>
+    <li><strong>Right-click</strong> on the orange handle → same effect (alternative for those who prefer right-click). The browser's native context menu is not shown.</li>
+  </ul>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>You can freely alternate between <strong>moving vertices</strong> and <strong>curving sides</strong> until the shape satisfies you. The shape remains in editing phase until you insert it or cancel, and the drawing area zoom/pan remain active even during editing — so you can zoom to 400% to precisely tweak a small curve and then return to full view with <strong>⟲</strong> or by pressing <kbd>0</kbd>.</div></div>
+
+  <h4 style="margin:14px 0 6px;">Insert into Canvas</h4>
+  <p>When the shape satisfies you, press <strong>✅ Insert into Canvas</strong> (or <strong>Enter</strong> if you are already in editing phase): the modal closes and the shape is placed <em>at the center of the visible canvas portion</em> — exactly with the same placement logic as the <strong>➕ Add Shape</strong> button, independent of the main canvas zoom and pan. The shape maintains the preview dimensions at 1:1 real mm scale.</p>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Once in the canvas, the custom shape behaves exactly like all the others: <strong>radial menu</strong>, <strong>blue handles</strong> for resizing and rotating, <strong>mm measurements</strong> in the Inspector and status bar, application of <strong>color</strong> and <strong>texture</strong>, <strong>duplication</strong>, <strong>group/ungroup</strong>, <strong>lasso selection</strong>, <strong>undo/redo</strong>, and is <strong>saved</strong> in the <code>.msp.json</code> project along with everything else — including any side curves.</div></div>
+
+  <h4 style="margin:14px 0 6px;">Keyboard Shortcuts Inside the Modal</h4>
+  <ul>
+    <li><kbd>Enter</kbd> → in drawing closes the shape (with ≥3 vertices); in editing inserts the shape into the canvas.</li>
+    <li><kbd>Backspace</kbd> / <kbd>Delete</kbd> → removes the last vertex (drawing only).</li>
+    <li><kbd>+</kbd> → zoom in of the drawing area (centered on the preview center).</li>
+    <li><kbd>−</kbd> → zoom out of the drawing area.</li>
+    <li><kbd>0</kbd> → resets zoom to 100% and re-centers pan.</li>
+    <li><kbd>Esc</kbd> → closes the modal without inserting anything.</li>
+  </ul>
+
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div>The builder <strong>does not check</strong> whether sides self-intersect: if sides cross (straight or curved) you will get a "butterfly" polygon with fill according to the Fabric <em>even-odd</em> rule. This is often a desired feature (shapes like hourglasses, infinities, overlapping petals), but if it was not your intention use <strong>↶ Vertex</strong> to go back, or double-click / right-click on the offending curve to straighten it, or <strong>🔄 Restart</strong>.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li>After creating a rectangle, use <strong>🔄 Change Shape</strong> in the radial menu to immediately transform it into a circle, trapezoid, or triangle preserving position, color, and dimensions.</li>
+    <li>For precise dimensions to the tenth of a millimeter use the <strong>Width/Height</strong> fields in the Inspector: type the value and press Enter.</li>
+    <li>For <strong>triangles</strong>, modify the α and β angles from the Inspector first: the shape automatically preserves visual dimensions while you change the geometry.</li>
+    <li>For <strong>trapezoids</strong>, the <strong>Offset</strong> slider changes the "category" of the shape; the base sliders preserve the existing angles instead.</li>
+    <li>After resizing a shape with the blue handles, the system automatically <em>bakes</em> the scale into the points: the mm fields always remain consistent with what you see on screen.</li>
+    <li>To divide a circle into independent sectors, select it and use <strong>◔ Divide</strong>: normal click for 4 quarters, <strong>Alt + click</strong> for 2 halves.</li>
+    <li>For <strong>irregular shapes</strong> (stars, arrows, petals, tile silhouettes) use the <strong>✏️➕ Create Custom Shape</strong> builder: the <strong>mm rulers</strong> around the drawing area and the real-time cursor position indicator let you draw to scale, while <strong>dedicated zoom</strong> and <strong>pan</strong> give you the precision you need on the handles. After closing the shape you can <strong>curve individual sides</strong> by dragging the round blue handle at their center — useful for <strong>petals</strong>, <strong>leaves</strong>, <strong>waves</strong>, and any silhouette with soft edges. Once inserted into the canvas, you can always resize it with the blue handles or type the mm measurements in the Inspector.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── RADIAL MENU ── -->
+<section id="radiale">
+  <div class="section-label">05</div>
+  <h2>Radial Menu</h2>
+  <p>When you select one or more objects, a <strong>circle of buttons</strong> appears around them. This is the radial menu: it contains all available actions for the selection. Buttons are arranged in a circle around the object, at a distance proportional to the size (you can fine-tune the radius with a slider that appears below the W/H measurements).</p>
+
+  <div class="radial-grid">
+    <div class="radial-item">
+      <div class="radial-icon">↻</div>
+      <div>
+        <div class="radial-label">Rotate (fine)</div>
+        <div class="radial-desc">
+          <strong>Left click</strong> = +0.25° (Shift +0.5°, Ctrl +1°).<br>
+          <strong>Right click</strong> = same step but counter-clockwise.
+        </div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon">⎘</div>
+      <div>
+        <div class="radial-label">Duplicate</div>
+        <div class="radial-desc">Creates an exact copy of the object slightly offset. The copy is automatically selected.</div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon">⤢</div>
+      <div>
+        <div class="radial-label">Scale (in mm)</div>
+        <div class="radial-desc">
+          <strong>Left click</strong> = +1 mm on the longest side (Shift +0.5 mm, Ctrl +0.35 mm).<br>
+          <strong>Right click</strong> = same step but in contraction.
+        </div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon">🎨</div>
+      <div>
+        <div class="radial-label">Change Color</div>
+        <div class="radial-desc">Opens the color picker. Choose a custom color or use the quick keys below the picker.</div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon">🖌️</div>
+      <div>
+        <div class="radial-label">Paste Color</div>
+        <div class="radial-desc">Applies the last copied color to the object. Handy for propagating the same color to multiple shapes.</div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon">🔄</div>
+      <div>
+        <div class="radial-label">Change Shape</div>
+        <div class="radial-desc">Cycles between rectangle, circle, trapezoid, and all triangle types, preserving position, color, and dimensions.</div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon">◔</div>
+      <div>
+        <div class="radial-label">Divide Circle</div>
+        <div class="radial-desc">Visible only with circles/ellipses selected. Click = 4 quarters. Alt+Click = 2 halves. Each sector is independent.</div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon orange">🔒</div>
+      <div>
+        <div class="radial-label">Lock / Unlock</div>
+        <div class="radial-desc">Locks the object: it can no longer be selected, moved, or resized. Click again to unlock.</div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon red">🗑️</div>
+      <div>
+        <div class="radial-label">Delete</div>
+        <div class="radial-desc">Deletes the selected object. The action is reversible with Ctrl+Z.</div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon green">⎇</div>
+      <div>
+        <div class="radial-label">Group</div>
+        <div class="radial-desc">Visible with multiple objects selected. Joins the shapes into a single group that moves and resizes as one entity.</div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon green">⎆</div>
+      <div>
+        <div class="radial-label">Ungroup</div>
+        <div class="radial-desc">Visible on groups. Brings the shapes back to single state, maintaining positions and orientations.</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Fine Rotation and Scale — The Details</h3>
+  <p>The <strong>↻ Rotate</strong> and <strong>⤢ Scale</strong> buttons are special: they respond to <strong>right-click</strong> for the opposite direction and to <strong>Shift/Ctrl</strong> for smaller or larger steps, so you can reach any angle and dimension without using the handles.</p>
+
+  <div class="card" style="background:#fff;padding:16px 22px;">
+    <table class="shortcut-table" style="margin-bottom:0;box-shadow:none;">
+      <thead><tr><th>Modifier</th><th>Rotation</th><th>Scale (longest side)</th></tr></thead>
+      <tbody>
+        <tr><td>None</td><td>± 0.25°</td><td>± 1 mm</td></tr>
+        <tr><td><kbd>Shift</kbd></td><td>± 0.5°</td><td>± 0.5 mm</td></tr>
+        <tr><td><kbd>Ctrl</kbd> / <kbd>⌘</kbd></td><td>± 1°</td><td>± 0.35 mm</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p><strong>+</strong> is left click (clockwise rotation / larger scale); <strong>−</strong> is right click (counter-clockwise / smaller scale).</p>
+
+  <h3>Fine Rotation with Right Button + Wheel</h3>
+  <p>There is a second method for precise rotation: <strong>hold the right button over a shape and use the mouse wheel</strong>. The cursor becomes a blue rotation icon while the right button is held. Same steps as the radial button (0.25° default, 0.5° with Shift, 1° with Ctrl). Release the right button to close the rotation session (a single push in the undo/redo history).</p>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>With <strong>multiple objects selected</strong> the <strong>⎇ Group</strong> and <strong>⎆ Ungroup</strong> buttons appear in green. A group moves, resizes, and rotates as a single unit.</div></div>
+
+  <h3>Applying Color</h3>
+  <p>After clicking 🎨 a panel appears with a color picker and eight quick colors. The color is applied immediately to the object. Click outside the panel to close it.</p>
+
+  <h3>Applying a Texture</h3>
+  <p>With an object selected, click directly on one of the previews in the <strong>Texture Panel</strong> on the far left. The texture is repeated (repeat) to fill the shape.</p>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li>If the radial menu covers the object you are modifying, use the <strong>slider that appears below the W/H measurements</strong> to reduce its radius; a double-click on the slider restores automatic sizing.</li>
+    <li>With multiple objects selected the <strong>⎇ Group</strong> and <strong>⎆ Ungroup</strong> buttons appear: group to move complex sets as a single shape.</li>
+    <li>Use <strong>🔒 Lock</strong> on finished shapes to avoid selecting them by mistake while freehand drawing over them.</li>
+    <li>To <strong>scale with precision of a whole millimeter</strong> use the ⤢ Scale button without modifiers; for the <strong>hundredth of a mm</strong> hold Ctrl (0.35 mm steps).</li>
+    <li>The <strong>rotation handle</strong> (↻) shows the same icon as the cursor during fine rotation with right button + wheel: it is a visual preview of the gesture.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── LASSO SELECTION ── -->
+<section id="lazo">
+  <div class="section-label">06</div>
+  <h2>Lasso Selection (Freehand Polygon)</h2>
+  <p>The <strong>Lasso</strong> is an advanced selection method that lets you enclose shapes with a <strong>freehand drawn polygon</strong>. It is designed especially for mosaics, where tiles are often small, dense, and have tight joints: with a rectangular box you would catch too much or too little, while with the lasso you follow the real contour of the area you are interested in.</p>
+
+  <h3>How to Activate</h3>
+  <ol class="step-list">
+    <li>
+      <div>
+        <div class="step-title">Click the Lasso icon in the Left Toolbar</div>
+        <div class="step-body">The dashed oval icon with the "tail" activates lasso mode. If pen, eraser, or watercolor were active, they are <strong>automatically deactivated</strong> to avoid conflicts.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Drag on the canvas to draw</div>
+        <div class="step-body">Hold the left button and move the mouse: a freehand polygon is traced, even with <strong>re-entrances or self-intersections</strong>. The preview is a dashed blue line with a faint azure fill.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Release the left button</div>
+        <div class="step-body">All shapes whose internal portion exceeds the <strong>sensitivity threshold</strong> (see below) are selected in a native Fabric multi-selection. The tool <strong>auto-deactivates</strong>: you return to normal Select mode.</div>
+      </div>
+    </li>
+  </ol>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>To exit the lasso mid-trace without confirming anything, press <kbd>Esc</kbd>: the polygon is cancelled and the tool deactivates.</div></div>
+
+  <h3>How It Decides What to Include — The Algorithm</h3>
+  <p>Unlike a "naive" lasso that only looks at the geometric center (useless on mosaics with small tiles), Mosaica uses a <strong>two-phase approach calibrated for dense mosaics</strong>:</p>
+  <ol>
+    <li><strong>Broad-phase (AABB):</strong> for each shape the oriented bounding box is calculated and compared with the lasso's bounding box. Shapes clearly outside the area are immediately discarded (a very fast operation even with thousands of tiles).</li>
+    <li><strong>Narrow-phase (sampling):</strong> for the remaining shapes, <strong>multiple representative points</strong> are sampled — the center, the 4 corners of the oriented bounding box (which follows rotation and scale), the 4 midpoints of the sides, and for polygons / triangles also a sub-sample of the <strong>real transformed vertices</strong>. The percentage of these points falling inside the lasso polygon is measured and compared with the <strong>containment threshold</strong>.</li>
+  </ol>
+  <p>The "point inside polygon" test is the classic <strong>ray casting</strong>, so it works correctly even with concave lassos or self-intersections.</p>
+
+  <h3>Sensitivity (Containment Threshold)</h3>
+  <p>Lasso sensitivity is adjustable and <strong>persistent</strong>. The factory value is <code>0.20</code> (20%), meaning it is enough that <em>at least 20% of the sampled points of a tile</em> fall inside the trace for the tile to be included. This default is tuned specifically for real mosaics with tiles ≤10–15 mm² and 2–3 mm joints, where tracing freehand between joints it is practically impossible not to brush against neighboring tiles.</p>
+
+  <ol class="step-list">
+    <li>
+      <div>
+        <div class="step-title">Open the settings popover</div>
+        <div class="step-body"><strong>Right-click</strong> on the Lasso button in the Left Toolbar (left click activates/deactivates the tool, right click opens the settings). A small popover titled <strong>🎯 Lasso Sensitivity</strong> opens.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Move the slider</div>
+        <div class="step-body">Range from <code>0.05</code> (5% — very permissive) to <code>1.00</code> (100% — only shapes almost entirely inside). The value applies <strong>in real time</strong> while you drag. Next to the slider you see the current value both as a decimal and as a percentage.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Release to save</div>
+        <div class="step-body">At the end of the drag the value is written to <code>calibration.json</code> (field <code>lassoContainmentThreshold</code>) inside <code>%APPDATA%\mosaica-workspace-pro\</code>. It remains valid for all future sessions.</div>
+      </div>
+    </li>
+  </ol>
+
+  <p>The <strong>Default (0.20)</strong> button in the popover resets sensitivity to the recommended factory value. Press <kbd>Esc</kbd> or click outside the popover to close it without additional changes.</p>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>The threshold is <strong>merged</strong> with the other fields in <code>calibration.json</code> (such as <code>calibrationFactor</code>): adjusting lasso sensitivity <em>does not</em> touch screen calibration, and vice versa.</div></div>
+
+  <p>After releasing the lasso you can:</p>
+  <ul>
+    <li>Move all selected shapes together.</li>
+    <li>Open the radial menu and use <strong>⎇ Group</strong> to create a permanent group.</li>
+    <li>Press <strong>Delete</strong> to delete them all.</li>
+    <li>Click outside the selection to deselect.</li>
+  </ul>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li><strong>Dense tiles and tight joints?</strong> Keep the threshold low (0.10–0.20). Even brushing against neighboring tiles, only those truly inside the area will be selected because the sampling evaluates multiple points, not just the center.</li>
+    <li><strong>Large and well-spaced tiles?</strong> Raise the threshold (0.40–0.60) to be stricter: only tiles actually embraced by the lasso enter the selection.</li>
+    <li><strong>Surgical selection of a single tile among others?</strong> High threshold (0.70–0.90) and trace tightly around the target tile: "brushes" against neighbors are ignored.</li>
+    <li>The tool <strong>auto-deactivates</strong> on release. If you need to do multiple consecutive lassos, click the icon again each time. This choice prevents staying in lasso mode without noticing and "eating" a normal selection click.</li>
+    <li>The lasso is perfect for selecting <strong>tiles arranged in spirals, along curved edges, or irregularly shaped areas</strong> where a rectangular box would catch too much.</li>
+    <li><strong>Locked</strong> shapes (🔒), the user background, and the paper texture are <strong>always ignored</strong>: lock tiles already in place before a large lasso to avoid moving them accidentally.</li>
+    <li>During the lasso the <strong>cursor becomes a crosshair</strong> and Fabric's native rectangular selection is temporarily suspended, so the two selection methods do not confuse each other.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── FREEHAND DRAWING ── -->
+<section id="disegno">
+  <div class="section-label">07</div>
+  <h2>Freehand Drawing</h2>
+  <p>The <strong>Left Toolbar</strong> contains three modal drawing tools: <strong>pen ✏️</strong>, <strong>eraser 🧼</strong>, and <strong>watercolor 💧</strong>. They are mutually exclusive: activating one deactivates the others.</p>
+
+  <div class="card-grid col3">
+    <div class="card-mini">
+      <h4>✏️ Pen</h4>
+      <p>Continuous lines, solid color, adjustable thickness. Sharp edges. Vector strokes.</p>
+    </div>
+    <div class="card-mini">
+      <h4>💧 Watercolor</h4>
+      <p>Strokes with texture, transparency, bleeding, and tonal variations. Natural painting effect.</p>
+    </div>
+    <div class="card-mini">
+      <h4>🧼 Eraser</h4>
+      <p>Erases pen and watercolor strokes in the passed area. Does not erase geometric shapes.</p>
+    </div>
+  </div>
+
+  <h3>Activate a Tool</h3>
+  <p>Click the button of the desired tool in the Left Toolbar. The button turns blue (active) and the Inspector on the right automatically shows the dedicated controls. The cursor changes. Draw by holding down the left mouse button. Release to finish the stroke.</p>
+
+  <h3>Return to Selection</h3>
+  <p>Click <strong>🖱️ Select</strong> in the Left Toolbar (the first button below the two rotation ones). It instantly deactivates pen, eraser, and watercolor and returns to shape selection and manipulation mode.</p>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>While in drawing mode <strong>you cannot select geometric shapes</strong>. Deactivate drawing mode before returning to work with shapes.</div></div>
+
+  <h3>Inspector — Pen / Eraser</h3>
+  <p>When pen or eraser are active, the Inspector shows:</p>
+  <ul>
+    <li><strong>Current color</strong> (at the top, block shared with watercolor)</li>
+    <li><strong>Width</strong> — slider 1–60 px</li>
+  </ul>
+
+  <h3>Managing Strokes</h3>
+  <p>In the Left Toolbar you will find two buttons next to Line list and Clear all:</p>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>📋 Line List</h4>
+      <p>Opens a modal with all freehand strokes. Preview of each, checkbox to select multiple at once, and button to delete them selectively.</p>
+    </div>
+    <div class="card-mini">
+      <h4>🗑️ Clear All</h4>
+      <p>Removes all pen + watercolor strokes from the canvas. Asks for confirmation before proceeding.</p>
+    </div>
+  </div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li>The <strong>eraser</strong> only deletes pen/watercolor strokes: if the paper texture is hidden by an opaque background image, the effect may not be visible. Remove the background or use the line list to delete.</li>
+    <li>To delete specific strokes without touching others, open the <strong>📋 Line List</strong> modal: it shows a preview of every stroke and allows selective deletion with checkboxes.</li>
+    <li>Freehand strokes (pen and watercolor) are always rendered <strong>under the geometric shapes</strong>: if you need a drawing above a shape, create the shape before the stroke.</li>
+    <li>When you are done drawing, click <strong>🖱️ Select</strong> to return to working with shapes.</li>
+    <li>The <strong>current color</strong> shown in the Inspector is shared between pen and watercolor: changing it in one also changes it for the other.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── WATERCOLOR ── -->
+<section id="acquerello">
+  <div class="section-label">08</div>
+  <h2>Watercolor Controls</h2>
+  <p>Watercolor mode has an advanced set of parameters to simulate the real behavior of watercolor painting. All controls are in the <strong>Inspector on the right</strong> when the tool is active. Each parameter acts on a different aspect of the stroke.</p>
+
+  <div class="card" style="padding: 8px 0;">
+    <div class="wc-control">
+      <div class="wc-name">Width</div>
+      <div class="wc-desc">
+        <strong>Brush width.</strong> Low values = thin and precise strokes. High values = wide and covering brushstrokes.
+        <div><span class="wc-range">1 – 100 px</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Opacity</div>
+      <div class="wc-desc">
+        <strong>Pigment density.</strong> Controls how much "water" is in the brush. Low = very diluted watercolor, almost transparent. High = dense color.
+        <div><span class="wc-range">25% – 100%</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Tone</div>
+      <div class="wc-desc">
+        <strong>Color lightness variation.</strong> Below 50% darkens the color. Above 50% lightens it. At 50% = exact chosen color.
+        <div><span class="wc-range">1% – 100%</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Initial Rot.</div>
+      <div class="wc-desc">
+        <strong>Fixed rotation of the brush tip.</strong> Sets the starting angle of the tip texture (from −180° to +180°). Useful for correctly orienting flat or asymmetric brushes.
+        <div><span class="wc-range">−180° – +180°</span></div>
+        <div class="new-feature"><strong>Note:</strong> this value is saved <em>per individual tip</em> and is automatically restored when you select that tip again.</div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Spacing</div>
+      <div class="wc-desc">
+        <strong>Distance between one stamp and the next</strong> along the stroke. Low = dense coverage. High = more "detached" stroke with visible gaps.
+        <div><span class="wc-range">0× – 2.8×</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Pos. Jitter</div>
+      <div class="wc-desc">
+        <strong>Lateral dispersion of stamps.</strong> Controls how much each individual stamp randomly shifts in the direction perpendicular to the stroke. High values = irregular and organic edges.
+        <div><span class="wc-range">0 – 28 px</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Rotation</div>
+      <div class="wc-desc">
+        <strong>Random variation of each stamp's angle.</strong> Small random rotations make the stroke less mechanical and more natural.
+        <div><span class="wc-range">0° – 35°</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Bleed</div>
+      <div class="wc-desc">
+        <strong>Color halo (bleeding).</strong> Simulates pigment spreading on wet paper. High values create blurred and luminous edges.
+        <div><span class="wc-range">0 – 18</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Layers</div>
+      <div class="wc-desc">
+        <strong>Number of overlapping layers per stamp.</strong> Each stamp is composed of N layers with slight variations. More layers = richer and more complex stroke but slower.
+        <div><span class="wc-range">1 – 38</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Tip</div>
+      <div class="wc-desc">
+        <strong>Brush tip shape.</strong> Each texture creates a different stroke character. Click the button with the current name (e.g. <code>watercolor-stamp</code>) to open the <strong>tip selector modal</strong> with all available previews.<br>
+        See <a href="#punte" style="color:var(--blue);">Brush Tips</a> section.
+      </div>
+    </div>
+    <div class="wc-control" style="border-bottom:none;">
+      <div class="wc-name">Mixing</div>
+      <div class="wc-desc">
+        <strong>Canvas blending mode.</strong>
+        <ul style="margin:6px 0 0 16px;font-size:12px;color:var(--muted);">
+          <li><strong>Multiply</strong> — overlays darkening color on color. Natural effect, translucent colors.</li>
+          <li><strong>Overlay</strong> — increases contrast and saturation, adds colors. Vibrant effect.</li>
+          <li><strong>Soft Light</strong> — soft and delicate effect, adds color. Ideal for glazes.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h3>Brush Tip Selector Modal</h3>
+  <p>The <strong>Tip</strong> button in the Inspector opens a grid modal with all available textures in the <code>textures/brush/</code> folder. Clicking a tip immediately activates it and the specific Initial Rotation value for that tip is loaded into the slider.</p>
+
+  <div class="callout tip">
+    <div class="callout-icon"></div>
+    <div><strong>Automatic Persistence</strong><br>
+    All slider values (Width, Opacity, Tone, Initial Rot., Spacing, Pos. Jitter, Rotation, Bleed, Layers, and Tip) are automatically saved in <code>localStorage</code> and in the <code>.msp.json</code> project. When opening the app or a project, all sliders automatically set to the last used values.</div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon"></div>
+    <div>For a realistic watercolor effect recommended: <strong>Opacity 60-80%</strong>, <strong>Bleed 2-5</strong>, <strong>Layers 18-24</strong>, <strong>Mixing: Multiply</strong> or <strong>Overlay</strong>. Start with these values and adjust to taste.</div>
+  </div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li>For a realistic effect starting from scratch: <strong>Opacity 60-80%</strong>, <strong>Bleed 2-5</strong>, <strong>Layers 18-24</strong>, <strong>Mixing Overlay</strong>. These values balance quality and fluidity.</li>
+    <li>If the PC slows down during long brushstrokes, <strong>reduce Layers to 12-16</strong>: rendering will lighten the load while maintaining good visual effect.</li>
+    <li><strong>Spacing</strong> greatly influences the stroke character: 0.25×-0.65× gives dense and uniform coverage; values above 1.0× create a very artistic "detached" effect.</li>
+    <li><strong>Mixing Overlay</strong> is generally preferable to Multiply when overlaying different colors: Multiply tends to generate black due to the mathematical limits of the blend mode.</li>
+    <li>Use <strong>Initial Rotation</strong> to orient flat or asymmetric brushes: the value is saved <em>for each individual tip</em>, so you can have different angles for each texture.</li>
+    <li>Stamp density automatically adapts to <strong>stroke speed</strong>: moving the mouse quickly the brush "widens" and blurs, slowly it compacts.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── BRUSH TIPS ── -->
+<section id="punte">
+  <div class="section-label">09</div>
+  <h2>Brush Tips</h2>
+  <p>Brush tips are <strong>PNG files with an alpha channel (transparent background)</strong> that define the <strong>shape of each individual stamp</strong>. What matters is the <strong>alpha channel</strong>: where alpha is full the pigment is applied at full intensity, where alpha fades the color becomes more transparent, where alpha is zero nothing is drawn. The RGB color of the file is irrelevant (it is replaced by the selected color), so you can draw the silhouette in black, gray, or any tint: the important thing is that the background is transparent. Place them in the folder:</p>  <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;">
+    C:\Users\[user]\AppData\Roaming\mosaica-workspace-pro\textures\brush\
+  </div>
+
+  <div class="brush-cards" style="margin-top:24px;">
+    <div class="brush-card">
+      <div class="brush-preview">
+        <div class="brush-preview-stroke round"></div>
+      </div>
+      <div class="brush-info">
+        <div class="brush-name">Soft Round Tip</div>
+        <div class="brush-file">brush_round_soft.png</div>
+        <div class="brush-desc">Oval shape with blurred edges and radial fibers. Ideal for fluid strokes, soft lines, and uniform fills. The most versatile tip.</div>
+      </div>
+    </div>
+    <div class="brush-card">
+      <div class="brush-preview">
+        <div class="brush-preview-stroke flat"></div>
+      </div>
+      <div class="brush-info">
+        <div class="brush-name">Wide Flat (Flat Wash)</div>
+        <div class="brush-file">brush_flat_wash.png</div>
+        <div class="brush-desc">Rectangular shape with torn edges and horizontal fibers. Perfect for large fills, color bands, and backgrounds. The brush automatically rotates with the stroke direction.</div>
+      </div>
+    </div>
+    <div class="brush-card">
+      <div class="brush-preview">
+        <div class="brush-preview-stroke dry"></div>
+      </div>
+      <div class="brush-info">
+        <div class="brush-name">Dry Granular (Dry Brush)</div>
+        <div class="brush-file">brush_dry_grain.png</div>
+        <div class="brush-desc">Elongated shape with holes and longitudinal streaks. Simulates a dry brush on rough paper. Creates glazes, crackling, and wear effects.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>You can add your own custom tips: save any <strong>RGBA PNG with transparent background</strong> in the <code>textures/brush/</code> folder and it will automatically appear in the "Tip" modal at the next opening. Recommended resolution: 256–512 px on the longest side.</div></div><div class="callout tip"><div class="callout-icon"></div><div>You can add your own custom tips: save any grayscale PNG in the <code>textures/brush/</code> folder and it will automatically appear in the "Tip" modal at the next opening.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li>To add custom tips, save <strong>RGBA PNG files with transparent background</strong> in the <code>textures/brush/</code> folder: they will automatically appear in the modal at the next app opening. Draw the brush silhouette with the alpha channel (full alpha = pigment, faded alpha = soft edges).</li><li>To add custom tips, save <strong>grayscale PNG files</strong> in the <code>textures/brush/</code> folder: they will automatically appear in the modal at the next app opening.</li>
+    <li>Each tip has its own independent <strong>Initial Rotation</strong>: experiment with different angles for each texture to discover unexpected stroke variations.</li>
+    <li>"Dry brush" tips with holes and streaks (e.g. <code>brush_dry_grain.png</code>) give very realistic glaze effects when combined with rough paper texture.</li>
+    <li>If a tip seems too large or too small relative to the stroke, remember that the global brush <strong>Width</strong> scales all tips proportionally.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── BACKGROUND ── -->
+<section id="sfondo">
+  <div class="section-label">10</div>
+  <h2>Background Image</h2>
+  <p>The <strong>BG Panel</strong> (the horizontal bar immediately below the top bar) is dedicated to the background image. You can load a reference photo, a drawing, or a photographed project to trace your mosaic over it.</p>
+
+  <h3>Loading an Image</h3>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>📂 Drag &amp; Drop</h4>
+      <p>Drag any image file (JPG, PNG, GIF, WebP) directly onto the "Drop here" area in the BG Panel.</p>
+    </div>
+    <div class="card-mini">
+      <h4>📁 Choose File</h4>
+      <p>Click the "Choose file" button in the BG Panel to open the file manager and select the image.</p>
+    </div>
+  </div>
+
+  <h3>Controls After Loading</h3>
+  <p>After loading an image, next to the thumbnail the buttons appear:</p>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>Contain</h4>
+      <p>Shows the entire image inside the sheet (possible side bands, no cropping).</p>
+    </div>
+    <div class="card-mini">
+      <h4>Cover</h4>
+      <p>Covers the entire sheet (possible edge cropping, no bands).</p>
+    </div>
+    <div class="card-mini">
+      <h4>↶ Rotate / Rotate ↷</h4>
+      <p>Rotate the background 90° left or right. Useful for orienting vertically taken photos.</p>
+    </div>
+    <div class="card-mini">
+      <h4>🗑 Remove</h4>
+      <p>Removes the background. The paper texture immediately becomes visible again.</p>
+    </div>
+  </div>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>The background image is <strong>non-selectable and non-modifiable</strong> directly on the canvas. Use the buttons in the BG Panel to change it. The background is saved in the <code>.msp.json</code> project and restored on opening.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li>To trace over a reference photo, use <strong>Contain</strong> to see the entire image without cropping; switch to <strong>Cover</strong> only if you want it to fill the entire sheet accepting some edge cropping.</li>
+    <li>If the background is too saturated and distracting, remember that freehand strokes remain <strong>above the background but below the geometric shapes</strong>: you can use shapes to "mask" areas of the drawing.</li>
+    <li>Removing the background, the <strong>paper texture becomes visible automatically</strong>: no need to reactivate it manually.</li>
+    <li>If you load a vertically oriented image, use the <strong>↶ Rotate</strong> buttons in the BG Panel before you start drawing, to have the reference oriented correctly.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── PROJECTS ── -->
+<section id="progetti">
+  <div class="section-label">11</div>
+  <h2>Saving and Opening Projects</h2>
+  <p>Mosaica projects are saved as <strong>.msp.json</strong> files. They contain all shapes, freehand strokes, watercolors, colors, applied textures, the background image, canvas orientation (portrait/landscape), and the current pen and watercolor parameters. The default folder is:</p>
+
+  <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;margin-bottom:20px;">
+    C:\Users\[user]\AppData\Roaming\mosaica-workspace-pro\projects\
+  </div>
+
+  <h3>Three Actions in the File Menu</h3>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>💾 Save Project</h4>
+      <p>From the <strong>File</strong> dropdown in the top bar. Opens the dialog to choose name and folder (you can save anywhere, even on USB/SD). Extension <code>.msp.json</code>.</p>
+    </div>
+    <div class="card-mini">
+      <h4>📂 Open Project</h4>
+      <p>From the <strong>File</strong> dropdown. Loads an existing <code>.msp.json</code> file: all shapes, backgrounds, strokes, and parameters are restored exactly as they were.</p>
+    </div>
+    <div class="card-mini">
+      <h4>New Project</h4>
+      <p>Purple button in the <strong>File</strong> dropdown. Opens a <strong>confirmation modal</strong> because it clears the entire canvas. Confirm and start with a blank sheet + a small reference rectangle at the center.</p>
+    </div>
+    <div class="card-mini">
+      <h4>📋 Complete Persistence</h4>
+      <p>Shape colors, applied textures, watercolor parameters, pen dimensions, sheet orientation: everything is preserved and faithfully restored.</p>
+    </div>
+  </div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li>Save often with the <strong>💾 Save Project</strong> button: the <code>.msp.json</code> format preserves shapes, colors, textures, background, and pen/watercolor settings.</li>
+    <li>You can save in any folder on your PC; the default folder is just a suggestion and can be changed every time.</li>
+    <li>Before starting a long work session, save a first version with a base name (e.g. <em>project_v1.msp.json</em>) so you can go back in case of drastic changes.</li>
+    <li><code>.msp.json</code> files are plain text (JSON): you can version them with Git or copy them to external backups without issues.</li>
+    <li>Even <strong>auto-save</strong> (see next section) creates <code>.msp.json</code> files with date and time automatically, so you never lose your work.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── AUTO-SAVE ── -->
+<section id="autosave">
+  <div class="section-label">12</div>
+  <h2>Auto-Save</h2>
+  <p>Mosaica automatically saves your work <strong>in the background</strong> every minute and when you close the app. No interaction required: it happens on its own.</p>
+
+  <h3>How It Works</h3>
+  <p>Auto-save has <strong>two modes</strong> depending on the project state:</p>
+
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>① Already Open Project</h4>
+      <p>If you have opened a file (manually or via <em>auto-open</em>), auto-save <strong>overwrites in-place</strong> that file wherever it is: HDD, USB, SD. It does not create duplicates.</p>
+    </div>
+    <div class="card-mini">
+      <h4>② New Unsaved Project</h4>
+      <p>If you are working on a new sheet (never explicitly saved), auto-save creates a <strong>session file</strong> in the <code>userData/projects/</code> folder with an Italian date+time name.</p>
+    </div>
+  </div>
+
+  <h3>Session File Name</h3>
+  <p>Session files have this format:</p>
+  <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;">
+    1 April 2026 - 15&amp;30.msp.json
+  </div>
+  <p>The separator between hour and minutes is <code>&amp;</code> (ampersand) and not <code>:</code> because on Windows the colon is reserved and would truncate the name creating empty files.</p>
+
+  <h3>Automatic Pruning</h3>
+  <p>The app keeps a <strong>maximum of 10 session files</strong>. When it creates the eleventh, the oldest is automatically deleted. The current file is <em>always</em> preserved. Projects you have manually saved with custom names are <strong>never touched</strong>: pruning only acts on files matching the date+time pattern.</p>
+
+  <h3>Frequency and Conditions</h3>
+  <ul>
+    <li><strong>Every 60 seconds</strong>, but only if the canvas is "dirty" (modified since the last save).</li>
+    <li>Anti-spam: <strong>at least 5 seconds</strong> between one save and the next.</li>
+    <li>During project serialization, auto-save is blocked to avoid loops.</li>
+  </ul>
+
+  <h3>Indicator in the Status Bar</h3>
+  <p>When an auto-save starts, in the <strong>status bar at the bottom</strong> <strong>"💾 Auto-save in progress…"</strong> briefly appears, then <strong>"✔ Auto-saved"</strong> in green for about 2 seconds. If the save fails (e.g. USB unplugged) a warning is shown.</p>
+
+  <h3>Closing the App</h3>
+  <p>When you close the app with the X, Alt+F4, or another standard method, Mosaica:</p>
+  <ol class="step-list">
+    <li>
+      <div>
+        <div class="step-title">Intercepts the closing</div>
+        <div class="step-body">The operating system is "convinced" to wait. A <strong>full-screen informational overlay</strong> opens.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Performs auto-save</div>
+        <div class="step-body">Saves the current project (in-place or as a session file, as above). The overlay shows the saved path and a spinner.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">4-second countdown</div>
+        <div class="step-body">After saving, a 4-second countdown starts, then the app closes automatically. You can speed it up by clicking <strong>Exit now</strong>.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">"Cancel closing" button</div>
+        <div class="step-body">If you clicked X by mistake, click <strong>Cancel closing</strong> in the overlay: the app stays open and you can continue working.</div>
+      </div>
+    </li>
+  </ol>
+
+  <div class="callout success"><div class="callout-icon"></div><div>If the app crashes or the PC is shut down abruptly, reopen Mosaica and from the <strong>File → Open Project</strong> menu look in the <code>%APPDATA%\mosaica-workspace-pro\projects\</code> folder for the session file with the most recent date and time: you will find your work up to the penultimate auto-save (maximum loss ≈ 60 seconds).</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li>If you want a meaningful name for the project, <strong>save it explicitly</strong> with File → Save Project: from that moment auto-save overwrites that file instead of creating a session one.</li>
+    <li>Session files remain in the userData folder even after closing: every 10 files the oldest is deleted. If you need to keep a particular one, copy it elsewhere or rename it (the app will no longer delete it because it does not match the date+time pattern).</li>
+    <li>When working on a project saved on a <strong>USB flash drive</strong> or <strong>SD card</strong>, auto-save overwrites the file directly there: do not unplug the media during work or you will see a "Folder not available" error.</li>
+    <li>The <strong>"Cancel closing"</strong> button is a safety net: if you close by mistake, you have 4 seconds (plus save time) to stop the closing.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── AUTO-OPEN ── -->
+<section id="autoopen">
+  <div class="section-label">13</div>
+  <h2>Automatic Opening of the Last Project</h2>
+  <p>Mosaica can automatically open the last saved project every time you launch the app. The preference is configured from the <strong>File</strong> dropdown in the top bar.</p>
+
+  <div class="callout success"><div class="callout-icon"></div><div>Follow the steps in the indicated order: <strong>first save, then check the checkbox</strong>. If you check before saving, the app warns you and does not activate the function.</div></div>
+
+  <ol class="step-list">
+    <li>
+      <div>
+        <div class="step-title">Work on your project</div>
+        <div class="step-body">Create or modify the mosaic as you wish. Add shapes, colors, drawings.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Save the project with "Save Project"</div>
+        <div class="step-body">Open the <strong>File</strong> dropdown in the top bar and click 💾 Save Project. Choose name and folder. Wait for the "Project saved ✔" confirmation.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Check "Open project at startup"</div>
+        <div class="step-body">Still in the <strong>File</strong> dropdown you will find the checkbox at the bottom. Check it <strong>after</strong> saving. You will see a confirmation message.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Close the app and reopen</div>
+        <div class="step-body">At the next launch, the project opens automatically during loading. No action required.</div>
+      </div>
+    </li>
+  </ol>
+
+  <h3>How to Disable Auto-Open</h3>
+  <p>Uncheck the "Open project at startup" checkbox. The next time you open the app you will find a blank canvas.</p>
+
+  <h3>How to Change the Auto-Open Project</h3>
+  <p>Open or save another project, then check the checkbox again. The new file will replace the previous one as the automatic project.</p>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>If you check the checkbox <strong>before</strong> saving, you will see a warning. Save the project first, then check the checkbox. The order is important.</div></div>
+
+  <h3>Where the Configuration Is Saved</h3>
+  <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;">
+    C:\Users\[user]\AppData\Roaming\mosaica-workspace-pro\autoOpen.json
+  </div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li>The correct order is always: <strong>1) Save the project → 2) Check "Open project at startup"</strong>. If you check before saving, the app warns you and does not activate the function.</li>
+    <li>To change the automatic project, just open or save another one and reselect the checkbox: the new file overwrites the previous one in <code>autoOpen.json</code>.</li>
+    <li>If you want to start the app with a blank canvas, uncheck the checkbox: at the next restart you will find the default white sheet.</li>
+    <li>Auto-open and auto-save work together: the auto-opened project is the one that will receive in-place auto-saves.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── FULL SCREEN ── -->
+<section id="fullscreen">
+  <div class="section-label">14</div>
+  <h2>Full Screen Mode</h2>
+  <p>Mosaica always starts in <strong>full screen mode</strong> to maximize workspace. You can exit and enter at any time.</p>
+
+  <h3>Three Ways to Exit Full Screen</h3>
+  <ul>
+    <li>Click the <strong>🗗</strong> button at the top right in the top bar.</li>
+    <li>Press <kbd>Esc</kbd> (only if no modals or dropdowns are open).</li>
+    <li>Use the OS standard shortcut (<kbd>F11</kbd> on Windows, etc.).</li>
+  </ul>
+
+  <h3>Three Ways to Enter Full Screen</h3>
+  <ul>
+    <li>Click the <strong>⛶</strong> button at the top right in the top bar (visible only when not in full screen).</li>
+    <li>Use the OS standard shortcut.</li>
+  </ul>
+
+  <p>When entering full screen, a brief <strong>toast at the top</strong> reminds you to press ESC to exit.</p>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>The two buttons ⛶ and 🗗 automatically swap based on the window state: only the relevant one is visible. The state is also synchronized with changes via the OS keyboard.</div></div>
+</section>
+
+<!-- ── EXPORT ── -->
+<section id="esporta">
+  <div class="section-label">15</div>
+  <h2>Exporting Your Work</h2>
+  <p>The <strong>Export</strong> dropdown in the top bar offers three items, each with a dedicated modal to choose the content to export.</p>
+
+  <div class="card-grid col3">
+    <div class="card-mini">
+      <h4>📄 PDF A4</h4>
+      <p>Export to real A4 PDF at <strong>300 DPI</strong>. Respects orientation (portrait/landscape).</p>
+    </div>
+    <div class="card-mini">
+      <h4>🖼️ PNG / SVG</h4>
+      <p>Full PNG of the canvas or vector SVG (filled or outlines only).</p>
+    </div>
+    <div class="card-mini">
+      <h4>✏️ Freehand</h4>
+      <p>Export only freehand and watercolor strokes as vector SVG or high-resolution PNG, in a single file or separate ones.</p>
+    </div>
+  </div>
+
+  <h3>PDF — 5 Export Modes</h3>
+  <p>The "Export PDF (A4)" modal offers five mutually exclusive modes:</p>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>🖼️ Complete Canvas</h4>
+      <p>Exports exactly what you see: background, texture, watercolor, freehand, shapes.</p>
+    </div>
+    <div class="card-mini">
+      <h4>📜 Shapes Only on Paper Texture</h4>
+      <p>Only geometric shapes, above the paper texture. No watercolor or freehand.</p>
+    </div>
+    <div class="card-mini">
+      <h4>🌄 Shapes Only with Background Image</h4>
+      <p>Only geometric shapes, above the loaded background image. Disabled if you have no background.</p>
+    </div>
+    <div class="card-mini">
+      <h4>⬜ Shapes Only on White Background</h4>
+      <p>Only shapes, solid white background. Ideal for neutral printing.</p>
+    </div>
+    <div class="card-mini">
+      <h4>🔲 Shapes Only on Transparent Background</h4>
+      <p>Only shapes. Most PDF readers show white; some show real transparency.</p>
+    </div>
+  </div>
+
+  <h3>PNG / SVG — 3 Export Modes</h3>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>🖼️ Full Canvas PNG</h4>
+      <p>Exports everything you see: background, paper texture, shapes, freehand, watercolor. High resolution.</p>
+    </div>
+    <div class="card-mini">
+      <h4>🧩 SVG with Fill</h4>
+      <p>Only geometric shapes with their fill color and exact position. Transparent background. Bitmap textures rendered as <strong>average color</strong> (see laser CAM note).</p>
+    </div>
+    <div class="card-mini" style="grid-column: 1 / -1;">
+      <h4>✏️ SVG Outlines Only</h4>
+      <p>Only shape outlines: stroke of the fill color if it is a solid tint, black if the shape has a texture. Transparent background. Ideal for <strong>laser cutting</strong> or cutting plotter.</p>
+    </div>
+  </div>
+
+  <div class="callout tip"><div class="callout-icon"></div><div><strong>Laser CAM Compatibility</strong><br>
+  The generated SVG is optimized for <strong>LightBurn</strong> and <strong>Beam Studio</strong> (Flux BeamBox Pro). Fabric.js bitmap textures would otherwise be embedded as base64 patterns, which LightBurn silently ignores and Beam Studio rejects. Mosaica replaces them with the texture's average color, and cleans headers, DOCTYPE, and namespace for total compatibility.</div></div>
+
+  <h3>Freehand — Single or Separate Files</h3>
+  <p>The "Export Freehand Drawing" modal lists all pen and watercolor strokes with a preview. You can:</p>
+  <ul>
+    <li>Select individual lines or all together with checkboxes.</li>
+    <li>Choose the format: <strong>SVG</strong> (vector, infinitely scalable) or <strong>PNG</strong> (high resolution).</li>
+    <li>Export in a <strong>single file</strong> (all together) or in <strong>separate files</strong> (one per line).</li>
+  </ul>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li>For <strong>professional printing</strong> use the A4 PDF at 300 DPI in "Complete Canvas" or "Shapes Only on Paper Texture" mode: both preserve real dimensions in millimeters.</li>
+    <li>The <strong>Outlines SVG</strong> format is ideal for <strong>laser cutting</strong> (LightBurn / Beam Studio / RDWorks) or cutting plotter: black stroke for textures, original color for solid fills.</li>
+    <li>The <strong>Filled SVG</strong> renders textures as average color to guarantee importation into laser CAM software: if you need the real texture, export to PNG or PDF.</li>
+    <li>Exporting freehand strokes as <strong>SVG</strong> preserves the <code>mix-blend-mode</code>: open it in a modern browser or in Illustrator to see the color overlap correctly.</li>
+    <li>The <strong>Full PNG</strong> is generated at high resolution: great for presentations or post-production in Photoshop.</li>
+    <li>When exporting freehand strokes in <strong>Separate Files</strong> mode, each line is saved individually: useful if you need to animate or treat layers individually.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── WACOM TABLET ── -->
+<section id="wacom">
+  <div class="section-label">16</div>
+  <h2>Wacom Tablet — Pressure, Tilt, Pen Buttons</h2>
+  <p>Mosaica integrates a complete system for Wacom graphic tablets (and any other tablet exposing <code>PointerEvent.pressure</code>). Pressure is <strong>true, point-by-point</strong>: every segment of the stroke stores its own pressure, is serialized in <code>.msp.json</code> projects, exported in SVG, and participates in Undo/Redo like any other Fabric object.</p>
+
+  <h3>Where to Find Wacom Settings</h3>
+  <p>In the <strong>top bar at the top right</strong>, next to the 📖 Guide button, is the <strong>🖊️ Wacom</strong> button. A small dot next to the name acts as a live indicator:</p>
+  <ul>
+    <li><strong>Green dot</strong> — tablet detected and active</li>
+    <li><strong>Off dot</strong> — tablet not detected (or not yet used in this session)</li>
+  </ul>
+  <p>Click the button to open the <strong>Wacom configuration modal</strong>, where you find connection status, pressure modulation, tilt, pen buttons, calibration, and a live test canvas.</p>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Mosaica detects the tablet in <strong>two complementary ways</strong>: via WMI (reading USB device on Windows) and at runtime by intercepting the first <code>PointerEvent</code> with <code>pointerType === "pen"</code>. Even if hardware detection fails, pressure works as soon as you touch the tablet.</div></div>
+
+  <h3>Compatibility</h3>
+  <p>Reference model: <strong>Wacom Bamboo Pen CTL-460</strong> on Windows 10/11 with Wacom drivers 6.3.x+ in <strong>Windows Ink</strong> mode. It works with any other Wacom tablet (Intuos, Cintiq, One) and with any pen exposing <code>PointerEvent.pressure</code>.</p>
+  <p>If the Wacom drivers are not in <em>Windows Ink</em> mode, the modal shows a warning: without Windows Ink pressure is not exposed to the browser and the factors remain at 1.0.</p>
+
+  <h3>Panel 1 — Connection Status</h3>
+  <ul>
+    <li><strong>Indicator "✓ Connected"</strong> (green) or <strong>"✗ Not detected"</strong> (red) with list of detected devices.</li>
+    <li><strong>🔄 Detect again</strong> — forces a new WMI device scan.</li>
+    <li><strong>🪟 Open Wacom Preferences</strong> — launches the official Wacom driver app (if installed) to modify system settings.</li>
+  </ul>
+
+  <h3>Panel 2 — Pressure</h3>
+  <p>A single master checkbox <strong>"Enable Wacom integration"</strong> activates/deactivates the entire system. Below, the pressure controls:</p>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>Sensitivity (0%–200%)</h4>
+      <p>Global multiplier of the pressure read from the pen. 100% = as read from the driver. Increase if you have to press too hard to get thick strokes.</p>
+    </div>
+    <div class="card-mini">
+      <h4>Response Curve</h4>
+      <p>Four modes:<br>
+      • <strong>Linear</strong> — pressure 1:1<br>
+      • <strong>Soft</strong> — more sensitive at low pressures<br>
+      • <strong>Hard</strong> — requires more pressure<br>
+      • <strong>Stairs</strong> — four distinct steps (stylized effect)</p>
+    </div>
+  </div>
+
+  <h3>Panel 3 — What Pressure Modulates</h3>
+  <p>Three independent channels, each with its own checkbox and its own <em>min/max factor</em>:</p>
+  <div class="card-grid col3">
+    <div class="card-mini">
+      <h4>📏 Width</h4>
+      <p>Min/Max factor of stroke width. Default 20%–120%: zero pressure = 1/5 of width, maximum pressure = +20%. Applies to both Pen and Watercolor.</p>
+    </div>
+    <div class="card-mini">
+      <h4>👻 Opacity</h4>
+      <p>Min/Max factor of stroke opacity. Default 35%–100%. Creates very natural "light/marked" effects for pen and watercolor glazes.</p>
+    </div>
+    <div class="card-mini">
+      <h4>💧 Flow (Watercolor)</h4>
+      <p>Min/Max factor of color flow. Default 40%–100%. Modulates the amount of pigment deposited at each watercolor stamp: full realism to the brushstroke.</p>
+    </div>
+  </div>
+
+  <h3>Panel 4 — Tilt</h3>
+  <p>Tablets exposing <code>tiltX/tiltY</code> (Intuos Pro, Cintiq, some Bamboo models) allow modulating the stroke also based on the pen inclination. <strong>The Bamboo CTL-460 does not support tilt</strong> (pen without sensors): the test panel shows "tilt not available" and the multipliers remain at 1.0.</p>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>Width tilt amount (0%–100%)</h4>
+      <p>How much the brushstroke widens when you tilt the pen. Default 50%: pen tilted to the maximum = +50% width, to simulate the "side" of the tip.</p>
+    </div>
+    <div class="card-mini">
+      <h4>Rotate tilt amount (0%–100%)</h4>
+      <p>How much the <strong>watercolor stamp</strong> rotates following the pen orientation. Default 100%: the stamp fully follows the tilt, like a real brush "on its side".</p>
+    </div>
+  </div>
+
+  <h3>Panel 5 — Pen Side Buttons</h3>
+  <p>Almost all Wacom pens have <strong>two side buttons</strong> on the grip. Mosaica calls them "LOWER button" (closer to the tip) and "UPPER button". You can map each button to an action among:</p>
+  <div class="card-grid col3">
+    <div class="card-mini"><h4>⊘ No action</h4><p>Button disabled.</p></div>
+    <div class="card-mini"><h4>🖱️ Right Click (default)</h4><p>Standard behavior: opens the system context menu.</p></div>
+    <div class="card-mini"><h4>⚡ Double Click</h4><p>Synthesizes a <code>dblclick</code> at the pointer location — useful for quickly creating a new rectangle or opening inline fields.</p></div>
+    <div class="card-mini"><h4>🧼 Quick Eraser</h4><p>Activates the Eraser tool. Pressing again returns to the previous tool.</p></div>
+    <div class="card-mini"><h4>✋ Pan Canvas</h4><p>While holding the button, dragging pans the canvas (equivalent to <kbd>Alt</kbd>+drag).</p></div>
+    <div class="card-mini"><h4>↩️ Undo / ↪️ Redo</h4><p>Equivalent to <kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd>.</p></div>
+    <div class="card-mini"><h4>✏️ Toggle Pen</h4><p>Activates/deactivates the Freehand Pen tool.</p></div>
+    <div class="card-mini"><h4>💧 Toggle Watercolor</h4><p>Activates/deactivates the Watercolor tool.</p></div>
+    <div class="card-mini"><h4>⭕ Toggle Lasso</h4><p>Activates/deactivates the Lasso selection.</p></div>
+  </div>
+
+  <h3>Pen Button Calibration — Why It's Needed</h3>
+  <p>Different Wacom drivers map the side buttons to different <code>PointerEvent.button</code> values: some fire <code>button=2</code> for the lower one, others emit a <code>contextmenu</code> event directly, others use <code>button=4</code> or <code>5</code> for the upper one, and on certain drivers the upper button arrives <strong>only</strong> as <code>auxclick</code>. To avoid blind heuristics, Mosaica allows you to <strong>learn</strong> the code of your specific driver.</p>
+  <ol class="step-list">
+    <li>
+      <div>
+        <div class="step-title">Click "Calibrate LOWER button"</div>
+        <div class="step-body">The banner turns yellow: <em>"⏳ Press the LOWER pen button now…"</em> — you have 10 seconds.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Physically press the lower button</div>
+        <div class="step-body">Mosaica captures the code (e.g. <code>code 2</code>, or <code>synthetic contextmenu</code> if the driver only fires contextmenu) and saves it in <code>learnedLowerButtonCode</code>.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Repeat for the UPPER button</div>
+        <div class="step-body">Same procedure. If the upper button is not detected after a few attempts, your driver does not emit it to the browser (hardware/driver limit): in that case, configure the upper button directly in the <em>official Wacom Preferences</em>.</div>
+      </div>
+    </li>
+  </ol>
+  <p>The <strong>"Reset calibration"</strong> button returns to the default heuristics.</p>
+
+  <h3>Live Test Canvas</h3>
+  <p>At the bottom of the modal there is a small <strong>test canvas</strong>: draw freely with the pen to see in real time:</p>
+  <ul>
+    <li><strong>Current pressure</strong> in percentage (0–100%)</li>
+    <li><strong>Tilt</strong> (magnitude and angle) — or "tilt not available" if the pen does not support it</li>
+    <li><strong>Stroke preview</strong> with current settings applied</li>
+  </ul>
+  <p>The <strong>"Clear test"</strong> button cleans the canvas; <strong>"Restore defaults"</strong> resets all Wacom settings to factory values (after confirmation).</p>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>Wacom settings are saved in <code>localStorage</code> (key <code>mosaica_wacom_settings</code>) and <strong>persist across sessions</strong>. They are independent from <code>.msp.json</code> projects: changing computers you will have to reconfigure your preferred sensitivity.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li>If you have a <strong>Bamboo CTL-460</strong>, tilt does not work (sensors missing): disable <em>Modulate tilt</em> to avoid any unnecessary overhead, and focus on Pressure + Pen Buttons.</li>
+    <li>For a "<strong>living stroke</strong>" style, start from the default and lower the <em>minWidthFactor</em> to 10%: you get very thin stroke starts and ends.</li>
+    <li>For technical drawing or lettering, use the <strong>Hard</strong> curve: low pressure writes very thin, medium pressure keeps the line stable.</li>
+    <li>Map the lower button to <strong>↩️ Undo</strong> and the upper button to <strong>🧼 Quick Eraser</strong>: it is the most convenient setup for drawing + quick correction without lifting the pen from the tablet.</li>
+    <li>If the pen buttons do not respond, first of all <strong>calibrate them</strong>: the fallback heuristic works on 70% of drivers, but calibrating unlocks them 100%.</li>
+    <li>If you need to modify the tablet active areas, system pressure, or orientation, use <strong>🪟 Open Wacom Preferences</strong>: that is the official driver panel.</li>
+    <li>Disabling Wacom integration (master checkbox), the app behaves as with a mouse: all factors return to 1.0 and the tool sliders regain full effect.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── MOUSE & KEYBOARD MAPPING ── -->
+<section id="inputmapping">
+  <div class="section-label">17</div>
+  <h2>Mouse &amp; Keyboard Mapping</h2>
+  <p>Mosaica's classic shortcuts (Ctrl+Z/C/V/X, Delete, Ctrl+/−, arrows, Ctrl+R, double-click) are <strong>protected and always active</strong>. The Input Mapping module lets you add <em>on top</em> of these:</p>
+  <ul>
+    <li><strong>Actions on single mouse buttons</strong> (left, middle/wheel, right, X1, X2)</li>
+    <li><strong>Simultaneous mouse button combinations</strong> (chord)</li>
+    <li><strong>Custom keyboard shortcuts</strong> (e.g. <kbd>Ctrl</kbd>+<kbd>L</kbd> = toggle Lasso)</li>
+    <li><strong>Keys as directional arrows</strong> (e.g. <kbd>W</kbd>/<kbd>A</kbd>/<kbd>S</kbd>/<kbd>D</kbd> behaving as ↑/←/↓/→ — in parallel with native arrows)</li>
+  </ul>
+
+  <h3>Where to Find the Mapping</h3>
+  <p>In the <strong>top bar at the top right</strong>, after the 🖊️ Wacom button, is the <strong>🖱️⌨️ Input</strong> button. Click it to open the configuration modal, organized in four sections plus an advanced options block.</p>
+  <h3>Section 1 — Single Mouse Buttons</h3>
+  <p>For each <code>MouseEvent.button</code> code you can assign an action:</p>
+  <table class="shortcut-table">
+    <thead><tr><th>Code</th><th>Name</th><th>Default in Mosaica</th></tr></thead>
+    <tbody>
+      <tr><td><code>0</code></td><td>Left</td><td>None (reserved for selection/drawing)</td></tr>
+      <tr><td><code>1</code></td><td>Middle (wheel)</td><td>None</td></tr>
+      <tr><td><code>2</code></td><td>Right</td><td>None (reserved for fine rotation on shapes)</td></tr>
+      <tr><td><code>3</code></td><td>X1 / Browser Back (side)</td><td>↩️ Undo</td></tr>
+      <tr><td><code>4</code></td><td>X2 / Browser Forward (side)</td><td>↪️ Redo</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>On <strong>HP HSA-P007M</strong> mice, gaming mice, and many "browser back/forward" mice, the two side buttons emit <code>button=3</code> and <code>button=4</code>. Mosaica intercepts these codes from <code>mousedown</code>, <code>auxclick</code>, and the virtual keys <code>BrowserBack</code>/<code>BrowserForward</code>: mappings work regardless of the driver.</div></div>
+
+  <h3>🎯 Detect Key Code — discover what code your mouse sends</h3>
+  <p>If you have a mouse with exotic buttons (thumb, DPI, programmable) and don't know what <code>button code</code> they emit, press <strong>"🎯 Detect key code"</strong>: the yellow banner says <em>"⏳ Press the mouse button you want to detect now…"</em>. Press the physical button, Mosaica captures the code and adds it to the list so you can assign an action from the dropdown. Safety timeout after 15 seconds.</p>
+
+  <h3>Section 2 — Combinations (Chord)</h3>
+  <p>Press <strong>"➕ Add combination"</strong> and hold down the mouse buttons you want to combine simultaneously (e.g. left + right). Release: after 0.5 seconds of idle, Mosaica registers the combination. Classic example:</p>
+  <ul>
+    <li><strong>Left + Right</strong> → Undo</li>
+    <li><strong>Right + Middle</strong> → Zoom reset</li>
+    <li><strong>X1 + X2</strong> → Save project</li>
+  </ul>
+  <p>Combinations have <strong>absolute priority</strong> over singles: as soon as the chord completes, the single action of the component button does not fire. Moreover, chords that include the right button <strong>block fine rotation</strong> of mouseObserver, so it does not trigger by mistake.</p>
+
+  <p>Each registered combination has three controls: the <strong>action menu</strong> on the right, the <strong>🎯 Relearn</strong> button (to change the buttons without deleting the mapping), and <strong>✕</strong> to remove it.</p>
+
+  <h3>Section 3 — Custom Keyboard Shortcuts</h3>
+  <p>Press <strong>"➕ Add shortcut"</strong>: the banner asks you to press the combination (modifiers + key). Examples:</p>
+  <ul>
+    <li><kbd>Ctrl</kbd>+<kbd>L</kbd> → Toggle Lasso <em>(default already configured)</em></li>
+    <li><kbd>Alt</kbd>+<kbd>W</kbd> → Toggle Watercolor</li>
+    <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> → Duplicate selection</li>
+    <li><kbd>F2</kbd> → Toggle Pen</li>
+  </ul>
+
+  <div class="callout warning"><div class="callout-icon"></div><div><strong>Override of hardcoded shortcuts</strong> — Mosaica's classic shortcuts (Ctrl+Z/C/V/X, Delete, Ctrl+/−, Ctrl+R, arrows) remain active by default. If you add a custom shortcut with the <em>same combination</em>, your version will have <strong>precedence</strong> (the override is explicit: you know what you are doing). Removing it, the hardcoded one comes back into effect.</div></div>
+
+ <p>The <kbd>Ctrl</kbd> and <kbd>Cmd</kbd> (on macOS) modifiers are treated as <strong>equivalent</strong>: a shortcut saved as "Ctrl+L" also matches "Cmd+L".</p>
+
+  <h3>Section 4 — Keys as Directional Arrows (🎮)</h3>
+  <p>Inside the <strong>🎮 Keys as directional arrows</strong> section you find four buttons: <strong>➕ Map to ↑</strong>, <strong>➕ Map to ↓</strong>, <strong>➕ Map to ←</strong>, <strong>➕ Map to →</strong>. Press one, then press the physical key on the keyboard you want to associate with that direction. Classic gaming/CAD setup example:</p>
+  <ul>
+    <li><kbd>W</kbd> → ↑ (up)</li>
+    <li><kbd>S</kbd> → ↓ (down)</li>
+    <li><kbd>A</kbd> → ← (left)</li>
+    <li><kbd>D</kbd> → → (right)</li>
+  </ul>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>The <strong>native arrows (↑↓←→) always remain active in parallel</strong>: they are never disabled. Mapped keys are <em>additional</em>, so you can use both without choosing.</div></div>
+
+  <p><strong>Movement step</strong> — identical to native arrows, calibrated on your monitor (uses <code>mm2px</code> from calibration):</p>
+  <table class="shortcut-table">
+    <thead><tr><th>Modifier</th><th>Step</th><th>When to use it</th></tr></thead>
+    <tbody>
+      <tr><td>none</td><td><strong>0.1 mm</strong></td><td>Default — fine precision for placing mosaic tiles</td></tr>
+      <tr><td><kbd>Shift</kbd></td><td><strong>1 mm</strong></td><td>"Large" step — quick movements</td></tr>
+      <tr><td><kbd>Ctrl</kbd></td><td><strong>0.01 mm</strong></td><td>Super-fine sub-pixel — for perfect alignments</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warning"><div class="callout-icon"></div><div><strong>Priority over shortcuts</strong> — a key mapped as an arrow fires ONLY when pressed alone or with <kbd>Shift</kbd>. Combinations with <kbd>Ctrl</kbd>, <kbd>Alt</kbd>, or <kbd>Cmd</kbd> (e.g. <kbd>Ctrl</kbd>+<kbd>W</kbd>) remain free for custom keyboard shortcuts. Native arrows use <kbd>Ctrl</kbd>+arrow for the super-fine step; on mapped keys the same modifier works the same way.</div></div>
+
+  <p>Each binding has two controls: <strong>🎯 Relearn key</strong> (to change the letter while keeping the direction) and <strong>✕</strong> to remove it. A key can be mapped to only one direction: attempting to map the same key twice shows a warning.</p>
+
+  <p>Without a shape selected, mapped keys perform a <strong>5 mm view pan</strong> in the associated direction (exactly like native arrows).</p>
+
+  <h3>All Mappable Actions</h3>
+  <div class="card-grid col3">
+    <div class="card-mini"><h4>↩️ Undo</h4><p>Equivalent to Ctrl+Z. Also works if the history has a single step.</p></div>
+    <div class="card-mini"><h4>↪️ Redo</h4><p>Equivalent to Ctrl+Shift+Z / Ctrl+Y.</p></div>
+    <div class="card-mini"><h4>📋 Copy / 📌 Paste / ✂️ Cut</h4><p>Same logic as Ctrl+C/V/X, also for multi-selection.</p></div>
+    <div class="card-mini"><h4>🗑️ Delete Selection</h4><p>Deletes active object or selection (Delete/Backspace).</p></div>
+    <div class="card-mini"><h4>🔍➕ Zoom in / 🔍➖ Zoom out / 🔍⤾ Reset</h4><p>Zoom toward the center of the screen. Reset = Ctrl+0.</p></div>
+    <div class="card-mini"><h4>⭕ Toggle Lasso / ✏️ Pen / 💧 Watercolor / 🧼 Eraser / 🖱️ Selection</h4><p>Five toggles for the left toolbar tools.</p></div>
+    <div class="card-mini"><h4>✋ Pan canvas (hold)</h4><p>While holding the button/combo, dragging pans like Alt+drag.</p></div>
+    <div class="card-mini"><h4>⚡ Double Click</h4><p>Synthesizes a dblclick at the cursor location — useful for quickly creating rectangles with the mouse or side buttons.</p></div>
+    <div class="card-mini"><h4>💾 Save Project / 📂 Open Project</h4><p>Equivalents to the File dropdown buttons.</p></div>
+    <div class="card-mini"><h4>❎ Deselect All</h4><p>Discard active object + closes the radial menu.</p></div>
+    <div class="card-mini"><h4>🧬 Duplicate Selection</h4><p>Copy + Paste in one go, with standard 25 px offset.</p></div>
+  </div>
+
+  <h3>⚙️ Advanced Options</h3>
+  <p>Opening the <strong>"⚙️ Advanced Options"</strong> block at the bottom of the modal you find three fine adjustments:</p>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>Chord disambiguation delay (0–300 ms)</h4>
+      <p>When you press a button that <em>could</em> be part of a mapped combination, Mosaica waits N milliseconds before firing the single, to give the combo time to form. Default <strong>80 ms</strong>: balanced between responsiveness and chord precision. Set to 0 for maximum responsiveness (risk: the single may "double-fire" before the chord).</p>
+    </div>
+    <div class="card-mini">
+      <h4>Preserve fine rotation on right button</h4>
+      <p>If active (default <strong>ON</strong>), the single mapping on the right button <em>does not fire</em> when the pointer is over a rotatable shape: in that case mouseObserver's fine rotation (right button + wheel) takes precedence. On empty workspace areas the mapping activates normally.</p>
+    </div>
+    <div class="card-mini" style="grid-column: 1 / -1;">
+      <h4>Suspend in drawing mode</h4>
+      <p>If active (default <strong>ON</strong>), when a drawing tool is active (Pen, Watercolor, Eraser) single mappings on the left button are suspended: the left button is used for drawing. Combinations and keyboard shortcuts continue to work normally.</p>
+    </div>
+  </div>
+
+  <h3>Enable / Disable / Reset</h3>
+  <ul>
+    <li>The checkbox <strong>"Enable custom mappings"</strong> at the top globally disables the module: you return to standard behavior (left=selection, right=rotation on shapes). Useful as a "kill switch" if you want to compare behaviors.</li>
+    <li><strong>"🔄 Restore defaults"</strong> at the bottom: resets all mappings to factory values (X1→Undo, X2→Redo, Ctrl+L→Lasso, no chords configured).</li>
+  </ul>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Mapping settings are saved in <code>localStorage</code> (key <code>mosaica_input_mapping_settings</code>) and <strong>persist across sessions</strong>. They are independent from <code>.msp.json</code> projects.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li>If you have a mouse with side buttons, leave the defaults <strong>X1→Undo, X2→Redo</strong>: it is the most productive setup for mosaic design, where making mistakes and correcting is continuous.</li>
+    <li>A convenient combination is <strong>Left+Right → Deselect All</strong>: with two fingers you "turn off" any active object without having to click elsewhere.</li>
+    <li>For drawers who use <strong>the keyboard with the left hand</strong>: map <kbd>F1</kbd> → Pen, <kbd>F2</kbd> → Watercolor, <kbd>F3</kbd> → Eraser, <kbd>F4</kbd> → Lasso. Change tool without looking up.</li>
+    <li>If a shortcut does not work, check if you are inside a <strong>text field</strong> (Inspector, W/H dimensions, calibration): keyboard mappings are suspended when an input is focused — exactly like hardcoded shortcuts.</li>
+    <li>If you add a chord that includes the right button, remember that the system <strong>also blocks fine rotation</strong> of mouseObserver when the chord fires: choose combinations that do not interfere with your rotation workflow.</li>
+    <li>For debugging, open the <strong>DevTools console</strong> (Ctrl+Shift+I): the two modules print the loaded mappings at startup (<code>[InputMapping] module initialized — prefs: …</code> and <code>[Wacom] Module initialized — prefs: …</code>).</li>
+  </ul></div></div>
+</section>
+
+<!-- ── SHORTCUTS ── -->
+<section id="scorciatoie">
+  <div class="section-label">18</div>
+  <h2>Keyboard Shortcuts</h2>
+
+  <h3>History and Clipboard</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Key</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>Undo last action</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>Redo last undone action</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>C</kbd></td><td>Copy object or multi-selection</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>V</kbd></td><td>Paste maintaining relative positions (+25 px offset)</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>X</kbd></td><td>Cut object or selection</td></tr>
+      <tr><td><kbd>Delete</kbd> / <kbd>Backspace</kbd></td><td>Delete object or selection</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Zoom and View</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Key</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>+</kbd></td><td>Zoom in (centered on screen)</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>−</kbd></td><td>Zoom out</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>0</kbd></td><td>Restore zoom and original position</td></tr>
+      <tr><td>Mouse wheel</td><td>Zoom centered on cursor</td></tr>
+      <tr><td><kbd>Alt</kbd> + drag</td><td>Pan the view (move the sheet)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Fine Rotation and Scale</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Key / Gesture</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td>Hold right button + wheel</td><td>Fine rotation of the shape under the cursor (0.25° step)</td></tr>
+      <tr><td><kbd>Shift</kbd> + right button + wheel</td><td>Fine rotation, 0.5° step</td></tr>
+      <tr><td><kbd>Ctrl</kbd> + right button + wheel</td><td>Fine rotation, 1° step</td></tr>
+      <tr><td>Left click on ↻ Rotate</td><td>+0.25° (with Shift +0.5°, with Ctrl +1°)</td></tr>
+      <tr><td>Right click on ↻ Rotate</td><td>−0.25° (with Shift −0.5°, with Ctrl −1°)</td></tr>
+      <tr><td>Left click on ⤢ Scale</td><td>+1 mm (Shift +0.5 mm, Ctrl +0.35 mm)</td></tr>
+      <tr><td>Right click on ⤢ Scale</td><td>−1 mm (Shift −0.5 mm, Ctrl −0.35 mm)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Object Movement and Pan</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Key</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></td><td>Move selected object by <strong>0.1 mm</strong> (calibrated). Pan view by 5 mm if no object is selected.</td></tr>
+      <tr><td><kbd>Shift</kbd>+Arrows</td><td>Move object by <strong>1 mm</strong> at a time (large step)</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+Arrows</td><td>Move object by <strong>0.01 mm</strong> (super-fine, sub-pixel — for perfect alignments on mosaics)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Full Screen, Modals, Other</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Key</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Esc</kbd></td><td>Priority in order: closes open modals → closes topbar dropdowns → exits full screen</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>R</kbd></td><td>Restarts the application (asks for confirmation)</td></tr>
+      <tr><td>Double-click on the sheet</td><td>Creates a new rectangle at the clicked point</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Shortcuts <strong>do not work</strong> when the cursor is inside a text field (e.g. calibration value, W/H dimensions in the Inspector, inline measurement value). Click outside the field to reactivate shortcuts.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li><strong>Right button + wheel</strong> on the shape is the fastest way to rotate with precision without using handles: 0.25° by default, 0.5° with Shift, 1° with Ctrl.</li>
+    <li>If the cursor is inside a text field or a slider, shortcuts are disabled: press <strong>Esc</strong> or click on the canvas to reactivate them.</li>
+    <li>The <strong>arrow keys</strong> move the selected object by 1 px (10 px with Shift); if no shape is selected, they pan the view.</li>
+    <li><strong>Ctrl + R</strong> restarts the application: useful if you notice slowdowns after many undo/redo operations or heavy exports. Auto-save runs before closing, you don't lose your work.</li>
+    <li>To quickly duplicate a shape, select it and press <strong>Ctrl + C</strong> then <strong>Ctrl + V</strong>: the copy is pasted with a 25 px offset.</li>
+    <li>The <kbd>Esc</kbd> key has intelligent priority: first closes modals, then dropdowns, finally exits full screen — pressing it repeatedly is the universal "back button".</li>
+  </ul></div></div>
+</section>
+
+</main>
+
+<!-- ════════════════════════════════ FOOTER ════════════════════════════════ -->
+<footer>
+  <strong>Mosaica Workspace Pro</strong> · User Guide · By Pico Mosaici<br>
+  <span style="margin-top:6px;display:block;">Updated to version · V 5.2026</span>
+  <span style="margin-top:6px;display:block;">© 2026 Pico Mosaici® by Pietro Coraggio | Venafro (IS) | All rights reserved</span>
+</footer>
+
+</body>
+</html>

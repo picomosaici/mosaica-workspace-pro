@@ -3,6 +3,64 @@ MOSAICA WORKSPACE PRO - NOTE DI RILASCIO
 ============================================================
 
 ------------------------------------------------------------
+Versione 06.2026  (Giugno 2026)
+------------------------------------------------------------
+
+NOVITA':
+  + Sistema multilingue completo Italiano / Inglese
+    con cambio lingua dal menu File (riavvio automatico
+    dell'app per applicare le traduzioni)
+  + Guida utente nella lingua dell'interfaccia: aprendo
+    la guida con Mosaica in Inglese si apre la versione EN
+  + Installer multilingua: selettore di lingua all'avvio
+    e messaggi del pannello dettagli tradotti
+  + Nuovo sistema di zoom "Photoshop-style" con snapshot
+    GPU durante la rotellina: zoomate fluide anche su
+    canvas pesanti (centinaia di tessere, sfondi grandi,
+    decine di tratti penna/acquerello)
+  + Sensibilita' adattiva della rotella: lo zoom accelera
+    in modo naturale quando giri velocemente e resta
+    preciso quando giri piano
+  + Mappatura completa Mouse e Tastiera dal pulsante
+    "Input" nella barra superiore:
+      - Tasti singoli mouse (compresi X1/X2 laterali su
+        mouse HP HSA-P007M, gaming e simili)
+      - Combinazioni di tasti mouse (chord, es. SX+DX)
+      - Scorciatoie tastiera personalizzate (es. Ctrl+L)
+      - Tasti come frecce direzionali (es. W/A/S/D)
+
+MIGLIORAMENTI:
+  * Zoom da rotella senza piu' scatti o blocchi a meta'
+    gesto, anche con progetti molto complessi
+  * Riallocazione del backstore Fabric ottimizzata: una
+    volta sola a fine gesto invece che ad ogni tick
+  * Cap di sicurezza sull'intensita' dei singoli eventi
+    rotella (protezione da spike di driver/SO)
+  * Tasti laterali X1/X2 del mouse intercettati prima
+    della navigazione del browser (Back/Forward) e
+    liberi per mappature personalizzate
+  * Frecce native (su/giu'/sinistra/destra) restano
+    sempre attive in parallelo ai tasti rimappati
+  * Combinazioni mouse hanno priorita' sui tasti
+    singoli (se il chord si completa, il singolo non
+    scatta)
+  * Sospensione automatica dei mapping personalizzati
+    in modalita' disegno (Penna/Acquerello/Gomma): il
+    tasto sinistro disegna sempre
+  * Preservazione opzionale della rotazione fine sul
+    tasto destro sopra le forme ruotabili
+
+NOTE TECNICHE:
+  - Versione interna: 6.2026.0
+  - Electron: 41.x
+  - Fabric.js: 7.x (compatibilita' garantita da 5.1.0)
+  - Persistenza lingua in userData/language.json
+  - 443 chiavi i18n simmetriche IT + EN
+  - Snapshot GPU cappato a 4096px lato lungo (RAM safe)
+  - Sensibilita' zoom: curva 1 - exp(-(x/tau)^2) con
+    EMA alpha 0.25 e decay 250 ms
+
+------------------------------------------------------------
 Versione 05.2026  (Maggio 2026)
 ------------------------------------------------------------
 

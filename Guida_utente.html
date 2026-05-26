@@ -682,7 +682,7 @@
   <h3>Status Bar — leggere i numeri</h3>
   <p>La barra di stato in basso mostra in tempo reale:</p>
   <ul>
-    <li><strong>Zoom</strong> — percentuale di zoom attuale (100% = scala 1:1 con la calibrazione).</li>
+    <li><strong>Zoom</strong> — percentuale di zoom attuale (100% = scala 1:1 con la calibrazione). Range disponibile: <strong>40%–800%</strong>.</li>
     <li><strong>Cursore</strong> — coordinate X, Y in millimetri reali (zero = angolo in alto a sinistra del foglio A4).</li>
     <li><strong>Selezione</strong> — tipo dell'oggetto selezionato + dimensioni in mm reali (es. <em>rect · 25.4 × 18.0 mm</em>), oppure il numero di oggetti se è una selezione multipla.</li>
     <li><strong>Auto-save</strong> — appare solo durante un salvataggio automatico in corso, poi diventa "✔ Auto-salvato" per 2 secondi.</li>
@@ -693,7 +693,7 @@
   <div class="card-grid col3">
     <div class="card-mini">
       <h4>🖱️ Rotella mouse</h4>
-      <p>Zoom centrato sul cursore. Preciso e fluido.</p>
+      <p>Zoom centrato sul cursore. Preciso e fluido. <strong>Range 40%–800%</strong>: oltre questi limiti il valore viene agganciato all'estremo.</p>
     </div>
     <div class="card-mini">
       <h4>⌥ Alt + trascina</h4>
@@ -893,17 +893,25 @@
   <p>Ogni settore diventa un oggetto indipendente, ridimensionabile e modificabile.</p>
 
   <h3>Forme personalizzate (non standard)</h3>
-  <p>Quando le forme regolari (rettangolo, cerchio, triangolo, trapezio, settore) non bastano — per esempio per stelle, frecce, sagome irregolari, contorni di tessere irregolari per i tuoi mosaici — usa il <strong>builder di forme personalizzate</strong> dalla Left Toolbar (pulsante <strong>✏️➕</strong> subito accanto a <strong>➕ Aggiungi forma</strong>).</p>
+  <p>Quando le forme regolari (rettangolo, cerchio, triangolo, trapezio, settore) non bastano — per esempio per stelle, frecce, petali, sagome irregolari, contorni di tessere irregolari per i tuoi mosaici — usa il <strong>builder di forme personalizzate</strong> dalla Left Toolbar (pulsante <strong>✏️➕</strong> subito accanto a <strong>➕ Aggiungi forma</strong>).</p>
 
-  <p>Il builder apre un <strong>modale dedicato</strong> con un canvas di anteprima e funziona in due fasi.</p>
+  <p>Il builder apre un <strong>modale dedicato</strong> con un'area di anteprima attrezzata di <strong>righelli millimetrici reali</strong> (top e left), <strong>zoom</strong> e <strong>pan</strong> indipendenti dal canvas principale, e funziona in due fasi: prima tracci i vertici, poi modifichi liberamente vertici e curvatura dei singoli lati prima di inserirla nel canvas.</p>
+
+  <h4 style="margin:14px 0 6px;">L'area di disegno: righelli, zoom, pan</h4>
+  <ul>
+    <li><strong>Righelli mm reali</strong> in alto e a sinistra: usano la <em>stessa calibrazione</em> del canvas principale, quindi i millimetri che vedi nel builder corrispondono esattamente a quelli del foglio A4. Tick maggiori ogni <strong>10 mm</strong> (etichettati), tick medi ogni <strong>5 mm</strong>, tick fini ogni <strong>1 mm</strong> (visibili quando lo zoom è abbastanza alto). La densità delle etichette si autoregola in base allo zoom.</li>
+    <li><strong>Zoom dell'area di disegno</strong>: rotella del mouse per zoom centrato sul cursore, oppure i pulsanti <strong>−</strong> / <strong>+</strong> / <strong>⟲</strong> in alto a destra. Range <strong>25% – 800%</strong> (più ampio di quello del canvas principale, perché qui spesso serve precisione fine sulle maniglie). L'etichetta percentuale è sempre visibile accanto ai pulsanti.</li>
+    <li><strong>Pan dell'area di disegno</strong>: <kbd>Alt</kbd> + trascinamento col tasto sinistro (stessa logica del canvas principale). Anche il tasto centrale del mouse (rotella premuta) funziona da pan.</li>
+    <li><strong>Coordinate del cursore in mm</strong>: in basso a destra dell'area di disegno c'è un indicatore vivo <code>x: … mm  y: … mm</code> che mostra la posizione del cursore in millimetri reali — utile per disegnare a misura.</li>
+  </ul>
 
   <h4 style="margin:14px 0 6px;">Fase 1 — Tracciare i lati (drawing)</h4>
   <ul>
-    <li><strong>1° click</strong> sul canvas di anteprima → fissa il primo vertice. Da quel momento una linea blu tratteggiata <em>insegue il mouse senza dover tenere premuto</em>, estendendosi e inclinandosi liberamente.</li>
+    <li><strong>1° click</strong> sull'area di anteprima → fissa il primo vertice. Da quel momento una linea blu tratteggiata <em>insegue il mouse senza dover tenere premuto</em>, estendendosi e inclinandosi liberamente.</li>
     <li><strong>2° click</strong> → fissa la fine della prima linea. La seconda linea parte automaticamente dall'ultimo vertice e segue il mouse.</li>
     <li><strong>3° click, 4° click… N° click</strong> → ogni click aggiunge un vertice e dà il via al lato successivo. Puoi piazzare quanti vertici vuoi.</li>
     <li><strong>Backspace</strong> (o pulsante <strong>↶ Vertice</strong>) → rimuove l'ultimo vertice piazzato se hai sbagliato.</li>
-    <li><strong>🔄 Ricomincia</strong> → svuota tutto e ricominci da capo.</li>
+    <li><strong>🔄 Ricomincia</strong> → svuota tutto e ricominci da capo (resetta anche lo zoom).</li>
   </ul>
 
   <h4 style="margin:14px 0 6px;">Chiudere la forma</h4>
@@ -913,26 +921,46 @@
     <li><strong>Premi Invio</strong> → la forma si chiude congiungendo l'ultimo vertice al primo, indipendentemente da dov'è il mouse.</li>
   </ul>
 
-  <h4 style="margin:14px 0 6px;">Fase 2 — Modificare i vertici (editing)</h4>
-  <p>Appena la forma è chiusa, su <strong>ogni vertice</strong> compare una <strong>maniglia a forma di pallino azzurro</strong>. Per esempio, una stella a sei punte avrà sei maniglie, una per punta.</p>
+  <h4 style="margin:14px 0 6px;">Fase 2 — Modificare vertici e curvare i lati (editing)</h4>
+  <p>Appena la forma è chiusa, su <strong>ogni vertice</strong> compare una <strong>maniglia a pallino azzurro pieno</strong> e su <strong>ogni lato</strong> compare una piccola <strong>maniglia rotonda azzurra semitrasparente al centro</strong>. Per esempio una stella a sei punte avrà sei maniglie-vertice e sei maniglie-lato.</p>
+
+  <p><strong>Spostare un vertice:</strong></p>
   <ul>
-    <li><strong>Click e trascina</strong> una maniglia → il vertice corrispondente si sposta, e i due lati che lo formano <em>si allungano e si inclinano</em> in tempo reale fino a quando rilasci il mouse.</li>
-    <li>Puoi modificare quanti vertici vuoi, anche più volte: la forma resta in fase di editing finché non la inserisci o annulli.</li>
+    <li><strong>Click e trascina</strong> una maniglia-vertice → il vertice corrispondente si sposta, e i due lati che lo formano <em>si allungano e si inclinano</em> in tempo reale fino a quando rilasci il mouse. Se uno dei due lati era curvato, la curvatura segue il vertice (la curva si deforma di conseguenza).</li>
   </ul>
 
-  <h4 style="margin:14px 0 6px;">Inserire nel canvas</h4>
-  <p>Quando la forma ti soddisfa, premi <strong>✅ Inserisci nel canvas</strong> (oppure <strong>Invio</strong> se sei già in fase editing): il modale si chiude e la forma viene piazzata <em>al centro della porzione di canvas visibile</em> — esattamente con la stessa logica di posizionamento del pulsante <strong>➕ Aggiungi forma</strong>, indipendente da zoom e pan. La forma mantiene le dimensioni del preview (1:1 in pixel).</p>
+  <p><strong>Curvare un singolo lato:</strong></p>
+  <ul>
+    <li><strong>Click e trascina</strong> la maniglia rotonda azzurra al centro del lato → il lato si trasforma in una <strong>curva di Bézier quadratica</strong> che passa esattamente <em>per il punto dove stai trascinando la maniglia</em>. Più trascini lontano dalla retta originale, più la curva diventa pronunciata.</li>
+    <li>Quando un lato è curvato, la sua maniglia diventa <span style="color:#b45309;font-weight:600;">arancione piena</span> per distinguerla a colpo d'occhio dalle maniglie dei lati ancora dritti.</li>
+    <li>Puoi curvare <strong>quanti lati vuoi</strong>, anche tutti, ognuno in modo indipendente. Ogni curva è memorizzata separatamente — modificare la curvatura di un lato non altera gli altri.</li>
+    <li>Anche il <strong>lato di chiusura</strong> (quello che unisce l'ultimo vertice al primo) è curvabile come tutti gli altri.</li>
+  </ul>
 
-  <div class="callout tip"><div class="callout-icon"></div><div>Una volta nel canvas, la forma personalizzata si comporta esattamente come tutte le altre: <strong>menu radiale</strong>, <strong>maniglie azzurre</strong> per ridimensionare e ruotare, <strong>misure in mm</strong> nell'Inspector e nella status bar, applicazione di <strong>colore</strong> e <strong>texture</strong>, <strong>duplicazione</strong>, <strong>group/ungroup</strong>, <strong>selezione lazo</strong>, <strong>undo/redo</strong>, e viene <strong>salvata</strong> nel progetto <code>.msp.json</code> insieme a tutto il resto.</div></div>
+  <p><strong>Riportare un lato curvo a retta:</strong></p>
+  <ul>
+    <li><strong>Doppio click</strong> sulla maniglia arancione del lato curvato → il lato torna immediatamente dritto.</li>
+    <li><strong>Tasto destro</strong> sulla maniglia arancione → stesso effetto (alternativa per chi preferisce il click destro). Il menu contestuale nativo del browser non viene mostrato.</li>
+  </ul>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Puoi alternare liberamente <strong>spostamento vertici</strong> e <strong>curvatura lati</strong> finché la forma non ti soddisfa. La forma resta in fase di editing finché non la inserisci o annulli, e zoom/pan dell'area di disegno restano attivi anche durante l'editing — quindi puoi zoomare al 400% per ritoccare con precisione una piccola curva e poi tornare a vista intera con <strong>⟲</strong> o premendo <kbd>0</kbd>.</div></div>
+
+  <h4 style="margin:14px 0 6px;">Inserire nel canvas</h4>
+  <p>Quando la forma ti soddisfa, premi <strong>✅ Inserisci nel canvas</strong> (oppure <strong>Invio</strong> se sei già in fase editing): il modale si chiude e la forma viene piazzata <em>al centro della porzione di canvas visibile</em> — esattamente con la stessa logica di posizionamento del pulsante <strong>➕ Aggiungi forma</strong>, indipendente da zoom e pan del canvas principale. La forma mantiene le dimensioni del preview a scala 1:1 in mm reali.</p>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Una volta nel canvas, la forma personalizzata si comporta esattamente come tutte le altre: <strong>menu radiale</strong>, <strong>maniglie azzurre</strong> per ridimensionare e ruotare, <strong>misure in mm</strong> nell'Inspector e nella status bar, applicazione di <strong>colore</strong> e <strong>texture</strong>, <strong>duplicazione</strong>, <strong>group/ungroup</strong>, <strong>selezione lazo</strong>, <strong>undo/redo</strong>, e viene <strong>salvata</strong> nel progetto <code>.msp.json</code> insieme a tutto il resto — comprese le eventuali curve dei lati.</div></div>
 
   <h4 style="margin:14px 0 6px;">Scorciatoie da tastiera dentro il modale</h4>
   <ul>
-    <li><strong>Invio</strong> → in drawing chiude la forma (con ≥3 vertici); in editing inserisce la forma nel canvas.</li>
-    <li><strong>Backspace</strong> / <strong>Canc</strong> → rimuove l'ultimo vertice (solo in drawing).</li>
-    <li><strong>Esc</strong> → chiude il modale senza inserire nulla.</li>
+    <li><kbd>Invio</kbd> → in drawing chiude la forma (con ≥3 vertici); in editing inserisce la forma nel canvas.</li>
+    <li><kbd>Backspace</kbd> / <kbd>Canc</kbd> → rimuove l'ultimo vertice (solo in drawing).</li>
+    <li><kbd>+</kbd> → zoom in dell'area di disegno (centrato sul centro del preview).</li>
+    <li><kbd>−</kbd> → zoom out dell'area di disegno.</li>
+    <li><kbd>0</kbd> → ripristina lo zoom al 100% e ricentra il pan.</li>
+    <li><kbd>Esc</kbd> → chiude il modale senza inserire nulla.</li>
   </ul>
 
-  <div class="callout warning"><div class="callout-icon">⚠️</div><div>Il builder <strong>non controlla</strong> se i lati si auto-intersecano: se i lati si incrociano otterrai un poligono "a farfalla" con riempimento secondo la regola <em>even-odd</em> di Fabric. È spesso una feature voluta (forme tipo clessidra, infiniti, ecc.), ma se non era nelle tue intenzioni usa <strong>↶ Vertice</strong> per tornare indietro o <strong>🔄 Ricomincia</strong>.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div>Il builder <strong>non controlla</strong> se i lati si auto-intersecano: se i lati si incrociano (sia rette che curve) otterrai un poligono "a farfalla" con riempimento secondo la regola <em>even-odd</em> di Fabric. È spesso una feature voluta (forme tipo clessidra, infiniti, petali sovrapposti), ma se non era nelle tue intenzioni usa <strong>↶ Vertice</strong> per tornare indietro, oppure doppio click / tasto destro sulla curva incriminata per raddrizzarla, oppure <strong>🔄 Ricomincia</strong>.</div></div>
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
     <li>Dopo aver creato un rettangolo, usa <strong>🔄 Cambia Forma</strong> nel menu radiale per trasformarlo immediatamente in cerchio, trapezio o triangolo preservando posizione, colore e dimensioni.</li>
@@ -941,7 +969,7 @@
     <li>Per i <strong>trapezi</strong>, lo slider <strong>Offset</strong> cambia la "categoria" della forma; gli slider delle basi preservano invece gli angoli esistenti.</li>
     <li>Dopo aver ridimensionato una forma con le maniglie azzurre, il sistema esegue automaticamente il <em>bake</em> della scala nei punti: i campi in mm restano sempre coerenti con ciò che vedi a schermo.</li>
     <li>Per dividere un cerchio in settori indipendenti, selezionalo e usa <strong>◔ Dividi</strong>: click normale per 4 quarti, <strong>Alt + click</strong> per 2 metà.</li>
-    <li>Per <strong>forme irregolari</strong> (stelle, frecce, sagome di tessere) usa il builder <strong>✏️➕ Crea forma personalizzata</strong>: la griglia leggera nel preview ti aiuta a stimare le proporzioni. Una volta inserita, puoi sempre <strong>ridimensionarla</strong> con le maniglie azzurre o digitare le misure in mm nell'Inspector.</li>
+    <li>Per <strong>forme irregolari</strong> (stelle, frecce, petali, sagome di tessere) usa il builder <strong>✏️➕ Crea forma personalizzata</strong>: i <strong>righelli mm</strong> intorno all'area di disegno e l'indicatore in tempo reale della posizione del cursore ti permettono di disegnare a misura, mentre <strong>zoom</strong> e <strong>pan</strong> dedicati ti danno la precisione che serve sulle maniglie. Dopo aver chiuso la forma puoi <strong>curvare singoli lati</strong> trascinando la maniglia rotonda azzurra al loro centro — utile per <strong>petali</strong>, <strong>foglie</strong>, <strong>onde</strong> e qualunque sagoma con bordi morbidi. Una volta inserita nel canvas, puoi sempre ridimensionarla con le maniglie azzurre o digitare le misure in mm nell'Inspector.</li>
   </ul></div></div>
 </section>
 
@@ -1372,10 +1400,10 @@
     </div>
   </div>
 
-  <div class="callout tip"><div class="callout-icon"></div><div>Puoi aggiungere le tue punte personalizzate: salva qualsiasi PNG in scala di grigi nella cartella <code>textures/brush/</code> e apparirà automaticamente nel modale "Punta" alla prossima apertura.</div></div>
+  <div class="callout tip"><div class="callout-icon"></div><div>Puoi aggiungere le tue punte personalizzate: salva qualsiasi <strong>PNG RGBA con sfondo trasparente</strong> nella cartella <code>textures/brush/</code> e apparirà automaticamente nel modale "Punta" alla prossima apertura. Risoluzione consigliata: 256–512 px sul lato maggiore.</div></div><div class="callout tip"><div class="callout-icon"></div><div>Puoi aggiungere le tue punte personalizzate: salva qualsiasi PNG in scala di grigi nella cartella <code>textures/brush/</code> e apparirà automaticamente nel modale "Punta" alla prossima apertura.</div></div>
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
-    <li>Per aggiungere punte personalizzate, salva file <strong>PNG in scala di grigi</strong> nella cartella <code>textures/brush/</code>: appariranno automaticamente nel modale alla prossima apertura dell'app.</li>
+    <li>Per aggiungere punte personalizzate, salva file <strong>PNG RGBA con sfondo trasparente</strong> nella cartella <code>textures/brush/</code>: appariranno automaticamente nel modale alla prossima apertura dell'app. Disegna la silhouette del pennello con il canale alpha (alpha pieno = pigmento, alpha sfumato = bordi morbidi).</li><li>Per aggiungere punte personalizzate, salva file <strong>PNG in scala di grigi</strong> nella cartella <code>textures/brush/</code>: appariranno automaticamente nel modale alla prossima apertura dell'app.</li>
     <li>Ogni punta ha la sua <strong>Rotazione iniziale</strong> indipendente: sperimenta angoli diversi per ogni texture per scoprire variazioni di tratto inaspettate.</li>
     <li>Le punte "dry brush" con buchi e striature (es. <code>brush_dry_grain.png</code>) danno effetti di velatura molto realistici quando combinate con la texture carta ruvida.</li>
     <li>Se una punta sembra troppo grande o troppo piccola rispetto al tratto, ricorda che la <strong>Larghezza</strong> globale del pennello scala tutte le punte proporzionalmente.</li>
@@ -1855,11 +1883,11 @@
     <li><strong>Azioni sui tasti singoli del mouse</strong> (sinistro, centrale/rotella, destro, X1, X2)</li>
     <li><strong>Combinazioni di tasti mouse</strong> premuti simultaneamente (chord)</li>
     <li><strong>Scorciatoie tastiera personalizzate</strong> (es. <kbd>Ctrl</kbd>+<kbd>L</kbd> = toggle Lazo)</li>
+    <li><strong>Tasti come frecce direzionali</strong> (es. <kbd>W</kbd>/<kbd>A</kbd>/<kbd>S</kbd>/<kbd>D</kbd> che si comportano come ↑/←/↓/→ — in parallelo alle frecce native)</li>
   </ul>
 
   <h3>Dove trovi la mappatura</h3>
-  <p>Nella <strong>top bar in alto a destra</strong>, dopo il pulsante 🖊️ Wacom, c'è il pulsante <strong>🖱️⌨️ Input</strong>. Cliccalo per aprire il modale di configurazione, organizzato in tre sezioni più un blocco di opzioni avanzate.</p>
-
+  <p>Nella <strong>top bar in alto a destra</strong>, dopo il pulsante 🖊️ Wacom, c'è il pulsante <strong>🖱️⌨️ Input</strong>. Cliccalo per aprire il modale di configurazione, organizzato in quattro sezioni più un blocco di opzioni avanzate.</p>
   <h3>Sezione 1 — Tasti singoli del mouse</h3>
   <p>Per ogni codice <code>MouseEvent.button</code> puoi assegnare un'azione:</p>
   <table class="shortcut-table">
@@ -1900,7 +1928,34 @@
 
   <div class="callout warning"><div class="callout-icon"></div><div><strong>Override delle scorciatoie hardcoded</strong> — le scorciatoie classiche di Mosaica (Ctrl+Z/C/V/X, Delete, Ctrl+/−, Ctrl+R, frecce) restano sempre attive di default. Se aggiungi una scorciatoia personalizzata con la <em>stessa combinazione</em>, la tua versione avrà la <strong>precedenza</strong> (l'override è esplicito: sai cosa stai facendo). Rimuovendola, torna in vigore la hardcoded.</div></div>
 
-  <p>I modificatori <kbd>Ctrl</kbd> e <kbd>Cmd</kbd> (su macOS) sono trattati come <strong>equivalenti</strong>: una scorciatoia salvata come "Ctrl+L" matcha anche "Cmd+L".</p>
+ <p>I modificatori <kbd>Ctrl</kbd> e <kbd>Cmd</kbd> (su macOS) sono trattati come <strong>equivalenti</strong>: una scorciatoia salvata come "Ctrl+L" matcha anche "Cmd+L".</p>
+
+  <h3>Sezione 4 — Tasti come frecce direzionali (🎮)</h3>
+  <p>Dentro la sezione <strong>🎮 Tasti come frecce direzionali</strong> trovi quattro pulsanti: <strong>➕ Mappa per ↑</strong>, <strong>➕ Mappa per ↓</strong>, <strong>➕ Mappa per ←</strong>, <strong>➕ Mappa per →</strong>. Premine uno, poi premi sulla tastiera il tasto fisico che vuoi associare a quella direzione. Esempio classico del setup gaming/CAD:</p>
+  <ul>
+    <li><kbd>W</kbd> → ↑ (su)</li>
+    <li><kbd>S</kbd> → ↓ (giù)</li>
+    <li><kbd>A</kbd> → ← (sinistra)</li>
+    <li><kbd>D</kbd> → → (destra)</li>
+  </ul>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Le <strong>frecce native (↑↓←→) restano sempre attive in parallelo</strong>: non vengono mai disabilitate. I tasti mappati sono <em>aggiuntivi</em>, così puoi usare entrambi senza scegliere.</div></div>
+
+  <p><strong>Step di movimento</strong> — identico alle frecce native, calibrato sul tuo monitor (usa <code>mm2px</code> della calibrazione):</p>
+  <table class="shortcut-table">
+    <thead><tr><th>Modificatore</th><th>Step</th><th>Quando usarlo</th></tr></thead>
+    <tbody>
+      <tr><td>nessuno</td><td><strong>0.1 mm</strong></td><td>Default — precisione fine per posizionare tessere di mosaico</td></tr>
+      <tr><td><kbd>Shift</kbd></td><td><strong>1 mm</strong></td><td>Step "grande" — spostamenti rapidi</td></tr>
+      <tr><td><kbd>Ctrl</kbd></td><td><strong>0.01 mm</strong></td><td>Super-fine sub-pixel — per allineamenti perfetti</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warning"><div class="callout-icon"></div><div><strong>Priorità rispetto alle scorciatoie</strong> — un tasto mappato come freccia scatta SOLO quando è premuto da solo o con <kbd>Shift</kbd>. Le combinazioni con <kbd>Ctrl</kbd>, <kbd>Alt</kbd> o <kbd>Cmd</kbd> (es. <kbd>Ctrl</kbd>+<kbd>W</kbd>) restano libere per le scorciatoie tastiera personalizzate. Le frecce native usano <kbd>Ctrl</kbd>+freccia per lo step super-fine; sui tasti mappati lo stesso modificatore funziona allo stesso modo.</div></div>
+
+  <p>Ogni binding ha due controlli: <strong>🎯 Riapprendi tasto</strong> (per cambiare la lettera mantenendo la direzione) e <strong>✕</strong> per rimuoverlo. Un tasto può essere mappato a una sola direzione: tentare di mappare lo stesso tasto due volte mostra un avviso.</p>
+
+  <p>Senza forma selezionata, i tasti mappati eseguono il <strong>pan della vista di 5 mm</strong> nella direzione associata (esattamente come le frecce native).</p>
 
   <h3>Tutte le azioni mappabili</h3>
   <div class="card-grid col3">
@@ -2000,8 +2055,9 @@
   <table class="shortcut-table">
     <thead><tr><th>Tasto</th><th>Azione</th></tr></thead>
     <tbody>
-      <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></td><td>Sposta oggetto selezionato di 1 px. Pan della vista se nessun oggetto è selezionato.</td></tr>
-      <tr><td><kbd>Shift</kbd>+Frecce</td><td>Sposta oggetto di 10 px alla volta</td></tr>
+      <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></td><td>Sposta oggetto selezionato di <strong>0.1 mm</strong> (calibrato). Pan della vista di 5 mm se nessun oggetto è selezionato.</td></tr>
+      <tr><td><kbd>Shift</kbd>+Frecce</td><td>Sposta oggetto di <strong>1 mm</strong> alla volta (step grande)</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+Frecce</td><td>Sposta oggetto di <strong>0.01 mm</strong> (super-fine, sub-pixel — per allineamenti perfetti su mosaici)</td></tr>
     </tbody>
   </table>
 

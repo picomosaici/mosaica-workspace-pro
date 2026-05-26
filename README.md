@@ -37,8 +37,11 @@ Sviluppata su tecnologia Electron e Fabric.js, offre un'esperienza nativa Window
 - 🖌️ **Supporto tavoletta grafica Wacom** nativo
 - 💾 **Salvataggio automatico** e gestione file di progetto
 - 📤 **Esportazione SVG** e PDF ad alta qualità
+- 🔍 **Zoom Photoshop-style** fluido con snapshot GPU: gesti di rotella reattivi anche su canvas pesanti (centinaia di tessere, sfondi grandi, decine di tratti)
+- 🖱️ **Mappatura mouse e tastiera completa**: tasti laterali X1/X2, combinazioni (chord), scorciatoie personalizzate, tasti direzionali rimappabili
 - ⌨️ **Scorciatoie da tastiera** personalizzabili
 - 🚀 **Accelerazione GPU** per progetti complessi
+- 🌍 **Interfaccia multilingue** Italiano / Inglese con guida utente nella lingua dell'app
 
 ## 📥 Download e installazione
 

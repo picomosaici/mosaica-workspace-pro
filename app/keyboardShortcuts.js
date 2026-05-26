@@ -243,6 +243,82 @@ function deleteSelected() {
   flashToast(`🗑️ ${objects.length} oggetto/i eliminato/i`);
 }
 
+// ==================== SPOSTAMENTO FORME / PAN — FUNZIONE GLOBALE ====================
+//
+// Esposta su window per essere richiamata da:
+//   • la callback delle frecce native (sotto, in initKeyboardShortcuts)
+//   • inputMapping.js, quando un tasto singolo (es. "W") è mappato come
+//     freccia direzionale (arrowKeyBindings).
+//
+// STEP IN MILLIMETRI REALI (calibrazione-aware via mm2px):
+//   • default       → 0.1 mm  (precisione fine, ideale per mosaici)
+//   • Shift         → 1   mm  (step "grande")
+//   • Ctrl / Cmd    → 0.01 mm (super-fine, sub-pixel)
+//
+// SE NESSUN OGGETTO SELEZIONATO → pan della vista di 5 mm calibrati
+// (più coerente del vecchio 30 px, indipendente dal monitor).
+//
+// COMPATIBILE Fabric ≥5.1.0: usa solo left/top/setCoords/requestRenderAll,
+// emette object:moving per agganciare radial+overlay (il listener in
+// renderer.js fa già RAF batching). pushState DEBOUNCED per coalescere
+// le pressioni ripetute quando l'utente tiene premuta la freccia.
+window.handleArrowMovement = function (direction, evt) {
+  if (typeof canvas === "undefined" || !canvas) return;
+
+  // Step in mm — Shift "grande", Ctrl/Cmd "super-fine", altrimenti default fine
+  let stepMm;
+  if (evt && (evt.ctrlKey || evt.metaKey)) stepMm = 0.01;
+  else if (evt && evt.shiftKey) stepMm = 1;
+  else stepMm = 0.1;
+
+  // Conversione mm → px canvas tramite la calibrazione utente.
+  // Fallback identity se mm2px non è ancora pronto (caricamento iniziale).
+  const _mm2px = typeof window.mm2px === "function" ? window.mm2px : typeof mm2px === "function" ? mm2px : (v) => v;
+  const stepPx = _mm2px(stepMm);
+
+  const active = canvas.getActiveObject();
+
+  if (active) {
+    // ── Spostamento oggetto / selezione multipla ──────────────────────────
+    let dx = 0,
+      dy = 0;
+    if (direction === "left") dx = -stepPx;
+    else if (direction === "right") dx = stepPx;
+    else if (direction === "up") dy = -stepPx;
+    else if (direction === "down") dy = stepPx;
+    else return;
+
+    active.left = (active.left || 0) + dx;
+    active.top = (active.top || 0) + dy;
+    active.setCoords();
+
+    // Aggiorna radial + measure overlay tramite il listener canonico
+    // (RAF batched, già ottimizzato a zoom alto).
+    try {
+      canvas.fire("object:moving", { target: active });
+    } catch (_) {}
+
+    canvas.requestRenderAll();
+
+    // pushState DEBOUNCED: coalesce raffiche di pressioni della freccia
+    // (chi tiene premuto W o ↑ genera 30+ eventi/sec → 1 solo snapshot).
+    if (typeof pushStateDebounced === "function") pushStateDebounced();
+    else if (typeof pushState === "function") pushState();
+  } else {
+    // ── Pan della vista (5 mm calibrati per pressione) ───────────────────
+    if (typeof view === "undefined" || !view) return;
+    const panStepPx = _mm2px(5);
+
+    if (direction === "left") view.x += panStepPx;
+    else if (direction === "right") view.x -= panStepPx;
+    else if (direction === "up") view.y += panStepPx;
+    else if (direction === "down") view.y -= panStepPx;
+    else return;
+
+    if (typeof applyTransform === "function") applyTransform();
+  }
+};
+
 // ==================== KEYBOARD SHORTCUTS ====================
 
 function initKeyboardShortcuts() {
@@ -314,38 +390,24 @@ function initKeyboardShortcuts() {
     }
 
     // ───── PAN + SPOSTAMENTO OGGETTI CON FRECCE ─────
+    // Step in MM reali (calibrazione-aware): 0.1 mm default, 1 mm con Shift,
+    // 0.01 mm con Ctrl. Gestito da window.handleArrowMovement, riutilizzabile
+    // anche da inputMapping.js per i tasti singoli mappati come frecce.
     if (e.key.startsWith("Arrow")) {
       e.preventDefault();
-      const active = canvas.getActiveObject();
-      const step = e.shiftKey ? 10 : 1;
-
-      if (active) {
-        // sposta oggetto selezionato
-        let dx = 0,
-          dy = 0;
-        if (e.key === "ArrowLeft") dx = -step;
-        if (e.key === "ArrowRight") dx = step;
-        if (e.key === "ArrowUp") dy = -step;
-        if (e.key === "ArrowDown") dy = step;
-
-        active.left += dx;
-        active.top += dy;
-        active.setCoords();
-        canvas.renderAll();
-        pushState();
-      } else {
-        // pan della vista se nessun oggetto selezionato
-        const panStep = 30;
-        if (e.key === "ArrowLeft") view.x += panStep;
-        if (e.key === "ArrowRight") view.x -= panStep;
-        if (e.key === "ArrowUp") view.y += panStep;
-        if (e.key === "ArrowDown") view.y -= panStep;
-        applyTransform();
+      let dir = null;
+      if (e.key === "ArrowLeft") dir = "left";
+      else if (e.key === "ArrowRight") dir = "right";
+      else if (e.key === "ArrowUp") dir = "up";
+      else if (e.key === "ArrowDown") dir = "down";
+      if (dir && typeof window.handleArrowMovement === "function") {
+        window.handleArrowMovement(dir, e);
       }
+      return;
     }
   });
 
-  console.log("[keyboardShortcuts] Scorciatoie attivate: Ctrl+Z, Ctrl+C/V/X, Delete, Ctrl+/-, frecce");
+  console.log("[keyboardShortcuts] Scorciatoie attivate: Ctrl+Z, Ctrl+C/V/X, Delete, Ctrl+/-, frecce (step 0.1 mm)");
 }
 
 // Auto-avvio

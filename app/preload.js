@@ -59,7 +59,7 @@ contextBridge.exposeInMainWorld("desktopAPI", {
    exportFullPNG: tracked("exportFullPNG", "export-full-png"),
    exportShapesSVG: tracked("exportShapesSVG", "export-shapes-svg"),
    restartApp: () => ipcRenderer.invoke("app:restart"),
-   openGuide: () => ipcRenderer.invoke("open-guide"),
+   openGuide: (lang) => ipcRenderer.invoke("open-guide", lang),
    setFullScreen: (flag) => ipcRenderer.send("window:set-fullscreen", flag),
    isFullScreen: () => ipcRenderer.invoke("window:is-fullscreen"),
    onFullScreenChange: (cb) => {
@@ -166,4 +166,44 @@ contextBridge.exposeInMainWorld("wacomAPI", {
    detectDevices: () => ipcRenderer.invoke("wacom:detect-devices"),
    openPreferences: () => ipcRenderer.invoke("wacom:open-preferences"),
    getInfo: () => ipcRenderer.invoke("wacom:get-info")
+});
+
+/* ===============================
+   🌐 LANGUAGE API (i18n)
+   ------------------------------------------------------------
+   Bridge IPC per il modulo i18n.js (renderer-side).
+   Persistenza della lingua dell'interfaccia in
+   userData/language.json (gestito dal main process).
+================================ */
+contextBridge.exposeInMainWorld("languageAPI", {
+   getLanguage: () => ipcRenderer.invoke("language:getLanguage"),
+   setLanguage: (lang) => ipcRenderer.invoke("language:setLanguage", lang),
+   getAvailableLanguages: () => ipcRenderer.invoke("language:getAvailableLanguages")
+});
+
+/* ===============================
+   🔄 UPDATER API
+   ------------------------------------------------------------
+   Bridge IPC per il modulo updateChecker.js (renderer-side).
+   Tutti gli handler IPC sono definiti in main.js sotto la sezione
+   "SISTEMA AGGIORNAMENTI".
+================================ */
+contextBridge.exposeInMainWorld("updaterAPI", {
+   getPlatformInfo: () => ipcRenderer.invoke("update:get-platform-info"),
+   getSettings: () => ipcRenderer.invoke("update:get-settings"),
+   setSettings: (settings) => ipcRenderer.invoke("update:set-settings", settings),
+   fetchLatestRelease: (owner, repo) => ipcRenderer.invoke("update:fetch-latest", owner, repo),
+   downloadAsset: (args) => ipcRenderer.invoke("update:download-asset", args),
+   cancelDownload: () => ipcRenderer.invoke("update:cancel-download"),
+   installAndQuit: (installerPath) => ipcRenderer.invoke("update:install-and-quit", installerPath),
+
+   // Listener progress: ritorna una funzione di unsubscribe.
+   onDownloadProgress: (cb) => {
+      if (typeof cb !== "function") return () => {};
+      const listener = (_event, progress) => {
+         try { cb(progress); } catch (_) {}
+      };
+      ipcRenderer.on("update:download-progress", listener);
+      return () => ipcRenderer.removeListener("update:download-progress", listener);
+   }
 });

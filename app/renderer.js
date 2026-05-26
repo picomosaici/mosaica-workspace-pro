@@ -1,3 +1,30 @@
+// ============================================================
+//  i18n helper locale per renderer.js (Fase 4)
+//  ------------------------------------------------------------
+//  Wrapper sicuro intorno a window.i18n.t() con fallback al
+//  testo italiano originale: se per qualsiasi motivo il modulo
+//  i18n non è ancora pronto o la chiave non esiste, restituisce
+//  il fallback — così l'app resta funzionante e in IT puro.
+// ============================================================
+function __t(key, params, fallback) {
+  try {
+    if (window.i18n && typeof window.i18n.t === "function") {
+      const v = window.i18n.t(key, params);
+      // se il motore ritorna la chiave stessa (= missing), usa fallback
+      if (v === key && fallback != null) return fallback;
+      return v;
+    }
+  } catch (_) {}
+  // Fallback con interpolazione manuale {placeholder} sul testo italiano
+  let s = (fallback != null ? String(fallback) : key);
+  if (params) {
+    s = s.replace(/\{(\w+)\}/g, (m, k) =>
+      Object.prototype.hasOwnProperty.call(params, k) ? String(params[k]) : m
+    );
+  }
+  return s;
+}
+
 // renderer.js — Mosaica Workspace Pro
 // ============== DEBUG INIZIALE ==============
 console.log("[renderer] check API:", {
@@ -134,7 +161,7 @@ function _drawArrow(ctx, left, top, size, baseAngleDeg, objectAngleDeg = 0, fill
       // questa maniglia o usa la rotazione fine col destro, vede SEMPRE la
       // stessa icona — coerenza visiva tra maniglia e cursore.
       // Compensa il livello di zoom corrente per dimensione costante a schermo
-      // (40%–500%), come faceva il vecchio arco.
+      // (40%–800%), come faceva il vecchio arco.
       const _vScale = typeof view !== "undefined" && view && view.scale ? view.scale : 1;
       const ICON = 28 / _vScale; // dimensione su schermo dell'icona (in px canvas)
       ctx.shadowColor = "rgba(0,0,0,0.55)";
@@ -265,7 +292,7 @@ function flashTopToast(msg, duration = 4500) {
 // Il moltiplicatore di risoluzione interna del canvas viene adattato dinamicamente
 // al livello di zoom corrente, in modo che il backstore (i pixel reali del canvas)
 // sia sempre ≥ alla dimensione visualizzata sullo schermo. Così l'immagine resta in
-// HD piena a qualsiasi zoom (40%–500%) senza gonfiare la VRAM quando non serve.
+// HD piena a qualsiasi zoom (40%–800%) senza gonfiare la VRAM quando non serve.
 //
 // Lavoriamo "a step" (non in continuo) per evitare riallocazioni del backstore ad
 // ogni tick della rotella: il quality scale cambia solo quando si supera una soglia.
@@ -274,22 +301,30 @@ function flashTopToast(msg, duration = 4500) {
 //   step 2 → buffer 1600×2260  (~14 MB)  — usato per zoom  40%–150%
 //   step 3 → buffer 2400×3390  (~32 MB)  — usato per zoom 150%–250%
 //   step 4 → buffer 3200×4520  (~58 MB)  — usato per zoom 250%–350%
-//   step 5 → buffer 4000×5650  (~90 MB)  — usato per zoom 350%–500%
+//   step 5 → buffer 4000×5650  (~90 MB)  — usato per zoom 350%–450%
+//   step 6 → buffer 4800×6780  (~124 MB) — usato per zoom 450%–550%
+//   step 7 → buffer 5600×7910  (~169 MB) — usato per zoom 550%–650%
+//   step 8 → buffer 6400×9040  (~221 MB) — usato per zoom 650%–800%
 
 // Limiti di zoom (usati anche dal clamp in setZoomCentered)
 const MIN_ZOOM = 0.4; // 40%
-const MAX_ZOOM = 5; // 500%
+const MAX_ZOOM = 8; // 800%
 
 const MIN_QUALITY_SCALE = 2; // qualità Retina minima (sempre attiva)
-const MAX_QUALITY_SCALE = 5; // basta per HD pieno fino al 500% di zoom
+const MAX_QUALITY_SCALE = 8; // basta per HD pieno fino al 800% di zoom
 let currentQualityScale = MIN_QUALITY_SCALE;
 
 function computeQualityScale(viewScale) {
-  // Soglie scelte per garantire backstore:display ≥ ~1.25 in tutti gli step
-  if (viewScale <= 1.5) return 2;
-  if (viewScale <= 2.5) return 3;
-  if (viewScale <= 3.5) return 4;
-  return 5;
+  // Soglie scelte per garantire backstore:display ≥ ~1.0 in tutti gli step,
+  // con range uniformi di 100% di zoom per step (tranne l'ultimo che chiude
+  // il range fino a MAX_ZOOM).
+  if (viewScale <= 1.5) return 2; // zoom  40%–150%
+  if (viewScale <= 2.5) return 3; // zoom 150%–250%
+  if (viewScale <= 3.5) return 4; // zoom 250%–350%
+  if (viewScale <= 4.5) return 5; // zoom 350%–450%
+  if (viewScale <= 5.5) return 6; // zoom 450%–550%
+  if (viewScale <= 6.5) return 7; // zoom 550%–650%
+  return 8;                       // zoom 650%–800%
 }
 
 // Inganna Fabric: usa la nostra scala invece del devicePixelRatio dello schermo.
@@ -312,7 +347,7 @@ function updateCalibStrip() {
 async function applyCalibration() {
   const measured = parseFloat(measuredInput.value);
   if (isNaN(measured) || measured <= 0) {
-    flashToast("❌ Inserisci un valore valido (> 0)");
+    flashToast(__t("toast.calib.invalidValue", null, "❌ Inserisci un valore valido (> 0)"));
     return;
   }
   updateCalibStrip();
@@ -335,7 +370,7 @@ async function applyCalibration() {
   applyTransform();
 
   if (miniValue) miniValue.textContent = `${REFERENCE_MM} mm`;
-  flashToast(`✅ Calibrazione applicata! Fattore = ${calibrationFactor.toFixed(4)}`);
+  flashToast(__t("toast.calib.applied", { factor: calibrationFactor.toFixed(4) }, `✅ Calibrazione applicata! Fattore = ${calibrationFactor.toFixed(4)}`));
 }
 
 async function resetCalibration() {
@@ -358,7 +393,7 @@ async function resetCalibration() {
   applyTransform();
 
   if (miniValue) miniValue.textContent = `${REFERENCE_MM} mm`;
-  flashToast("🔄 Calibrazione resettata a 1.0");
+  flashToast(__t("toast.calib.reset", null, "🔄 Calibrazione resettata a 1.0"));
 }
 
 updateCalibStrip();
@@ -633,24 +668,226 @@ function applyTransform() {
 // Cambia solo quando il "quality step" è effettivamente diverso, e mai durante
 // un tratto di freehand attivo (la riallocazione del backstore cancellerebbe il
 // disegno in corso). Fabric ricalcola lower/upper/cache canvas internamente.
-function refreshCanvasQualityForZoom() {
-  const newQuality = computeQualityScale(view.scale);
-  if (newQuality === currentQualityScale) return;
-  if (canvas._isCurrentlyDrawing) return; // safe-guard: niente refresh durante un tratto
-  currentQualityScale = newQuality;
-  fabric.devicePixelRatio = newQuality;
-  // Re-imposta le dimensioni "logiche" (CSS) → Fabric ricalcola il backstore
-  // applicando il nuovo devicePixelRatio. Le coordinate degli oggetti non cambiano.
-  canvas.setDimensions({
-    width: canvas.getWidth(),
-    height: canvas.getHeight()
-  });
-  canvas.calcOffset();
-  canvas.requestRenderAll();
+//
+// DEBOUNCE (introdotto per fix zoom-jumps oltre il 300%):
+// Durante un burst di rotella NON vogliamo riallocare il backstore ad ogni
+// evento — gli step alti (≥3) implicano buffer da 32 MB fino a 221 MB, e ogni
+// setDimensions blocca il main thread per decine/centinaia di ms. Durante quel
+// blocco gli eventi wheel si accodano e vengono poi processati in sequenza,
+// producendo un "salto" di zoom di oltre 200%. Differiamo la riallocazione di
+// QUALITY_REFRESH_DEBOUNCE_MS dall'ULTIMA chiamata: durante il burst il foglio
+// si scala via CSS transform (può apparire leggermente sgranato un istante),
+// alla fine del burst il backstore si allinea in UNA volta al livello finale.
+// Approccio standard usato da Photoshop, Figma, AutoCAD ecc.
+const QUALITY_REFRESH_DEBOUNCE_MS = 380;
+let __qualityRefreshTimer = null;
+
+function refreshCanvasQualityForZoom(immediate = false) {
+  // Filtro veloce: stesso step → niente da fare (no-op come prima)
+  const targetQuality = computeQualityScale(view.scale);
+  if (targetQuality === currentQualityScale) {
+    // Annullo un eventuale timer pendente che mirava a uno step diverso ma
+    // l'utente è poi tornato sullo step originale: niente refresh inutile.
+    if (__qualityRefreshTimer) {
+      clearTimeout(__qualityRefreshTimer);
+      __qualityRefreshTimer = null;
+    }
+    return;
+  }
+
+  // Mai durante un tratto di freehand/acquerello attivo
+  if (canvas._isCurrentlyDrawing) return;
+
+  // Funzione di applicazione reale — legge view.scale al momento dell'esecuzione
+  // (non al momento della schedulazione) così se l'utente continua a zoomare
+  // dopo il setTimeout, il refresh punta sempre allo step più recente.
+  const apply = () => {
+    __qualityRefreshTimer = null;
+    if (canvas._isCurrentlyDrawing) return;
+    const finalQuality = computeQualityScale(view.scale);
+    if (finalQuality === currentQualityScale) return;
+    currentQualityScale = finalQuality;
+    fabric.devicePixelRatio = finalQuality;
+    // Re-imposta le dimensioni "logiche" (CSS) → Fabric ricalcola il backstore
+    // applicando il nuovo devicePixelRatio. Le coordinate degli oggetti non cambiano.
+    canvas.setDimensions({
+      width: canvas.getWidth(),
+      height: canvas.getHeight()
+    });
+    canvas.calcOffset();
+    canvas.requestRenderAll();
+  };
+
+  // Coalescenza: ogni nuova chiamata resetta il timer, così la riallocazione
+  // avviene una sola volta a fine burst.
+  if (__qualityRefreshTimer) clearTimeout(__qualityRefreshTimer);
+  if (immediate) {
+    apply();
+  } else {
+    __qualityRefreshTimer = setTimeout(apply, QUALITY_REFRESH_DEBOUNCE_MS);
+  }
 }
 
 function updateZoomUI() {
   if (zoomPercent) zoomPercent.textContent = Math.round(view.scale * 100) + "%";
+}
+
+// ============== ZOOM SNAPSHOT GPU OVERLAY ==============
+// Sistema "Photoshop-style" per zoomate da rotella su canvas complessi
+// (centinaia di forme + bg image + tratti acquerello/penna).
+//
+// IL PROBLEMA RISOLTO:
+//   Durante un burst di rotella, OGNI tick chiamava setZoomCentered →
+//   _updateActiveHandlesForZoom → canvas.requestRenderAll(). Con 100+ forme
+//   + bg image pesante + decine di tratti, ogni render era 30-80ms ed il
+//   main thread non riusciva a stare al passo con la rotella: la
+//   conseguenza era il "salto" + il "blocco" finale alla riallocazione del
+//   backstore.
+//
+// LA SOLUZIONE:
+//   All'inizio del burst snapshot-iamo lower+upper canvas di Fabric in un
+//   <canvas> figlio di wrapperEl (quindi dentro #paper). Nascondiamo i due
+//   canvas Fabric. Il paper scala via CSS transform → lo snapshot scala con
+//   lui (composite GPU del browser, zero costo CPU). Durante il burst NON
+//   c'è alcun render Fabric. A fine burst riallochiamo il backstore alla
+//   nuova fascia di qualità, rendiamo, e al frame successivo rimuoviamo lo
+//   snapshot — la transizione è impercettibile.
+//
+// GPU: usiamo lo stesso meccanismo del compositor del browser usato da
+//   freehandDrawing/watercolorStampBrush per i preview overlay (vedi
+//   _ensureWatercolorPreviewOverlay): un <canvas> con will-change:transform
+//   posizionato dentro wrapperEl, scalato dalla transform del padre.
+//
+// SOGLIA SOFT: cappiamo lo snapshot a MAX_SNAPSHOT_DIM (4096px lato lungo).
+//   A zoom 800% il backstore Fabric vero arriva a 6400×9040 (≈230 MB). Lo
+//   snapshot capped resta ≈30 MB e la perdita di nitidezza dura <250ms,
+//   non percepibile durante un gesto rotella attivo.
+
+const ZOOM_BURST_END_MS = 180;   // ms di silenzio rotella per chiudere il burst
+const MAX_SNAPSHOT_DIM = 4096;   // lato max snapshot (cap RAM ai zoom alti)
+
+const __zoomBurst = {
+  active: false,
+  endTimer: null
+};
+
+// Canvas riusato tra burst — evita allocazioni/GC ricorrenti da decine di MB
+// ad ogni gesto rotella. Lo creiamo lazy alla prima cattura.
+let __zoomSnapshotEl = null;
+
+function _captureZoomSnapshot() {
+  // Mai sovrapporsi a un tratto attivo: durante un freehand/acquerello in
+  // corso lo snapshot nasconderebbe il tratto vivo e impedirebbe il preview.
+  if (canvas._isCurrentlyDrawing) return;
+  if (!canvas?.lowerCanvasEl || !canvas.wrapperEl) return;
+
+  const lower = canvas.lowerCanvasEl;
+  const upper = canvas.upperCanvasEl; // selezione + maniglie + cursore
+  const wrapper = canvas.wrapperEl;
+
+  // CSS size: stessa dei canvas Fabric → sovrapposizione 1:1 sotto la transform di #paper.
+  const cssW = canvas.getWidth();
+  const cssH = canvas.getHeight();
+  // Backstore reale di Fabric (può essere fino a 8× la CSS size con quality scale 8).
+  const realW = lower.width;
+  const realH = lower.height;
+
+  // Cap dimensioni per non riservare RAM eccessiva agli zoom alti.
+  const fit = Math.min(1, MAX_SNAPSHOT_DIM / Math.max(realW, realH));
+  const snapW = Math.max(1, Math.round(realW * fit));
+  const snapH = Math.max(1, Math.round(realH * fit));
+
+  // Riusa l'elemento canvas tra burst: cambiare width/height fa già clearRect.
+  let snap = __zoomSnapshotEl;
+  if (!snap) {
+    snap = __zoomSnapshotEl = document.createElement("canvas");
+  }
+  let needsClear = false;
+  if (snap.width !== snapW) { snap.width = snapW; needsClear = false; }
+  else needsClear = true;
+  if (snap.height !== snapH) { snap.height = snapH; needsClear = false; }
+
+  // Stile: stesse coordinate dei canvas Fabric → si sovrappone esattamente.
+  // z-index 998: sotto il preview acquerello (999) per coerenza, sopra tutto il resto.
+  snap.style.cssText =
+    "position:absolute;left:0;top:0;" +
+    "width:" + cssW + "px;height:" + cssH + "px;" +
+    "pointer-events:none;z-index:998;" +
+    "will-change:transform;image-rendering:auto;";
+
+  const ctx = snap.getContext("2d");
+  if (needsClear) ctx.clearRect(0, 0, snapW, snapH);
+
+  // Composito lower (contenuti) + upper (maniglie/selezione). Try sull'upper
+  // perché in alcuni stati Fabric può non averlo (es. canvas appena creato).
+  ctx.drawImage(lower, 0, 0, snapW, snapH);
+  if (upper) {
+    try { ctx.drawImage(upper, 0, 0, snapW, snapH); } catch (_) {}
+  }
+
+  // Nascondo i canvas Fabric — l'utente vede SOLO lo snapshot da qui in poi.
+  lower.style.visibility = "hidden";
+  if (upper) upper.style.visibility = "hidden";
+
+  // Aggancio dentro wrapperEl (che è figlio di #paper) → eredita la transform
+  // CSS del paper → scala con esso via composite GPU.
+  wrapper.appendChild(snap);
+}
+
+function _removeZoomSnapshot() {
+  // Ripristino sempre la visibilità dei canvas Fabric, anche se lo snapshot
+  // non c'è più (defensive: previene canvas invisibili in caso di chiamate
+  // sbilanciate enter/exit).
+  if (canvas.lowerCanvasEl) canvas.lowerCanvasEl.style.visibility = "";
+  if (canvas.upperCanvasEl) canvas.upperCanvasEl.style.visibility = "";
+
+  const snap = __zoomSnapshotEl;
+  if (!snap || !snap.parentNode) return;
+  try { snap.parentNode.removeChild(snap); } catch (_) {}
+}
+
+function _enterZoomBurst() {
+  if (__zoomBurst.active) return;
+  if (canvas._isCurrentlyDrawing) return; // fallback: niente snapshot durante un tratto
+  __zoomBurst.active = true;
+  _captureZoomSnapshot();
+}
+
+function _exitZoomBurst() {
+  if (!__zoomBurst.active) return;
+  __zoomBurst.active = false;
+  __zoomBurst.endTimer = null;
+
+  // Tutto il lavoro pesante (riallocazione backstore + render + handles) in
+  // UN solo frame, poi rimozione snapshot al frame successivo: garantisce
+  // che Fabric abbia già disegnato il nuovo contenuto HD prima dello "swap".
+  requestAnimationFrame(() => {
+    // 1. Riallocazione backstore alla fascia di qualità finale (sincrono).
+    refreshCanvasQualityForZoom(true);
+
+    // 2. Aggiorna maniglie + ricalcolo coords (no-op se nessuna selezione).
+    if (typeof _updateActiveHandlesForZoom === "function") {
+      _updateActiveHandlesForZoom();
+    }
+
+    // 3. Render sincrono: forza Fabric a disegnare TUTTO nel nuovo backstore
+    //    prima che lo snapshot venga rimosso al frame seguente.
+    canvas.renderAll();
+
+    // 4. Riposiziona radial menu (DOM op, non dipende dal render Fabric).
+    if (typeof positionRadial === "function") positionRadial();
+
+    // 5. Rimuovi lo snapshot al frame successivo, quando Fabric ha già 
+    //    composto il suo backstore — l'utente vede uno "swap" pulito.
+    requestAnimationFrame(_removeZoomSnapshot);
+  });
+}
+
+// Estende (o crea) il timer di chiusura del burst. Va chiamato a ogni 
+// evento rotella: il burst si chiude solo dopo ZOOM_BURST_END_MS di silenzio.
+function _bumpZoomBurstEndTimer() {
+  if (__zoomBurst.endTimer) clearTimeout(__zoomBurst.endTimer);
+  __zoomBurst.endTimer = setTimeout(_exitZoomBurst, ZOOM_BURST_END_MS);
 }
 
 function setZoomCentered(newScale, clientX, clientY) {
@@ -663,7 +900,7 @@ function setZoomCentered(newScale, clientX, clientY) {
   const paperX = (clientX - view.x) / view.scale;
   const paperY = (clientY - view.y) / view.scale;
 
-  // Applica la nuova scala (con clamp MIN_ZOOM – MAX_ZOOM, ovvero 40%–500%)
+  // Applica la nuova scala (con clamp MIN_ZOOM – MAX_ZOOM, ovvero 40%–800%)
   view.scale = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, newScale));
 
   // Riposiziona il paper in modo che (paperX, paperY) finisca esattamente
@@ -672,6 +909,23 @@ function setZoomCentered(newScale, clientX, clientY) {
   view.y = clientY - paperY * view.scale;
 
   applyTransform();
+
+  // ── ZOOM BURST: SOLO CSS, ZERO LAVORO FABRIC ────────────────────────────
+  // Durante un burst di rotella lo snapshot GPU è attivo dentro #paper e 
+  // scala con la transform CSS del paper stesso (composite del browser).
+  // Saltiamo TUTTO il lavoro Fabric-side (refresh quality, render, handles,
+  // radial): non viene visto perché i canvas Fabric sono nascosti, e ogni
+  // operazione qui sarebbe pura CPU sprecata che inchioda il main thread
+  // impedendo alla rotella di stare al passo.
+  // 
+  // A fine burst (220ms dopo l'ultima rotella) _exitZoomBurst esegue UNA
+  // volta sola tutto il lavoro pesante, in ordine: setDimensions → 
+  // updateHandles → renderAll → positionRadial → swap snapshot.
+  if (__zoomBurst.active) return;
+
+  // Percorso normale: zoom da pulsante, scorciatoia tastiera, o singola
+  // tacca di rotella senza burst (il burst non è ancora partito al primo
+  // evento — il _enterZoomBurst nel wheel handler avviene PRIMA del rAF).
   refreshCanvasQualityForZoom();
   if (selectedObj) {
     // ── FIX: ricalcola dimensioni maniglie in funzione del nuovo view.scale ──
@@ -725,18 +979,305 @@ function resetZoomAndPan() {
   applyTransform();
 }
 
-// Zoom con rotella
+// Zoom con rotella — modello "Photoshop-like" con sensibilità adattiva alla velocità.
+// =============================================================================
+// IDEA: il moltiplicatore del fattore zoom dipende da QUANTO VELOCE l'utente
+// sta girando la rotella, non dal livello di zoom corrente.
+//
+//   • Rotella lenta (scatti distanti)   → moltiplicatore < 1: zoom preciso e dolce.
+//   • Rotella a velocità "normale"      → moltiplicatore ≈ 1: zoom standard.
+//   • Rotella molto veloce (burst)      → moltiplicatore satura a ~1.8: copre
+//                                          distanza ma non esplode mai.
+//
+// La velocità è misurata in "intensità rotella" (somma dei |deltaY| nell'ultimo
+// secondo, normalizzata) ed è filtrata con un EMA (Exponential Moving Average)
+// per evitare che il moltiplicatore sia nervoso a ogni singolo evento.
+//
+// La curva di mapping intensità → moltiplicatore è: 1 - e^(-(x/τ)²), saturante.
+// Questa è la forma giusta della "e elevato a x quadro": cresce veloce all'inizio
+// quando l'utente accelera, poi si appiattisce verso un tetto — esattamente il
+// comportamento desiderato (più vai veloce, più zoom, MA con tetto di sicurezza).
+//
+// PROTEZIONI A TUTTI I LIVELLI:
+//   1) Coalescenza rAF: max una setZoomCentered per frame (60 Hz).
+//   2) WHEEL_DELTA_CAP: cap del singolo evento contro spike del driver/SO.
+//   3) PER_FRAME_FACTOR_CAP: tetto assoluto al fattore per frame (+20% max),
+//      guardia ultima anche se la curva e l'EMA fallissero.
+//   4) Debounce di refreshCanvasQualityForZoom (180ms): il backstore di Fabric
+//      viene riallocato UNA volta sola a fine burst, mai durante.
+
+// === Parametri della sensibilità adattiva ===
+const ZOOM_BASE_SENSITIVITY = 0.001;     // sensibilità "neutra" a velocità media
+const ZOOM_SPEED_MIN_MULT = 0.6;         // moltiplicatore minimo (rotella lenta)
+const ZOOM_SPEED_MAX_MULT = 1.8;         // moltiplicatore massimo (saturazione)
+const ZOOM_SPEED_TAU = 800;              // "intensità tipica" della rotella veloce.
+                                         // Valori più alti = serve girare più forte
+                                         // per arrivare alla saturazione. 800 è
+                                         // tarato per rotelle standard (deltaY≈100/scatto).
+const ZOOM_EMA_ALPHA = 0.25;             // [0..1] reattività dell'EMA: più alto =
+                                         // più reattivo, più basso = più stabile.
+                                         // 0.25 = il filtro "ricorda" gli ultimi
+                                         // ~4 eventi pesati esponenzialmente.
+const ZOOM_SPEED_DECAY_MS = 250;         // se non arrivano eventi per >250ms l'EMA
+                                         // si resetta — un nuovo burst riparte
+                                         // dalla velocità "media" senza ereditare
+                                         // l'intensità di un burst precedente.
+
+// === Cap di sicurezza ===
+const WHEEL_DELTA_CAP = 120;             // cap del singolo evento (driver/SO)
+const PER_FRAME_FACTOR_CAP_UP = 1.20;    // max +20% di zoom per frame
+const PER_FRAME_FACTOR_CAP_DOWN = 1 / PER_FRAME_FACTOR_CAP_UP;
+
+// === Stato della rotella ===
+let __wheelAccumDeltaY = 0;
+let __wheelLastClientX = 0;
+let __wheelLastClientY = 0;
+let __wheelRAFScheduled = false;
+let __wheelSpeedEMA = 0;                 // media filtrata dell'intensità
+let __wheelLastEventT = 0;               // timestamp ultimo evento (per decay)
+
+// Curva 1 - e^(-(x/τ)²) mappata su [MIN_MULT .. MAX_MULT]
+function _wheelSpeedMultiplier(speedEma) {
+  const x = speedEma / ZOOM_SPEED_TAU;
+  const saturating = 1 - Math.exp(-(x * x));   // [0..1), satura a 1
+  return ZOOM_SPEED_MIN_MULT + (ZOOM_SPEED_MAX_MULT - ZOOM_SPEED_MIN_MULT) * saturating;
+}
+
+// =============================================================================
+// INERZIA MOUSE WHEEL (simulata)
+// -----------------------------------------------------------------------------
+//  Il TRACKPAD ha momentum naturale fornito dal SO: dopo il gesto continua
+//  ad emettere eventi wheel che decadono dolcemente. Il MOUSE no: ogni tick
+//  della rotella = un solo evento, niente coda. Per dare al mouse lo stesso
+//  "scivolamento dolce" del trackpad, dopo l'ultimo tick reale lanciamo un
+//  loop rAF che applica zoom decrescenti con frizione esponenziale.
+//
+//  Rilevamento mouse vs trackpad:
+//    1) deltaMode === 1 (LINE) o 2 (PAGE)         → sempre mouse.
+//    2) deltaMode === 0 (PIXEL) con |deltaY| ≥ 50 → mouse (Chrome converte
+//       i tick a 100-120 px). I trackpad emettono valori frazionari piccoli.
+//
+//  Stop immediato dell'inerzia su:
+//    • nuovo evento wheel reale (l'utente ricomanda)
+//    • mousedown di qualunque bottone (incluso destro: lascia campo libero
+//      alla rotazione fine di mouseObserver.js)
+//    • keydown (l'utente cambia focus o usa scorciatoie)
+//    • blur della finestra
+//    • inizio di un tratto freehand/acquerello (canvas._isCurrentlyDrawing)
+//
+//  L'inerzia tiene attivo lo zoom-burst snapshot via _bumpZoomBurstEndTimer
+//  ad ogni frame, così il backstore di Fabric viene riallocato UNA volta
+//  sola a fine inerzia (stessa logica del burst rotella standard).
+// =============================================================================
+
+// === Parametri inerzia mouse ===
+const MOUSE_INERTIA_ARM_DELAY_MS = 120;   // ms di silenzio dopo l'ultimo tick: se
+                                         // entro 60ms arriva un altro tick reale
+                                         // l'inerzia non parte (l'utente sta
+                                         // ancora girando attivamente).
+const MOUSE_INERTIA_FRICTION = 0.92;     // decay per frame @60fps: il velocity
+                                         // si riduce del 14% ogni 16ms.
+                                         // 0.86 → tau ~107ms (90% in ~260ms).
+const MOUSE_INERTIA_MIN_VELOCITY = 0.6;  // soglia di stop assoluto: sotto questa
+                                         // velocity l'inerzia termina.
+const MOUSE_INERTIA_GAIN = 0.40;         // velocity iniziale = ultimo dy * gain.
+                                         // 0.40 con dy=120 → vel iniziale 48,
+                                         // che scende a 0.6 in ~28 frame ≈ 470ms.
+
+// === Stato inerzia ===
+let __inertiaActive = false;
+let __inertiaVelocity = 0;
+let __inertiaRAF = 0;
+let __inertiaArmTimer = null;
+let __lastWheelDy = 0;
+let __lastWheelWasMouse = false;
+
+// Euristica mouse vs trackpad sull'evento corrente
+function _isLikelyMouseWheelEvent(e) {
+  // deltaMode 1 = LINE, 2 = PAGE → sempre da rotella mouse (Firefox/Edge)
+  if (e.deltaMode === 1 || e.deltaMode === 2) return true;
+  // deltaMode 0 = PIXEL: i tick mouse in Chromium arrivano come 100-120 px
+  // costanti; i trackpad come valori frazionari piccoli (1-30 tipicamente).
+  return Math.abs(e.deltaY) >= 50;
+}
+
+// Stop pulito di tutto lo stato inerzia (sia loop rAF che arm timer)
+function _stopMouseInertia() {
+  if (__inertiaRAF) {
+    cancelAnimationFrame(__inertiaRAF);
+    __inertiaRAF = 0;
+  }
+  if (__inertiaArmTimer) {
+    clearTimeout(__inertiaArmTimer);
+    __inertiaArmTimer = null;
+  }
+  __inertiaActive = false;
+  __inertiaVelocity = 0;
+}
+
+// Programma l'avvio dell'inerzia dopo MOUSE_INERTIA_ARM_DELAY_MS di silenzio.
+// Se nel frattempo arriva un altro evento wheel reale, il timer viene 
+// cancellato (rearm) e l'inerzia non parte ancora.
+function _armMouseInertia() {
+  if (__inertiaArmTimer) clearTimeout(__inertiaArmTimer);
+  __inertiaArmTimer = setTimeout(() => {
+    __inertiaArmTimer = null;
+    if (!__lastWheelWasMouse) return;
+    if (canvas._isCurrentlyDrawing) return;
+
+    // Velocity iniziale proporzionale all'ultimo dy reale (preserva direzione)
+    const initVel = __lastWheelDy * MOUSE_INERTIA_GAIN;
+    if (Math.abs(initVel) < MOUSE_INERTIA_MIN_VELOCITY) return;
+
+    _runMouseInertia(initVel);
+  }, MOUSE_INERTIA_ARM_DELAY_MS);
+}
+
+// Loop rAF dell'inerzia: ad ogni frame applica un setZoomCentered con la
+// velocity corrente, poi decade. Riusa la stessa formula di sensibilità
+// adattiva del rAF principale (EMA + speedMult + cap per frame) per
+// coerenza visiva con lo zoom utente.
+function _runMouseInertia(initVel) {
+  __inertiaActive = true;
+  __inertiaVelocity = initVel;
+
+  const tick = () => {
+    if (!__inertiaActive) return;
+    // Safety: se l'utente intanto ha iniziato a disegnare, stop
+    if (canvas._isCurrentlyDrawing) { _stopMouseInertia(); return; }
+
+    const dy = __inertiaVelocity;
+
+    // Aggiorna EMA come fosse un evento reale (mantiene coerenza con la
+    // sensibilità adattiva; il dt è ~16ms perché siamo dentro rAF)
+    const now = performance.now();
+    const dt = now - __wheelLastEventT;
+    __wheelLastEventT = now;
+    const dtClamped = Math.max(8, Math.min(100, dt || 16));
+    const instantSpeed = Math.abs(dy) * (16 / dtClamped);
+    __wheelSpeedEMA = ZOOM_EMA_ALPHA * instantSpeed + (1 - ZOOM_EMA_ALPHA) * __wheelSpeedEMA;
+
+    // Stessa formula del rAF reale: speedMult → sensitivity → factor → cap
+    const speedMult = _wheelSpeedMultiplier(__wheelSpeedEMA);
+    const effectiveSensitivity = ZOOM_BASE_SENSITIVITY * speedMult;
+    const f_raw = Math.exp(-dy * effectiveSensitivity);
+    const f = Math.max(PER_FRAME_FACTOR_CAP_DOWN, Math.min(PER_FRAME_FACTOR_CAP_UP, f_raw));
+
+    setZoomCentered(view.scale * f, __wheelLastClientX, __wheelLastClientY);
+
+    // Mantieni vivo il burst snapshot: il backstore si riallocherà UNA
+    // volta sola quando l'inerzia esaurisce + ZOOM_BURST_END_MS di silenzio
+    _bumpZoomBurstEndTimer();
+
+    // Decay esponenziale e check soglia
+    __inertiaVelocity *= MOUSE_INERTIA_FRICTION;
+    if (Math.abs(__inertiaVelocity) < MOUSE_INERTIA_MIN_VELOCITY) {
+      _stopMouseInertia();
+      return;
+    }
+
+    __inertiaRAF = requestAnimationFrame(tick);
+  };
+
+  __inertiaRAF = requestAnimationFrame(tick);
+}
+
 workspace.addEventListener(
   "wheel",
   (e) => {
     e.preventDefault();
-    const f = Math.exp(-e.deltaY * 0.001);
-    setZoomCentered(view.scale * f, e.clientX, e.clientY);
-    // setZoomCentered ora ricalcola già le maniglie e riposiziona il radial:
-    // niente da aggiungere qui, evitiamo doppi reflow.
+
+    // Un nuovo evento wheel reale (utente che gira ancora la rotella o usa il
+    // trackpad) cancella sempre l'inerzia in corso o programmata: comanda la mano.
+    if (__inertiaActive || __inertiaArmTimer) _stopMouseInertia();
+
+    const now = performance.now();
+    const dt = now - __wheelLastEventT;
+    __wheelLastEventT = now;
+
+    // Reset EMA dopo una pausa: un nuovo gesto riparte "pulito"
+    if (dt > ZOOM_SPEED_DECAY_MS) {
+      __wheelSpeedEMA = 0;
+    }
+
+    // Cap del singolo evento e accumulo
+    const dy = Math.max(-WHEEL_DELTA_CAP, Math.min(WHEEL_DELTA_CAP, e.deltaY));
+    __wheelAccumDeltaY += dy;
+    __wheelLastClientX = e.clientX;
+    __wheelLastClientY = e.clientY;
+
+    // Salva info per eventuale arm dell'inerzia (sotto)
+    __lastWheelDy = dy;
+    __lastWheelWasMouse = _isLikelyMouseWheelEvent(e);
+
+    // Aggiorno l'EMA dell'intensità: peso |dy| con la frequenza istantanea.
+    // Se dt è piccolo (eventi rapidi) il contributo è alto; se dt è grande
+    // (eventi distanti) il contributo è basso. Cappo dt a 100ms per stabilità.
+    const dtClamped = Math.max(8, Math.min(100, dt || 16));
+    const instantSpeed = Math.abs(dy) * (16 / dtClamped); // normalizzato su un frame
+    __wheelSpeedEMA = ZOOM_EMA_ALPHA * instantSpeed + (1 - ZOOM_EMA_ALPHA) * __wheelSpeedEMA;
+
+    // ── ZOOM SNAPSHOT BURST ───────────────────────────────────────────────
+    // IMPORTANTE: _enterZoomBurst va chiamato QUI (non nel rAF) perché lo
+    // snapshot deve riflettere lo stato visivo PRIMA del primo applyTransform.
+    // Se lo facessimo nel rAF, il setZoomCentered avrebbe già modificato il
+    // transform CSS del paper, e lo snapshot risulterebbe disallineato
+    // visivamente nel primo frame del burst.
+    _enterZoomBurst();
+    _bumpZoomBurstEndTimer();
+
+    if (!__wheelRAFScheduled) {
+      __wheelRAFScheduled = true;
+      requestAnimationFrame(() => {
+        __wheelRAFScheduled = false;
+        const acc = __wheelAccumDeltaY;
+        __wheelAccumDeltaY = 0;
+        if (acc === 0) return;
+
+        // Moltiplicatore di velocità dall'EMA corrente
+        const speedMult = _wheelSpeedMultiplier(__wheelSpeedEMA);
+        const effectiveSensitivity = ZOOM_BASE_SENSITIVITY * speedMult;
+
+        // Fattore grezzo + clamp per frame (guardia ultima anti-velocità)
+        const f_raw = Math.exp(-acc * effectiveSensitivity);
+        const f = Math.max(PER_FRAME_FACTOR_CAP_DOWN, Math.min(PER_FRAME_FACTOR_CAP_UP, f_raw));
+
+        setZoomCentered(view.scale * f, __wheelLastClientX, __wheelLastClientY);
+        // setZoomCentered durante un burst fa solo applyTransform — zero lavoro
+        // Fabric. Tutto il pesante viene consolidato in _exitZoomBurst.
+      });
+    }
+
+    // Arma l'inerzia SOLO se è un evento da mouse (non trackpad: il SO già
+    // fornisce momentum naturale per il trackpad). Se entro 60ms arriva un
+    // altro tick reale, l'arm viene resettato e l'inerzia non parte.
+    if (__lastWheelWasMouse) {
+      _armMouseInertia();
+    }
   },
   { passive: false }
 );
+
+// ── STOP INERZIA su interazioni utente ────────────────────────────────────
+//  Qualunque azione utente diretta interrompe l'inerzia in corso o programmata.
+//  Listener in CAPTURE su window per intercettare prima di altri handler
+//  (incluso mouseObserver.js per la rotazione fine col destro).
+window.addEventListener("mousedown", () => {
+  if (__inertiaActive || __inertiaArmTimer) _stopMouseInertia();
+}, true);
+
+window.addEventListener("keydown", () => {
+  if (__inertiaActive || __inertiaArmTimer) _stopMouseInertia();
+}, true);
+
+window.addEventListener("blur", () => {
+  if (__inertiaActive || __inertiaArmTimer) _stopMouseInertia();
+});
+
+// Anche l'inizio di un tratto Fabric (freehand/acquerello) deve fermare l'inerzia
+canvas.on("mouse:down", () => {
+  if (__inertiaActive || __inertiaArmTimer) _stopMouseInertia();
+});
 
 // Pulsanti zoom
 if (zoomInBtn)
@@ -1984,11 +2525,11 @@ function updateRadialLockButton() {
 
   if (anyLocked) {
     btn.textContent = "🔓";
-    btn.setAttribute("data-tooltip", "Sblocca oggetto");
+    btn.setAttribute("data-tooltip", __t("radial.tooltip.unlock", null, "Sblocca oggetto"));
     btn.style.background = "#e67e22"; // arancione = stato bloccato
   } else {
     btn.textContent = "🔒";
-    btn.setAttribute("data-tooltip", "Blocca oggetto (non selezionabile per spostamento/scala/rotazione)");
+    btn.setAttribute("data-tooltip", __t("radial.tooltip.lockFull", null, "Blocca oggetto (non selezionabile per spostamento/scala/rotazione)"));
     btn.style.background = ""; // ripristina il blu di default
   }
 }
@@ -2146,7 +2687,7 @@ function startInlineMeasureEdit(axis) {
   const obj = canvas.getActiveObject();
   if (!obj) return;
   if (obj.type === "activeSelection") {
-    flashToast("Modifica diretta disponibile solo per forme singole");
+    flashToast(__t("toast.shape.directEditOnlySingle", null, "Modifica diretta disponibile solo per forme singole"));
     return;
   }
 
@@ -2658,14 +3199,19 @@ canvas.on("selection:cleared", (e) => {
 let _radialMoveRAF = null;
 let _pendingRadialUpdate = false;
 
-function _scheduleRadialUpdate() {
+function _scheduleRadialUpdate(needHandles = true) {
+  // Accumulo OR: se anche un solo trigger nel frame vuole le maniglie
+  // aggiornate (scaling/rotating), le aggiorniamo. Moving da solo no.
+  _pendingNeedHandles = _pendingNeedHandles || !!needHandles;
   if (_radialMoveRAF) return;
   _pendingRadialUpdate = false;
   _radialMoveRAF = requestAnimationFrame(() => {
     _radialMoveRAF = null;
     const tgt = _pendingMoveTarget;
+    const needH = _pendingNeedHandles;
     _pendingMoveTarget = null;
-    if (tgt) {
+    _pendingNeedHandles = false;
+    if (tgt && needH) {
       // Aggiornamento maniglie spostato DENTRO il RAF: a zoom alto evita di
       // far girare getBoundingRect + setCoords ad ogni mousemove (vedi
       // updateHandlesSpacing, che ricalcola padding/cornerSize/setCoords).
@@ -2677,6 +3223,12 @@ function _scheduleRadialUpdate() {
 }
 
 let _pendingMoveTarget = null;
+// Durante moving puro (translation) le maniglie NON cambiano dimensione né
+// padding (cambia solo lo zoom, fermo durante il drag): skippiamo
+// updateHandlesSpacing che a zoom >300% è il collo di bottiglia (chiama
+// getBoundingRect+setCoords su Path freehand con migliaia di punti).
+// Scaling/rotating invece passano needHandles=true perché il bbox cambia.
+let _pendingNeedHandles = false;
 
 canvas.on("object:moving", (e) => {
   if (!e?.target) return;
@@ -2684,14 +3236,17 @@ canvas.on("object:moving", (e) => {
   // delle maniglie nel frame corrente. È un'operazione lightweight.
   e.target.setCoords();
 
-  // Tutto il resto (updateHandlesSpacing, positionRadial, updateMeasureOverlay)
-  // viene compresso in 1 sola esecuzione per frame via RAF: a zoom alto era
-  // il vero collo di bottiglia del movimento non fluido.
+  // Tutto il resto (positionRadial, updateMeasureOverlay) viene compresso
+  // in 1 sola esecuzione per frame via RAF. updateHandlesSpacing SKIPPATA
+  // durante moving: a zoom alto è il vero collo di bottiglia del movimento
+  // non fluido (getBoundingRect+setCoords su Path con tanti punti). Durante
+  // una traslazione pura le maniglie non cambiano dimensione né padding,
+  // quindi non c'è motivo di ricalcolarle ad ogni frame del drag.
   const active = canvas.getActiveObject();
   if (active && (active === e.target || (active.type === "activeSelection" && active.contains?.(e.target)))) {
     _pendingMoveTarget = e.target;
     _pendingRadialUpdate = true;
-    _scheduleRadialUpdate();
+    _scheduleRadialUpdate(false); // ← skip handles update durante moving
   }
 });
 
@@ -2778,7 +3333,7 @@ canvas.on("object:rotating", (e) => {
 function radialChangeShapeAction() {
   const orig = canvas.getActiveObject();
   if (!orig) {
-    flashToast("Seleziona un oggetto prima");
+    flashToast(__t("toast.selection.selectFirstAlt", null, "Seleziona un oggetto prima"));
     return;
   }
 
@@ -2875,7 +3430,7 @@ function radialChangeShapeAction() {
   }
 
   if (!newObj) {
-    flashToast("Errore creazione forma");
+    flashToast(__t("toast.shape.createError", null, "Errore creazione forma"));
     return;
   }
 
@@ -2964,7 +3519,7 @@ function radialChangeShapeAction() {
   });
 
   pushState();
-  flashToast("Forma → " + (italianNames[next] || next));
+  flashToast(__t("toast.shape.changed", { name: __t("shapes." + next, null, italianNames[next] || next) }, "Forma → " + (italianNames[next] || next)));
 }
 
 function updateRadialSliceVisibility() {
@@ -3021,7 +3576,7 @@ if (radial) {
           selectedObj = group;
           canvas.renderAll();
           pushState();
-          flashToast(`✅ ${objs.length} oggetti raggruppati`);
+          flashToast(__t("toast.group.grouped", { count: objs.length }, `✅ ${objs.length} oggetti raggruppati`));
           updateRadialForMultiSelection();
           positionRadial();
         }
@@ -3110,7 +3665,7 @@ if (radial) {
 
         canvas.renderAll();
         pushState();
-        flashToast(`✅ Gruppo separato (${items.length} oggetti)`);
+        flashToast(__t("toast.group.ungrouped", { count: items.length }, `✅ Gruppo separato (${items.length} oggetti)`));
         updateRadialForMultiSelection();
         positionRadial();
       }
@@ -3178,7 +3733,7 @@ if (radial) {
     // --- COPY COLOR ---
     if (act === "copyColor") {
       if (!selectedObj) {
-        flashToast("Seleziona prima un oggetto");
+        flashToast(__t("toast.selection.selectFirst", null, "Seleziona prima un oggetto"));
         return;
       }
 
@@ -3209,7 +3764,7 @@ if (radial) {
     // --- PASTE COLOR ---
     if (act === "pasteColor") {
       if (!selectedObj) {
-        flashToast("Seleziona prima un oggetto");
+        flashToast(__t("toast.selection.selectFirst", null, "Seleziona prima un oggetto"));
         return;
       }
 
@@ -3220,7 +3775,7 @@ if (radial) {
           .openTexturePicker()
           .then((result) => {
             if (!result) {
-              flashToast("Nessuna texture selezionata");
+              flashToast(__t("toast.texture.noneSelected", null, "Nessuna texture selezionata"));
               return;
             }
 
@@ -3242,10 +3797,10 @@ if (radial) {
                   }
                   selectedObj.setCoords();
                   canvas.renderAll();
-                  flashToast("Texture applicata: " + (result.filename || ""));
+                  flashToast(__t("toast.texture.applied", { filename: result.filename || "" }, "Texture applicata: " + (result.filename || "")));
                 } catch (err) {
                   console.warn(err);
-                  flashToast("Impossibile applicare texture");
+                  flashToast(__t("toast.texture.applyError", null, "Impossibile applicare texture"));
                 }
               },
               { crossOrigin: "anonymous" }
@@ -3253,7 +3808,7 @@ if (radial) {
           })
           .catch((err) => {
             console.error("textureAPI error", err);
-            flashToast("Errore apertura cartella texture");
+            flashToast(__t("toast.texture.folderError", null, "Errore apertura cartella texture"));
           });
       } else {
         if (textureFile) textureFile.click();
@@ -3320,11 +3875,11 @@ if (radial) {
       flashToast(
         lock
           ? n > 1
-            ? `🔒 ${n} oggetti bloccati`
-            : "🔒 Oggetto bloccato"
+            ? __t("toast.lock.lockedMany", { count: n }, `🔒 ${n} oggetti bloccati`)
+            : __t("toast.lock.locked", null, "🔒 Oggetto bloccato")
           : n > 1
-            ? `🔓 ${n} oggetti sbloccati`
-            : "🔓 Oggetto sbloccato"
+            ? __t("toast.lock.unlockedMany", { count: n }, `🔓 ${n} oggetti sbloccati`)
+            : __t("toast.lock.unlocked", null, "🔓 Oggetto sbloccato")
       );
 
       // Aggiorna icona/tooltip del bottone lock per riflettere il nuovo stato della selezione
@@ -3342,11 +3897,11 @@ if (radial) {
       if (selectedObj.type === "group" && selectedObj._objects) {
         const count = selectedObj._objects.length;
         canvas.remove(selectedObj);
-        flashToast(`✅ ${count} oggetti eliminati`);
+        flashToast(__t("toast.objects.deleted", { count: count }, `✅ ${count} oggetti eliminati`));
       } else if (selectedObj.type === "activeSelection" && selectedObj._objects) {
         const count = selectedObj._objects.length;
         selectedObj._objects.forEach((obj) => canvas.remove(obj));
-        flashToast(`✅ ${count} oggetti eliminati`);
+        flashToast(__t("toast.objects.deleted", { count: count }, `✅ ${count} oggetti eliminati`));
       } else {
         canvas.remove(selectedObj);
       }
@@ -3423,12 +3978,12 @@ if (colorInput) {
       }
       selectedObj.setCoords();
       canvas.renderAll();
-      flashToast("Colore applicato");
+      flashToast(__t("toast.color.applied", null, "Colore applicato"));
       updateMeasureOverlay();
       pushState();
     } catch (err) {
       console.warn(err);
-      flashToast("Errore applicazione colore");
+      flashToast(__t("toast.color.applyError", null, "Errore applicazione colore"));
     }
   });
 }
@@ -3495,7 +4050,7 @@ async function loadTexturePanel() {
         const selectedObjects = canvas.getActiveObjects(); // ← CAMBIATO: supporta multi-selezione + gruppi
 
         if (selectedObjects.length === 0) {
-          flashToast("❌ Seleziona almeno un oggetto prima");
+          flashToast(__t("toast.texture.selectFirst", null, "❌ Seleziona almeno un oggetto prima"));
           return;
         }
 
@@ -3517,7 +4072,7 @@ async function loadTexturePanel() {
 
             canvas.renderAll();
             pushState(); // salva nello storico (Undo funziona)
-            flashToast(`✅ Texture applicata a ${applied} oggetto/i (${item.filename || ""})`);
+            flashToast(__t("toast.texture.appliedMany", { count: applied, filename: item.filename || "" }, `✅ Texture applicata a ${applied} oggetto/i (${item.filename || ""})`));
           },
           { crossOrigin: "anonymous" }
         );
@@ -3746,7 +4301,7 @@ function applyProjectData(data, filename, filePath = null) {
         pushState();
         enableHistoryButtons();
 
-        flashToast("Progetto caricato: " + (filename || ""));
+        flashToast(__t("toast.project.loaded", { filename: filename || "" }, "Progetto caricato: " + (filename || "")));
         console.log("[applyProjectData] ✓ completato regolarmente");
       } catch (err) {
         console.error("[applyProjectData] errore nella callback di loadFromJSON", err);
@@ -3763,17 +4318,17 @@ function applyProjectData(data, filename, filePath = null) {
 if (openProjectBtn) {
   openProjectBtn.addEventListener("click", async () => {
     if (!window.projectAPI?.openProjectDialog) {
-      flashToast("API apertura progetto non disponibile");
+      flashToast(__t("toast.project.openApiUnavailable", null, "API apertura progetto non disponibile"));
       return;
     }
     try {
       const res = await window.projectAPI.openProjectDialog();
       if (!res) {
-        flashToast("Apertura progetto annullata");
+        flashToast(__t("toast.project.openCancelled", null, "Apertura progetto annullata"));
         return;
       }
       if (!res.content) {
-        flashToast("Nessun contenuto nel progetto selezionato");
+        flashToast(__t("toast.project.openEmpty", null, "Nessun contenuto nel progetto selezionato"));
         return;
       }
 
@@ -3782,7 +4337,7 @@ if (openProjectBtn) {
       await applyProjectData(projectData, res.filename, res.path);
     } catch (e) {
       console.error(e);
-      flashToast("Errore apertura progetto");
+      flashToast(__t("toast.project.openError", null, "Errore apertura progetto"));
     }
   });
 }
@@ -3897,20 +4452,20 @@ if (saveProjectBtn) {
       }
 
       if (res?.canceled) {
-        flashToast("Salvataggio annullato");
+        flashToast(__t("toast.project.saveCancelled", null, "Salvataggio annullato"));
       } else if (res?.error) {
-        flashToast("Errore: " + res.error);
+        flashToast(__t("toast.project.saveError", { error: res.error }, "Errore: " + res.error));
       } else {
         currentProjectPath = res.path || null; // ← memorizza sempre il path
-        flashToast("Progetto salvato ✔");
+        flashToast(__t("toast.project.saved", null, "Progetto salvato ✔"));
         if (autoOpenCheckbox?.checked && res?.path) {
           await window.projectAPI.setAutoOpen(res.path);
-          flashToast("Progetto salvato e impostato come apertura automatica");
+          flashToast(__t("toast.project.savedAutoOpen", null, "Progetto salvato e impostato come apertura automatica"));
         }
       }
     } catch (e) {
       console.error(e);
-      flashToast("Errore salvataggio progetto");
+      flashToast(__t("toast.project.saveErrorGeneric", null, "Errore salvataggio progetto"));
     }
   });
 }
@@ -4030,7 +4585,7 @@ function setCanvasBackgroundFromDataURL(dataURL, filename = null, opts = {}) {
           // backgroundMeta e da _reapplyBackgroundSilent, completamente disaccoppiato
           // dallo stack undo/redo. Chiamare pushState() qui farebbe sì che undo/redo
           // aggiunga/rimuova lo sfondo, che è esattamente il comportamento da evitare.
-          flashToastSafe("Immagine di sfondo applicata");
+          flashToastSafe(__t("toast.bg.applied", null, "Immagine di sfondo applicata"));
         }
         // Durante il restore di progetto restiamo silenziosi: il toast finale
         // ("Progetto caricato: …") di applyProjectData copre la comunicazione utente.
@@ -4081,7 +4636,7 @@ function reapplyBackgroundImage() {
 
 function rotateBackground(delta) {
   if (!backgroundMeta || !backgroundMeta.dataURL) {
-    flashToastSafe("Nessuna immagine di sfondo da ruotare");
+    flashToastSafe(__t("toast.bg.nothingToRotate", null, "Nessuna immagine di sfondo da ruotare"));
     return;
   }
   backgroundMeta.rotation = normalizeRotationDeg((backgroundMeta.rotation || 0) + delta);
@@ -4090,7 +4645,7 @@ function rotateBackground(delta) {
 
 function setBackgroundFit(fit) {
   if (!backgroundMeta || !backgroundMeta.dataURL) {
-    flashToastSafe("Nessuna immagine caricata");
+    flashToastSafe(__t("toast.bg.nothingLoaded", null, "Nessuna immagine caricata"));
     return;
   }
   backgroundMeta.fit = fit === "cover" ? "cover" : "contain";
@@ -4111,7 +4666,7 @@ function clearBackground() {
 
   // NON chiamiamo pushState(): la rimozione dello sfondo non va in undo/redo,
   // coerentemente con il fatto che anche l'aggiunta non ci va.
-  flashToastSafe("Sfondo rimosso");
+  flashToastSafe(__t("toast.bg.removed", null, "Sfondo rimosso"));
 }
 
 // ============== UI SFONDO ==============
@@ -4186,7 +4741,7 @@ if (bgRotateRight) bgRotateRight.addEventListener("click", () => rotateBackgroun
 
 // ============== EXPORT PDF (con modale di scelta) ==============
 async function handleExportPdfA4() {
-  if (!canvas) return flashToast("Canvas non pronto");
+  if (!canvas) return flashToast(__t("toast.canvas.notReady", null, "Canvas non pronto"));
   // Aggiorna lo stato disabilitato dell'opzione "immagine di sfondo"
   refreshPdfExportModalState();
   showPdfExportModal();
@@ -4241,7 +4796,7 @@ function getSelectedPdfMode() {
  *   "shapesOnTransparent"  → solo forme + sfondo trasparente
  */
 async function exportPdfWithMode(mode) {
-  if (!canvas) return flashToast("Canvas non pronto");
+  if (!canvas) return flashToast(__t("toast.canvas.notReady", null, "Canvas non pronto"));
   const CW = canvas.getWidth();
   const CH = canvas.getHeight();
 
@@ -4254,7 +4809,7 @@ async function exportPdfWithMode(mode) {
 
   const orientation = CW > CH ? "landscape" : "portrait";
 
-  flashToast("⏳ Generazione PDF ad alta risoluzione…");
+  flashToast(__t("toast.pdf.generating", null, "⏳ Generazione PDF ad alta risoluzione…"));
 
   let dataURL;
 
@@ -4275,15 +4830,15 @@ async function exportPdfWithMode(mode) {
     }
 
     if (!dataURL) {
-      flashToast("❌ Generazione PDF annullata");
+      flashToast(__t("toast.pdf.cancelled", null, "❌ Generazione PDF annullata"));
       return;
     }
 
     const result = await window.desktopAPI?.exportPDFImage({ imgData: dataURL, orientation });
-    if (result) flashToast("✅ PDF A4 esportato a 300 DPI");
+    if (result) flashToast(__t("toast.pdf.done", null, "✅ PDF A4 esportato a 300 DPI"));
   } catch (err) {
     console.error("Errore export PDF:", err);
-    flashToast("❌ Errore durante l'export PDF");
+    flashToast(__t("toast.pdf.error", null, "❌ Errore durante l'export PDF"));
   }
 }
 
@@ -4516,7 +5071,7 @@ function hideRadial() {
 function sliceCircleAction(isAltKey) {
   const obj = canvas.getActiveObject();
   if (!obj || (obj.type !== "circle" && obj.type !== "ellipse")) {
-    flashToast("❌ Seleziona prima un cerchio o un'ellisse");
+    flashToast(__t("toast.slice.needCircleOrEllipse", null, "❌ Seleziona prima un cerchio o un'ellisse"));
     return;
   }
 
@@ -4573,9 +5128,9 @@ function sliceCircleAction(isAltKey) {
   pushState();
 
   if (isHalves) {
-    flashToast(`✅ Diviso in 2 metà (sovrapposte perfettamente sul centro)`);
+    flashToast(__t("toast.slice.halves", null, `✅ Diviso in 2 metà (sovrapposte perfettamente sul centro)`));
   } else {
-    flashToast(`✅ Diviso in 4 quarti disposti in fila (senza sovrapposizione)`);
+    flashToast(__t("toast.slice.quarters", null, `✅ Diviso in 4 quarti disposti in fila (senza sovrapposizione)`));
   }
 }
 
@@ -4680,7 +5235,7 @@ function toggleAngleControls() {
 function radialDuplicateAction() {
   const active = canvas.getActiveObject();
   if (!active) {
-    flashToast("Seleziona prima un oggetto");
+    flashToast(__t("toast.selection.selectFirst", null, "Seleziona prima un oggetto"));
     return;
   }
 
@@ -4747,7 +5302,7 @@ function radialDuplicateAction() {
       canvas.renderAll();
       pushState();
       positionRadial();
-      flashToast(`✅ Gruppo duplicato (${clones.length} oggetti)`);
+      flashToast(__t("toast.group.duplicated", { count: clones.length }, `✅ Gruppo duplicato (${clones.length} oggetti)`));
     });
   } else if (active.type === "activeSelection") {
     // Selezione multipla → duplica ciascun oggetto.
@@ -4779,7 +5334,7 @@ function radialDuplicateAction() {
       canvas.renderAll();
       pushState();
       positionRadial();
-      flashToast(`✅ ${clones.length} oggetti duplicati`);
+      flashToast(__t("toast.objects.duplicated", { count: clones.length }, `✅ ${clones.length} oggetti duplicati`));
     });
   } else {
     // Oggetto singolo — left/top già assoluti.
@@ -4798,7 +5353,7 @@ function radialDuplicateAction() {
         toggleAngleControls();
         populateTrapezoidControlsFromObject(clone);
         requestAnimationFrame(() => requestAnimationFrame(updateMeasureOverlay));
-        flashToast("✅ Forma duplicata");
+        flashToast(__t("toast.shape.duplicated", null, "✅ Forma duplicata"));
       },
       ["__shape", "__shapeType", "customId", "__isFreehand", "__isBackground"]
     );
@@ -4921,17 +5476,17 @@ if (autoOpenCheckbox) {
       if (currentProjectPath) {
         // C'è un progetto aperto/salvato → registralo come auto-open
         await window.projectAPI?.setAutoOpen(currentProjectPath);
-        flashToast("✅ Apertura automatica attivata per questo progetto");
+        flashToast(__t("toast.autoOpen.activated", null, "✅ Apertura automatica attivata per questo progetto"));
       } else {
         // Nessun progetto ancora salvato → avvisa l'utente
-        flashToast("⚠️ Salva prima il progetto per attivare l'apertura automatica");
+        flashToast(__t("toast.autoOpen.saveFirst", null, "⚠️ Salva prima il progetto per attivare l'apertura automatica"));
         // Deseleziona la checkbox perché non c'è nulla da registrare
         autoOpenCheckbox.checked = false;
       }
     } else {
       // Checkbox deselezionata → rimuovi auto-open
       await window.projectAPI?.setAutoOpen(null);
-      flashToast("Apertura automatica disattivata");
+      flashToast(__t("toast.autoOpen.deactivated", null, "Apertura automatica disattivata"));
     }
   });
 }
@@ -5072,8 +5627,8 @@ try {
 
     const btn = document.createElement("button");
     btn.id = "newProjectBtn";
-    btn.textContent = "Nuovo progetto";
-    btn.title = "Crea nuovo progetto (canvas vuoto)";
+    btn.textContent = __t("ui.newProject.label", null, "Nuovo progetto");
+    btn.title = __t("ui.newProject.tooltip", null, "Crea nuovo progetto (canvas vuoto)");
     btn.className = "bgBtn";
     btn.style.background = "#6f42c1";
     btn.style.marginTop = "6px";
@@ -5135,7 +5690,7 @@ try {
       canvas.renderAll();
       pushState();
       enableHistoryButtons();
-      flashToast("Nuovo progetto creato");
+      flashToast(__t("toast.project.created", null, "Nuovo progetto creato"));
     }
 
     // ── Helper per gestire il modale di conferma ──
@@ -5493,7 +6048,7 @@ function renderFreehandListModal() {
   countEl.textContent = `(${freehands.length})`;
 
   if (freehands.length === 0) {
-    container.innerHTML = `<div style="padding:40px;text-align:center;color:#777;">Nessuna linea presente</div>`;
+    container.innerHTML = `<div style="padding:40px;text-align:center;color:#777;">${__t("ui.freehand.noLinesPresent", null, "Nessuna linea presente")}</div>`;
     modal.style.display = "flex";
     return;
   }
@@ -5508,7 +6063,7 @@ function renderFreehandListModal() {
   selectAllLabel.textContent = `${freehands.length} linee disponibili`;
 
   const selectAllBtn = document.createElement("button");
-  selectAllBtn.textContent = "☑ Seleziona tutte";
+  selectAllBtn.textContent = __t("ui.freehand.selectAll", null, "☑ Seleziona tutte");
   selectAllBtn.style.cssText =
     "padding:5px 12px;background:#e74c3c;border:0;border-radius:6px;color:#fff;cursor:pointer;font-size:12px;font-weight:600;";
   let allSelected = false;
@@ -5536,9 +6091,9 @@ function renderFreehandListModal() {
 
     const info = document.createElement("div");
     info.style.flex = "1";
-    const typeLabel = obj.__isWatercolor ? "(acquerello)" : "";
+    const typeLabel = obj.__isWatercolor ? __t("ui.freehand.typeWatercolor", null, "(acquerello)") : "";
     info.innerHTML = `
-      <strong>Linea ${i + 1} ${typeLabel}</strong><br>
+      <strong>${__t("ui.freehand.lineLabel", { n: i + 1, type: typeLabel }, "Linea " + (i + 1) + " " + typeLabel)}</strong><br>
       <small style="color:#aaa;">${obj.stroke || "#1a1a1a"} • ${obj.strokeWidth || obj.width || 24}px</small>
     `;
 
@@ -5557,7 +6112,7 @@ function renderFreehandListModal() {
 // 2. deleteSelectedFreehandLines
 function deleteSelectedFreehandLines() {
   const checked = Array.from(document.querySelectorAll('#freehandListItems input[type="checkbox"]:checked'));
-  if (checked.length === 0) return flashToast("❌ Nessuna linea selezionata");
+  if (checked.length === 0) return flashToast(__t("toast.freehand.noneSelected", null, "❌ Nessuna linea selezionata"));
 
   let deleted = 0;
   checked.forEach((chk) => {
@@ -5571,7 +6126,7 @@ function deleteSelectedFreehandLines() {
 
   canvas.requestRenderAll();
   if (typeof window.pushState === "function") window.pushState();
-  flashToast(`🗑️ ${deleted} linee cancellate`);
+  flashToast(__t("toast.freehand.deleted", { count: deleted }, `🗑️ ${deleted} linee cancellate`));
 
   // Rinfresca la modale invece di chiuderla: l'utente vede SUBITO la
   // lista aggiornata (sia per penna normale sia per acquerello) e può
@@ -5613,14 +6168,14 @@ function isWatercolorOrFreehand(obj) {
 function clearAllFreehandLines() {
   const freehands = canvas.getObjects().filter(isWatercolorOrFreehand);
 
-  if (freehands.length === 0) return flashToast("Nessuna linea da cancellare");
+  if (freehands.length === 0) return flashToast(__t("toast.freehand.noneToDelete", null, "Nessuna linea da cancellare"));
 
-  if (!confirm(`🗑️ CANCELLARE PERMANENTEMENTE TUTTE LE ${freehands.length} LINEE (penna + acquerello)?`)) return;
+  if (!confirm(__t("confirm.freehand.deleteAll", { count: freehands.length }, `🗑️ CANCELLARE PERMANENTEMENTE TUTTE LE ${freehands.length} LINEE (penna + acquerello)?`))) return;
 
   freehands.forEach((p) => canvas.remove(p));
   canvas.renderAll();
   if (typeof pushState === "function") pushState();
-  flashToast(`✅ Tutte le ${freehands.length} linee cancellate`);
+  flashToast(__t("toast.freehand.allDeleted", { count: freehands.length }, `✅ Tutte le ${freehands.length} linee cancellate`));
 }
 
 // ======================= INIZIALIZZAZIONE PULSANTI =======================
@@ -5658,7 +6213,7 @@ window.pushState = pushState;
 // 4. exportFreehandLines — VERSIONE FEDELE AL CANVAS (+ FIX BLEND OVERLAY)
 async function exportFreehandLines(selectedPaths, format, mode) {
   if (!selectedPaths.length) {
-    return flashToast("❌ Nessuna linea selezionata");
+    return flashToast(__t("toast.freehand.noneSelected", null, "❌ Nessuna linea selezionata"));
   }
 
   // ── Forza l'ordine corretto degli oggetti PRIMA dell'export ──
@@ -5875,7 +6430,11 @@ async function exportFreehandLines(selectedPaths, format, mode) {
   });
 
   flashToast(
-    `✅ Esportati ${filesToSave.length} file ${isSVG ? "SVG" : "PNG"} (${CW * MULTIPLIER}×${CH * MULTIPLIER} px)!`
+    __t(
+      "toast.exportMulti.done",
+      { count: filesToSave.length, kind: isSVG ? "SVG" : "PNG", w: CW * MULTIPLIER, h: CH * MULTIPLIER },
+      `✅ Esportati ${filesToSave.length} file ${isSVG ? "SVG" : "PNG"} (${CW * MULTIPLIER}×${CH * MULTIPLIER} px)!`
+    )
   );
 }
 
@@ -5892,7 +6451,7 @@ function renderFreehandExportModal() {
   countEl.textContent = `(${freehands.length})`;
 
   if (freehands.length === 0) {
-    container.innerHTML = `<div style="padding:40px;text-align:center;color:#777;">Nessuna linea da esportare</div>`;
+    container.innerHTML = `<div style="padding:40px;text-align:center;color:#777;">${__t("ui.freehand.noLinesToExport", null, "Nessuna linea da esportare")}</div>`;
     modal.style.display = "flex";
     return;
   }
@@ -5905,7 +6464,7 @@ function renderFreehandExportModal() {
   selectAllLabel.style.cssText = "font-size:13px;color:#cfe;";
   selectAllLabel.textContent = `${freehands.length} linee disponibili`;
   const selectAllBtn = document.createElement("button");
-  selectAllBtn.textContent = "☑ Seleziona tutte";
+  selectAllBtn.textContent = __t("ui.freehand.selectAll", null, "☑ Seleziona tutte");
   selectAllBtn.style.cssText =
     "padding:5px 12px;background:#2b6cff;border:0;border-radius:6px;color:#fff;cursor:pointer;font-size:12px;font-weight:600;";
   let allSelected = false;
@@ -5930,9 +6489,9 @@ function renderFreehandExportModal() {
 
     const info = document.createElement("div");
     info.style.flex = "1";
-    const typeLabel = obj.__isWatercolor ? "(acquerello)" : "(penna)";
+    const typeLabel = obj.__isWatercolor ? __t("ui.freehand.typeWatercolor", null, "(acquerello)") : __t("ui.freehand.typePen", null, "(penna)");
     info.innerHTML = `
-      <strong>Linea ${i + 1} ${typeLabel}</strong><br>
+      <strong>${__t("ui.freehand.lineLabel", { n: i + 1, type: typeLabel }, "Linea " + (i + 1) + " " + typeLabel)}</strong><br>
       <small style="color:#aaa;">${obj.stroke || "#1a1a1a"} • ${obj.strokeWidth || obj.width || 24}px</small>
     `;
 
@@ -5963,7 +6522,7 @@ function initFreehandExport() {
   document.getElementById("exportConfirmBtn")?.addEventListener("click", async () => {
     const checked = Array.from(document.querySelectorAll('#exportListItems input[type="checkbox"]:checked'));
     if (checked.length === 0) {
-      flashToast("❌ Seleziona almeno una linea");
+      flashToast(__t("toast.freehand.exportSelectOne", null, "❌ Seleziona almeno una linea"));
       return;
     }
 
@@ -5981,7 +6540,7 @@ function initFreehandExport() {
       await exportFreehandLines(selected, format, mode);
     } catch (err) {
       console.error("Export error:", err);
-      flashToast("❌ Errore durante l'esportazione");
+      flashToast(__t("toast.freehand.exportError", null, "❌ Errore durante l'esportazione"));
     }
 
     document.getElementById("freehandExportModal").style.display = "none";
@@ -6029,7 +6588,7 @@ async function composeOnWhiteBackground(transparentDataURL, width, height) {
 
 // ====================== EXPORT PNG COMPLETO – VERSIONE FEDELE AL CANVAS ======================
 async function exportFullCanvasPNG() {
-  if (!canvas) return flashToast("Canvas non pronto");
+  if (!canvas) return flashToast(__t("toast.canvas.notReady", null, "Canvas non pronto"));
 
   const CW = canvas.getWidth();
   const CH = canvas.getHeight();
@@ -6052,7 +6611,7 @@ async function exportFullCanvasPNG() {
   }
 
   try {
-    flashToast("⏳ Generazione PNG ad alta risoluzione...");
+    flashToast(__t("toast.png.generating", null, "⏳ Generazione PNG ad alta risoluzione..."));
 
     // PNG con alpha — bit-identico a quello che PDFKit embedda nel PDF "full"
     const transparentDataURL = canvas.toDataURL({
@@ -6073,10 +6632,10 @@ async function exportFullCanvasPNG() {
 
     await window.desktopAPI.exportFullPNG(finalDataURL);
 
-    flashToast(`✅ PNG completo esportato (${CW * MULTIPLIER}×${CH * MULTIPLIER} px – calibrazione mm preservata)`);
+    flashToast(__t("toast.png.done", { w: CW * MULTIPLIER, h: CH * MULTIPLIER }, `✅ PNG completo esportato (${CW * MULTIPLIER}×${CH * MULTIPLIER} px – calibrazione mm preservata)`));
   } catch (err) {
     console.error("Export PNG error", err);
-    flashToast("❌ Errore durante l'esportazione PNG");
+    flashToast(__t("toast.png.error", null, "❌ Errore durante l'esportazione PNG"));
   } finally {
     // Ripristina backgroundColor anche su errore (sia che fosse "" o qualsiasi
     // altro valore presente prima dell'export) → canvas a video intatto.
@@ -6159,20 +6718,20 @@ function getSelectedPngSvgMode() {
         await exportFullCanvasPNG();
       } else if (mode === "svg_filled") {
         if (typeof window.exportShapesSVG !== "function") {
-          flashToast("❌ Modulo SVG non caricato (svgExport.js)");
+          flashToast(__t("toast.svg.moduleMissing", null, "❌ Modulo SVG non caricato (svgExport.js)"));
           return;
         }
         await window.exportShapesSVG("filled");
       } else if (mode === "svg_outline") {
         if (typeof window.exportShapesSVG !== "function") {
-          flashToast("❌ Modulo SVG non caricato (svgExport.js)");
+          flashToast(__t("toast.svg.moduleMissing", null, "❌ Modulo SVG non caricato (svgExport.js)"));
           return;
         }
         await window.exportShapesSVG("outline");
       }
     } catch (err) {
       console.error("[export PNG/SVG] Errore:", err);
-      flashToast("❌ Errore durante l'esportazione");
+      flashToast(__t("toast.freehand.exportError", null, "❌ Errore durante l'esportazione"));
     }
   });
 })();
@@ -6197,11 +6756,18 @@ async function initWatercolorStamp() {
 async function openGuide() {
   if (window.desktopAPI?.openGuide) {
     try {
-      await window.desktopAPI.openGuide();
-      flashToast("📖 Guida Utente aperta nel browser predefinito");
+      // Passa la lingua corrente i18n al main process per scegliere
+      // Guida_utente.html vs Guida_utente_EN.html. Default = "it" se
+      // il modulo i18n non è ancora pronto (fallback IT).
+      const lang =
+        (window.i18n && typeof window.i18n.getLanguage === "function")
+          ? window.i18n.getLanguage()
+          : "it";
+      await window.desktopAPI.openGuide(lang);
+      flashToast(__t("toast.guide.opened", null, "📖 Guida Utente aperta nel browser predefinito"));
     } catch (err) {
       console.error("Errore apertura guida", err);
-      flashToast("❌ Impossibile aprire la guida");
+      flashToast(__t("toast.guide.openError", null, "❌ Impossibile aprire la guida"));
     }
   }
 }
@@ -6366,13 +6932,13 @@ function rotateCanvasContent(degrees) {
   pushState();
 
   const orient = A4_MM_W >= A4_MM_H ? "Orizzontale" : "Verticale";
-  flashToast(`🔄 Canvas ${orient} (${Math.round(A4_MM_W)} × ${Math.round(A4_MM_H)} mm)`);
+  flashToast(__t("toast.canvas.flipped", { orient: __t("canvas.orient." + (orient === "verticale" ? "vertical" : "horizontal"), null, orient), w: Math.round(A4_MM_W), h: Math.round(A4_MM_H) }, `🔄 Canvas ${orient} (${Math.round(A4_MM_W)} × ${Math.round(A4_MM_H)} mm)`));
 }
 
 /** Forza orientamento verticale (portrait A4). Se è già verticale non fa nulla. */
 function setCanvasVertical() {
   if (A4_MM_W < A4_MM_H) {
-    flashToast("✅ Canvas già in verticale");
+    flashToast(__t("toast.canvas.alreadyVertical", null, "✅ Canvas già in verticale"));
     return;
   }
   rotateCanvasContent(-90); // landscape → portrait: CCW
@@ -6381,7 +6947,7 @@ function setCanvasVertical() {
 /** Forza orientamento orizzontale (landscape A4). Se è già orizzontale non fa nulla. */
 function setCanvasHorizontal() {
   if (A4_MM_W > A4_MM_H) {
-    flashToast("✅ Canvas già in orizzontale");
+    flashToast(__t("toast.canvas.alreadyHorizontal", null, "✅ Canvas già in orizzontale"));
     return;
   }
   rotateCanvasContent(90); // portrait → landscape: CW
@@ -6461,7 +7027,7 @@ try {
   if (exitBtn) {
     exitBtn.addEventListener("click", () => {
       setFs(false);
-      flashToast("⛶ Uscita dalla modalità schermo intero");
+      flashToast(__t("toast.fullscreen.exit", null, "⛶ Uscita dalla modalità schermo intero"));
     });
   }
 
@@ -6484,7 +7050,7 @@ try {
 
     // Nessun modale né dropdown: esci dal fullscreen
     setFs(false);
-    flashToast("⛶ Uscita dalla modalità schermo intero");
+    flashToast(__t("toast.fullscreen.exit", null, "⛶ Uscita dalla modalità schermo intero"));
   });
 
   // — Sincronizzazione stato iniziale
