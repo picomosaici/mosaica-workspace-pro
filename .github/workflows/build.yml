@@ -34,19 +34,12 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
-      - name: Setup MSYS2
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          update: true
-          install: >-
-            mingw-w64-x86_64-cairo
-            mingw-w64-x86_64-pango
-            mingw-w64-x86_64-freetype
-            mingw-w64-x86_64-fontconfig
-            mingw-w64-x86_64-glib2
-            mingw-w64-x86_64-expat
-            mingw-w64-x86_64-zlib
+      - name: Installa prerequisiti per canvas
+        shell: powershell
+        run: |
+          choco install -y gtk-runtime libjpeg-turbo --no-progress
+          echo "GTK_Root=C:\GTK" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          echo "C:\GTK\bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
 
       - name: Installa dipendenze
         run: npm ci
