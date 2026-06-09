@@ -34,32 +34,8 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
-      - name: Installa prerequisiti canvas
-        shell: powershell
-        run: |
-          choco install -y gtk-runtime libjpeg-turbo --no-progress
-
-          $gtkRoot = "C:\Program Files (x86)\GTK2-Runtime"
-          $gtkBin  = Join-Path $gtkRoot "bin"
-          $gtkHdr  = Join-Path $gtkRoot "include\cairo\cairo.h"
-
-          if (-not (Test-Path $gtkRoot)) {
-            throw "GTK non trovato in $gtkRoot dopo l'installazione."
-          }
-
-          if (-not (Test-Path $gtkBin)) {
-            throw "La cartella bin di GTK non esiste in $gtkBin."
-          }
-
-          if (-not (Test-Path $gtkHdr)) {
-            throw "Header Cairo non trovato in $gtkHdr."
-          }
-
-          "GTK_Root=$gtkRoot" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          $gtkBin | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
-
       - name: Installa dipendenze
-        run: npm ci
+        run: npm ci --omit=optional
 
       - name: Build installer Windows (x64)
         run: npm run dist:win
