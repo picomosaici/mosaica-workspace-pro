@@ -38,7 +38,7 @@ jobs:
         run: npm ci
 
       - name: Build installer Windows (x64)
-        run: npm run dist:win
+        run: npm run dist
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
