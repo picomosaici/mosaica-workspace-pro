@@ -6,6 +6,25 @@ let clipboardObjects = null;
 let clipboardIsMulti = false;
 let clipboardOffset = { x: 25, y: 25 };
 
+// ── i18n helper (con fallback) ──
+function __kt(key, params, fallback) {
+  try {
+    if (window.i18n && typeof window.i18n.t === "function") {
+      const v = window.i18n.t(key, params);
+      if (v === key && fallback != null) return fallback;
+      return v;
+    }
+  } catch (_) {}
+  let s = (fallback != null ? String(fallback) : key);
+  if (params) {
+    s = s.replace(/\{(\w+)\}/g, (m, k) =>
+      Object.prototype.hasOwnProperty.call(params, k) ? String(params[k]) : m
+    );
+  }
+  return s;
+}
+
+
 // ==================== HELPERS ====================
 
 function cloneFabricObject(obj) {
@@ -383,7 +402,7 @@ function initKeyboardShortcuts() {
     // ───── RESTART APP (CTRL + R) ─────
     if (ctrlOrCmd && e.key.toLowerCase() === "r") {
       e.preventDefault();
-      if (confirm("🔄 Riavviare completamente Pico Mosaici?\n\nTutti i cambiamenti non salvati andranno persi.")) {
+      if (confirm(__kt("kbd.confirm.restart", null, "🔄 Riavviare completamente Mosaica Workspace Pro?\n\nTutti i cambiamenti non salvati andranno persi."))) {
         window.desktopAPI.restartApp();
       }
       return;

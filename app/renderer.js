@@ -314,10 +314,13 @@ const MIN_QUALITY_SCALE = 2; // qualità Retina minima (sempre attiva)
 const MAX_QUALITY_SCALE = 8; // basta per HD pieno fino al 800% di zoom
 let currentQualityScale = MIN_QUALITY_SCALE;
 
-function computeQualityScale(viewScale) {
-  // Soglie scelte per garantire backstore:display ≥ ~1.0 in tutti gli step,
-  // con range uniformi di 100% di zoom per step (tranne l'ultimo che chiude
-  // il range fino a MAX_ZOOM).
+// Zona morta attorno alle soglie di fascia: per cambiare fascia la scala deve
+// superare la soglia di almeno questo margine. Elimina le riallocazioni ripetute
+// del backstore quando lo zoom oscilla a cavallo di una soglia.
+const QUALITY_HYSTERESIS = 0.15;
+
+// Fascia "ideale" senza isteresi (vecchia logica, soglie nette).
+function _idealQualityScale(viewScale) {
   if (viewScale <= 1.5) return 2; // zoom  40%–150%
   if (viewScale <= 2.5) return 3; // zoom 150%–250%
   if (viewScale <= 3.5) return 4; // zoom 250%–350%
@@ -325,6 +328,23 @@ function computeQualityScale(viewScale) {
   if (viewScale <= 5.5) return 6; // zoom 450%–550%
   if (viewScale <= 6.5) return 7; // zoom 550%–650%
   return 8;                       // zoom 650%–800%
+}
+
+function computeQualityScale(viewScale) {
+  const ideal = _idealQualityScale(viewScale);
+  const cur = currentQualityScale;
+  if (ideal === cur) return cur;
+
+  // La soglia tra la fascia k e la k+1 è a (k - 0.5); la fascia "cur" copre
+  // l'intervallo ( cur-1.5 , cur-0.5 ]. Cambiamo fascia SOLO se abbiamo superato
+  // la soglia di almeno QUALITY_HYSTERESIS, altrimenti restiamo dove siamo.
+  if (ideal > cur) {
+    const upBoundary = (cur - 0.5) + QUALITY_HYSTERESIS;
+    return viewScale > upBoundary ? ideal : cur;
+  } else {
+    const downBoundary = (cur - 1.5) - QUALITY_HYSTERESIS;
+    return viewScale < downBoundary ? ideal : cur;
+  }
 }
 
 // Inganna Fabric: usa la nostra scala invece del devicePixelRatio dello schermo.
@@ -679,7 +699,7 @@ function applyTransform() {
 // si scala via CSS transform (può apparire leggermente sgranato un istante),
 // alla fine del burst il backstore si allinea in UNA volta al livello finale.
 // Approccio standard usato da Photoshop, Figma, AutoCAD ecc.
-const QUALITY_REFRESH_DEBOUNCE_MS = 380;
+const QUALITY_REFRESH_DEBOUNCE_MS = 80;
 let __qualityRefreshTimer = null;
 
 function refreshCanvasQualityForZoom(immediate = false) {
@@ -763,7 +783,7 @@ function updateZoomUI() {
 //   snapshot capped resta ≈30 MB e la perdita di nitidezza dura <250ms,
 //   non percepibile durante un gesto rotella attivo.
 
-const ZOOM_BURST_END_MS = 180;   // ms di silenzio rotella per chiudere il burst
+const ZOOM_BURST_END_MS = 80;   // ms di silenzio rotella per chiudere il burst
 const MAX_SNAPSHOT_DIM = 4096;   // lato max snapshot (cap RAM ai zoom alti)
 
 const __zoomBurst = {
@@ -894,14 +914,22 @@ function setZoomCentered(newScale, clientX, clientY) {
   clientX = clientX ?? window.innerWidth / 2;
   clientY = clientY ?? window.innerHeight / 2;
 
+  // ── GUARDIA "scala invariata" ───────────────────────────────────────────
+  // Se la nuova scala, dopo il clamp 40%–800%, coincide con quella attuale
+  // (tipico ai limiti del range), non c'è nulla da fare: niente applyTransform,
+  // niente refresh/render a vuoto.
+  // Con scala identica anche la ri-centratura restituirebbe gli stessi view.x/y.
+  const clamped = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, newScale));
+  if (clamped === view.scale) return;
+
   // Coordinate del punto sotto il mouse nello spazio NON trasformato del paper.
   // Il paper è a (0,0) con transform-origin 0,0, quindi view.x/view.y sono già
   // la posizione del paper sullo schermo: NON serve passare per getBoundingClientRect.
   const paperX = (clientX - view.x) / view.scale;
   const paperY = (clientY - view.y) / view.scale;
 
-  // Applica la nuova scala (con clamp MIN_ZOOM – MAX_ZOOM, ovvero 40%–800%)
-  view.scale = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, newScale));
+  // Applica la nuova scala (clamp già calcolato sopra)
+  view.scale = clamped;
 
   // Riposiziona il paper in modo che (paperX, paperY) finisca esattamente
   // sotto (clientX, clientY) anche dopo lo zoom.
@@ -911,28 +939,25 @@ function setZoomCentered(newScale, clientX, clientY) {
   applyTransform();
 
   // ── ZOOM BURST: SOLO CSS, ZERO LAVORO FABRIC ────────────────────────────
-  // Durante un burst di rotella lo snapshot GPU è attivo dentro #paper e 
+  // Durante un burst di rotella lo snapshot GPU è attivo dentro #paper e
   // scala con la transform CSS del paper stesso (composite del browser).
   // Saltiamo TUTTO il lavoro Fabric-side (refresh quality, render, handles,
   // radial): non viene visto perché i canvas Fabric sono nascosti, e ogni
   // operazione qui sarebbe pura CPU sprecata che inchioda il main thread
   // impedendo alla rotella di stare al passo.
-  // 
-  // A fine burst (220ms dopo l'ultima rotella) _exitZoomBurst esegue UNA
-  // volta sola tutto il lavoro pesante, in ordine: setDimensions → 
-  // updateHandles → renderAll → positionRadial → swap snapshot.
+  //
+  // A fine burst _exitZoomBurst esegue UNA volta sola tutto il lavoro pesante,
+  // in ordine: setDimensions → updateHandles → renderAll → positionRadial → swap.
   if (__zoomBurst.active) return;
 
-  // Percorso normale: zoom da pulsante, scorciatoia tastiera, o singola
-  // tacca di rotella senza burst (il burst non è ancora partito al primo
-  // evento — il _enterZoomBurst nel wheel handler avviene PRIMA del rAF).
+  // Percorso normale: zoom da pulsante, scorciatoia tastiera, o singola tacca
+  // di rotella senza burst.
   refreshCanvasQualityForZoom();
   if (selectedObj) {
-    // ── FIX: ricalcola dimensioni maniglie in funzione del nuovo view.scale ──
-    // Senza questo, cornerSize e padding restano "tarati" sullo zoom precedente
-    // e le maniglie appaiono troppo grandi/piccole finché non si riseleziona.
-    _updateActiveHandlesForZoom();
+    _updateActiveHandlesForZoom(); // fa già requestRenderAll()
     positionRadial();
+  } else {
+    canvas.requestRenderAll();
   }
 }
 
@@ -977,7 +1002,312 @@ function resetZoomAndPan() {
   };
   view = { ...initialView };
   applyTransform();
+
+  // ── FIX culling ───────────────────────────────────────────────────────
+  // applyTransform() cambia SOLO la CSS transform del #paper: NON forza un
+  // render di Fabric. Siccome il culling ricalcola la finestra visibile
+  // (calcViewportBoundaries) unicamente durante un render, senza questo le
+  // forme cullate mentre eri zoomato/pannato restano "saltate" anche dopo il
+  // reset e riappaiono solo al primo giro di rotella. Allineiamo il backstore
+  // alla nuova scala (immediate=true) e forziamo un render completo.
+  refreshCanvasQualityForZoom(true);
+  if (selectedObj) {
+    _updateActiveHandlesForZoom(); // ricalcola maniglie + fa già requestRenderAll()
+    positionRadial();
+  }
+  canvas.requestRenderAll();
 }
+
+// ============================================================
+//  CULLING FUORI-VISTA (screen-aware) — Mosaica Workspace Pro
+//  ------------------------------------------------------------
+//  In Mosaica lo zoom è una CSS transform sul #paper, quindi il
+//  viewportTransform di Fabric resta SEMPRE l'identità e Fabric "vede"
+//  tutto il foglio A4 come fosse a schermo. Il suo skipOffscreen nativo
+//  (già attivo) salta solo le forme fuori dal FOGLIO, mai quelle fuori
+//  dallo SCHERMO: così allo zoom alto col foglio pannato ridisegna
+//  comunque tutte le forme (anche 2000+) nel backstore enorme.
+//
+//  Qui sovrascriviamo — SOLO su questa istanza — il calcolo dei confini
+//  del viewport, facendogli restituire il rettangolo VISIBILE in
+//  coordinate-foglio. Da lì la macchina skipOffscreen già presente in
+//  Fabric salta da sola tracciamento+riempimento delle forme col
+//  bounding-box interamente fuori vista. Nessun tocco al render loop e
+//  nessun impatto su selezione/hit-testing (non usano vptCoords).
+//
+//  "Solo quando serve": se il foglio sta tutto nello schermo → nativo.
+//  Export sicuro: toDataURL passa per toCanvasElement, che avvolgiamo
+//  per disattivare il culling → l'export è sempre il foglio intero.
+//  Compatibile Fabric 5.1.0 → 5.3.0.
+// ============================================================
+(function installOffscreenCulling() {
+  if (!canvas || typeof fabric === "undefined" || canvas.__cullingInstalled) return;
+  canvas.__cullingInstalled = true;
+
+  // Config tarabile a runtime da console: window.__mosaicaCulling.*
+  const CULL = (window.__mosaicaCulling = window.__mosaicaCulling || {
+    enabled: true,      // kill-switch globale
+    marginRatio: 0.10,  // margine anti pop-in: 10% della finestra visibile per lato
+    minScale: 1.0       // sotto questo zoom non si culla mai
+  });
+
+  const _origCalcVPB = fabric.Canvas.prototype.calcViewportBoundaries;
+
+  function _vptIsIdentity(v) {
+    return v && v[0] === 1 && v[1] === 0 && v[2] === 0 &&
+           v[3] === 1 && v[4] === 0 && v[5] === 0;
+  }
+
+  canvas.calcViewportBoundaries = function () {
+    // Nativo (foglio intero) in tutti i casi non-interattivi.
+    if (
+      !CULL.enabled ||
+      this.__cullOff ||
+      typeof view === "undefined" || !view ||
+      !workspace ||
+      !_vptIsIdentity(this.viewportTransform)
+    ) {
+      return _origCalcVPB.call(this);
+    }
+
+    const scale = view.scale || 1;
+    if (scale < CULL.minScale) return _origCalcVPB.call(this);
+
+    const ws = workspace.getBoundingClientRect();
+    if (ws.width <= 1 || ws.height <= 1) return _origCalcVPB.call(this);
+
+    const W = this.width;   // larghezza LOGICA del foglio (page px)
+    const H = this.height;  // altezza  LOGICA del foglio (page px)
+
+    // Se il foglio ci sta tutto → niente culling.
+    if (W * scale <= ws.width + 1 && H * scale <= ws.height + 1) {
+      return _origCalcVPB.call(this);
+    }
+
+    // Finestra visibile (client px) → coordinate-foglio.
+    // Stessa mappatura dello zoom: page = (client - view.x) / scale.
+    let x0 = (ws.left   - view.x) / scale;
+    let y0 = (ws.top    - view.y) / scale;
+    let x1 = (ws.right  - view.x) / scale;
+    let y1 = (ws.bottom - view.y) / scale;
+
+    const mx = (x1 - x0) * CULL.marginRatio;
+    const my = (y1 - y0) * CULL.marginRatio;
+    x0 -= mx; x1 += mx; y0 -= my; y1 += my;
+
+    if (x0 < 0) x0 = 0;
+    if (y0 < 0) y0 = 0;
+    if (x1 > W) x1 = W;
+    if (y1 > H) y1 = H;
+
+    const P = fabric.Point;
+    const pts = { tl: new P(x0, y0), tr: new P(x1, y0), bl: new P(x0, y1), br: new P(x1, y1) };
+    this.vptCoords = pts;
+    return pts;
+  };
+
+  // EXPORT: ogni toDataURL del canvas principale passa di qui → culling off.
+  const _origToCanvasEl = canvas.toCanvasElement;
+  if (typeof _origToCanvasEl === "function") {
+    canvas.toCanvasElement = function () {
+      const prev = this.__cullOff;
+      this.__cullOff = true;
+      try {
+        return _origToCanvasEl.apply(this, arguments);
+      } finally {
+        this.__cullOff = prev;
+      }
+    };
+  }
+})();
+
+// ============================================================
+//  INDICE SPAZIALE (GRIGLIA) PER IL CULLING — Mosaica Workspace Pro
+//  ------------------------------------------------------------
+//  Complemento del culling viewport (installOffscreenCulling sopra).
+//  Quel blocco fa restituire a Fabric il rettangolo VISIBILE, e lo
+//  skipOffscreen nativo salta il DISEGNO delle forme fuori vista — ma
+//  per deciderlo Fabric chiama isOnScreen() su OGNI oggetto, ogni frame:
+//  O(N) anche durante un semplice pan. Qui aggiungiamo un hash-grid degli
+//  AABB delle forme (in coordinate-foglio, identiche a vptCoords perché il
+//  viewportTransform è l'identità) e sovrascriviamo SOLO _renderObjects di
+//  QUESTA istanza per disegnare unicamente gli oggetti delle celle visibili.
+//
+//  Non tocca selezione, hit-testing né export (passano da altre vie;
+//  l'export ha già __cullOff → percorso nativo = disegna tutto).
+//  L'ordine-z è preservato: iteriamo l'array ordinato che Fabric ci passa.
+//  Compatibile Fabric 5.1.0 → 5.3.0.
+// ============================================================
+(function installSpatialIndexCulling() {
+  if (!canvas || typeof fabric === "undefined" || canvas.__spatialIndexInstalled) return;
+  if (typeof canvas._renderObjects !== "function") return; // guardia di compatibilità
+  canvas.__spatialIndexInstalled = true;
+
+  const CULL = (window.__mosaicaCulling = window.__mosaicaCulling || { enabled: true, marginRatio: 0.10, minScale: 1.0 });
+
+  const GRID = (window.__mosaicaGrid = {
+    enabled: true,        // kill-switch
+    minObjects: 300,      // sotto questa soglia la griglia non conviene → nativo
+    cellSize: 256,        // lato cella in px-foglio (ricalcolato a ogni rebuild)
+    _cells: new Map(),    // "cx,cy" -> Set(obj)
+    _objCells: new Map(), // obj -> [cellKeys] | null (se "sempre visibile")
+    _alwaysRender: new Set(),
+    _dirty: true,
+    _indexedCount: -1,
+    stats: { lastVisible: 0, lastTotal: 0 },
+    invalidate() { this._dirty = true; }
+  });
+
+  const MAX_CELLS_PER_OBJ = 600; // oltre → oggetto "sempre visibile" (sfondo, tratti enormi)
+
+  function _vptIsIdentity(v) {
+    return v && v[0] === 1 && v[1] === 0 && v[2] === 0 && v[3] === 1 && v[4] === 0 && v[5] === 0;
+  }
+
+  // Stesso gating del culling viewport: se non culliamo, percorso nativo.
+  function gridShouldCull(c) {
+    if (GRID.enabled === false || CULL.enabled === false || c.__cullOff) return false;
+    if (typeof view === "undefined" || !view || !workspace) return false;
+    if (!_vptIsIdentity(c.viewportTransform)) return false;
+    const scale = view.scale || 1;
+    if (scale < (CULL.minScale || 1)) return false;
+    const ws = workspace.getBoundingClientRect();
+    if (ws.width <= 1 || ws.height <= 1) return false;
+    const W = c.width, H = c.height;
+    if (W * scale <= ws.width + 1 && H * scale <= ws.height + 1) return false; // foglio intero visibile
+    if ((c._objects || []).length < GRID.minObjects) return false;             // troppo pochi oggetti
+    return true;
+  }
+
+  function aabbOf(o) {
+    try {
+      const r = o.getBoundingRect(true, true); // absolute=true, calculate=true → coord-foglio, no vpt
+      return { l: r.left, t: r.top, r: r.left + r.width, b: r.top + r.height };
+    } catch (e) { return null; }
+  }
+
+  function chooseCellSize() {
+    // Canvas principale = sempre A4 (~794×1123 px-foglio a 96 PPI), tessere
+    // piccole (3–13 mm → ~11–49 px). Una cella ≈ 1/8 del lato minore del
+    // foglio (A4 → ~99–110 px) tiene una manciata di tessere e mantiene basso
+    // il numero di celle (~8×11 ≈ 88 su A4). La formula resta adattiva: quando
+    // renderai il canvas ridimensionabile per i mosaici grandi, la cella cresce
+    // col foglio. Limitata in [96, 512] per non degenerare ai due estremi.
+    const minSide = Math.min(canvas.width || 794, canvas.height || 1123);
+    return Math.min(512, Math.max(96, Math.round(minSide / 8)));
+  }
+
+  function insert(o) {
+    const a = aabbOf(o);
+    if (!a) { GRID._alwaysRender.add(o); GRID._objCells.set(o, null); return; }
+
+    // Oggetti che coprono ≥60% del foglio (sfondo immagine, texture carta,
+    // tratti acquerello enormi) → "sempre visibili": inutile e controproducente
+    // bucketizzarli su tutte le celle.
+    const sheetArea = (canvas.width || 1) * (canvas.height || 1);
+    const objArea = Math.max(0, a.r - a.l) * Math.max(0, a.b - a.t);
+    if (sheetArea > 0 && objArea >= sheetArea * 0.6) {
+      GRID._alwaysRender.add(o); GRID._objCells.set(o, null); return;
+    }
+
+    const cs = GRID.cellSize;
+    const cx0 = Math.floor(a.l / cs), cy0 = Math.floor(a.t / cs);
+    const cx1 = Math.floor(a.r / cs), cy1 = Math.floor(a.b / cs);
+    if ((cx1 - cx0 + 1) * (cy1 - cy0 + 1) > MAX_CELLS_PER_OBJ) {
+      GRID._alwaysRender.add(o); GRID._objCells.set(o, null); return;
+    }
+    const keys = [];
+    for (let cx = cx0; cx <= cx1; cx++) for (let cy = cy0; cy <= cy1; cy++) {
+      const k = cx + "," + cy;
+      let s = GRID._cells.get(k);
+      if (!s) { s = new Set(); GRID._cells.set(k, s); }
+      s.add(o); keys.push(k);
+    }
+    GRID._objCells.set(o, keys);
+  }
+
+  function remove(o) {
+    const keys = GRID._objCells.get(o);
+    GRID._objCells.delete(o);
+    GRID._alwaysRender.delete(o);
+    if (!keys) return;
+    for (const k of keys) {
+      const s = GRID._cells.get(k);
+      if (s) { s.delete(o); if (s.size === 0) GRID._cells.delete(k); }
+    }
+  }
+
+  function rebuild() {
+    GRID._cells.clear(); GRID._objCells.clear(); GRID._alwaysRender = new Set();
+    const objs = canvas._objects || [];
+    GRID.cellSize = chooseCellSize(objs);
+    for (let i = 0; i < objs.length; i++) insert(objs[i]);
+    GRID._dirty = false;
+    GRID._indexedCount = objs.length;
+  }
+
+  function queryVisible(vpt) {
+    const cs = GRID.cellSize;
+    const minX = Math.min(vpt.tl.x, vpt.tr.x, vpt.bl.x, vpt.br.x);
+    const minY = Math.min(vpt.tl.y, vpt.tr.y, vpt.bl.y, vpt.br.y);
+    const maxX = Math.max(vpt.tl.x, vpt.tr.x, vpt.bl.x, vpt.br.x);
+    const maxY = Math.max(vpt.tl.y, vpt.tr.y, vpt.bl.y, vpt.br.y);
+    const cx0 = Math.floor(minX / cs), cy0 = Math.floor(minY / cs);
+    const cx1 = Math.floor(maxX / cs), cy1 = Math.floor(maxY / cs);
+    const out = new Set(GRID._alwaysRender);
+    for (let cx = cx0; cx <= cx1; cx++) for (let cy = cy0; cy <= cy1; cy++) {
+      const s = GRID._cells.get(cx + "," + cy);
+      if (s) for (const o of s) out.add(o);
+    }
+    return out;
+  }
+
+  // --- Override del SOLO _renderObjects di questa istanza ---
+  const _origRenderObjects = canvas._renderObjects.bind(canvas);
+  canvas._renderObjects = function (ctx, objects) {
+    if (!gridShouldCull(this)) return _origRenderObjects(ctx, objects);
+
+    // auto-heal: conteggio cambiato fuori dai nostri hook (load, clear, ...) → rebuild
+    if (GRID._dirty || (canvas._objects && canvas._objects.length !== GRID._indexedCount)) rebuild();
+
+    const vpt = this.vptCoords;
+    if (!vpt || !vpt.tl) return _origRenderObjects(ctx, objects); // sicurezza
+
+    const visible = queryVisible(vpt);
+    const active = this._activeObject || null;
+    let shown = 0;
+    for (let i = 0, len = objects.length; i < len; i++) {
+      const o = objects[i];
+      if (!o) continue;
+      // o.group → in selezione/gruppo (mai cullato, come fa Fabric con !this.group);
+      // o === active → oggetto attivo; visible.has(o) → dentro le celle visibili.
+      if (o.group || o === active || visible.has(o)) { o.render(ctx); shown++; }
+    }
+    GRID.stats.lastVisible = shown;
+    GRID.stats.lastTotal = objects.length;
+  };
+
+  // --- Manutenzione incrementale dell'indice ---
+  function safeInsert(o) { try { insert(o); GRID._indexedCount = (canvas._objects || []).length; } catch (e) { GRID._dirty = true; } }
+  function safeRemove(o) { try { remove(o); GRID._indexedCount = (canvas._objects || []).length; } catch (e) { GRID._dirty = true; } }
+  function safeUpdate(o) {
+    try {
+      if (o && o._objects && Array.isArray(o._objects)) o._objects.forEach((ch) => { remove(ch); insert(ch); });
+      else { remove(o); insert(o); }
+    } catch (e) { GRID._dirty = true; }
+  }
+
+  canvas.on("object:added",   (e) => { if (e && e.target) safeInsert(e.target); });
+  canvas.on("object:removed", (e) => { if (e && e.target) safeRemove(e.target); });
+  canvas.on("object:modified",(e) => { if (e && e.target) safeUpdate(e.target); });
+  // Quando una selezione si chiude/cambia, Fabric "cuoce" le coord dei figli:
+  // un rebuild una-tantum (operazione a ritmo umano, non per-frame) è sicuro.
+  canvas.on("selection:cleared", () => { GRID._dirty = true; });
+  canvas.on("selection:updated", () => { GRID._dirty = true; });
+
+  // Primo popolamento al prossimo render.
+  GRID._dirty = true;
+})();
 
 // Zoom con rotella — modello "Photoshop-like" con sensibilità adattiva alla velocità.
 // =============================================================================
@@ -1006,26 +1336,25 @@ function resetZoomAndPan() {
 //   4) Debounce di refreshCanvasQualityForZoom (180ms): il backstore di Fabric
 //      viene riallocato UNA volta sola a fine burst, mai durante.
 
-// === Parametri della sensibilità adattiva ===
+// === Parametri della sensibilità adattiva (RICALIBRATI) ===
 const ZOOM_BASE_SENSITIVITY = 0.001;     // sensibilità "neutra" a velocità media
-const ZOOM_SPEED_MIN_MULT = 0.6;         // moltiplicatore minimo (rotella lenta)
-const ZOOM_SPEED_MAX_MULT = 1.8;         // moltiplicatore massimo (saturazione)
-const ZOOM_SPEED_TAU = 800;              // "intensità tipica" della rotella veloce.
-                                         // Valori più alti = serve girare più forte
-                                         // per arrivare alla saturazione. 800 è
-                                         // tarato per rotelle standard (deltaY≈100/scatto).
-const ZOOM_EMA_ALPHA = 0.25;             // [0..1] reattività dell'EMA: più alto =
-                                         // più reattivo, più basso = più stabile.
-                                         // 0.25 = il filtro "ricorda" gli ultimi
-                                         // ~4 eventi pesati esponenzialmente.
-const ZOOM_SPEED_DECAY_MS = 250;         // se non arrivano eventi per >250ms l'EMA
-                                         // si resetta — un nuovo burst riparte
-                                         // dalla velocità "media" senza ereditare
-                                         // l'intensità di un burst precedente.
+const ZOOM_SPEED_MIN_MULT = 0.7;         // moltiplicatore minimo (rotella lenta → preciso)
+const ZOOM_SPEED_MAX_MULT = 1.8;         // moltiplicatore massimo (saturazione → veloce)
+const ZOOM_SPEED_TAU = 140;              // CALIBRAZIONE CHIAVE: l'EMD può arrivare a ~240
+                                         // (|dy|≤120, dt≥8ms → 120*2). Con τ=140 la curva
+                                         // copre DAVVERO tutto il range del moltiplicatore;
+                                         // con il vecchio 800 il "veloce" non scattava mai.
+const ZOOM_EMA_ALPHA = 0.25;             // reattività dell'EMA (invariato)
+const ZOOM_SPEED_DECAY_MS = 250;         // reset EMA dopo pausa (invariato)
 
 // === Cap di sicurezza ===
-const WHEEL_DELTA_CAP = 120;             // cap del singolo evento (driver/SO)
-const PER_FRAME_FACTOR_CAP_UP = 1.20;    // max +20% di zoom per frame
+const WHEEL_DELTA_CAP = 120;             // cap del singolo evento (driver/SO) — invariato
+const PER_FRAME_FACTOR_CAP_UP = 1.6;     // era 1.20 e MANGIAVA l'input veloce (causa del
+                                         // "blocco"): 3-4 tacche/frame collassavano a +20%.
+                                         // Ogni evento è già cappato da WHEEL_DELTA_CAP e
+                                         // l'EMA limita la curva, quindi 1.6 (+60%/frame) è
+                                         // sicuro: per superarlo servirebbero 5+ tacche in
+                                         // 16 ms, fisicamente impossibile a mano.
 const PER_FRAME_FACTOR_CAP_DOWN = 1 / PER_FRAME_FACTOR_CAP_UP;
 
 // === Stato della rotella ===
@@ -1043,153 +1372,22 @@ function _wheelSpeedMultiplier(speedEma) {
   return ZOOM_SPEED_MIN_MULT + (ZOOM_SPEED_MAX_MULT - ZOOM_SPEED_MIN_MULT) * saturating;
 }
 
-// =============================================================================
-// INERZIA MOUSE WHEEL (simulata)
-// -----------------------------------------------------------------------------
-//  Il TRACKPAD ha momentum naturale fornito dal SO: dopo il gesto continua
-//  ad emettere eventi wheel che decadono dolcemente. Il MOUSE no: ogni tick
-//  della rotella = un solo evento, niente coda. Per dare al mouse lo stesso
-//  "scivolamento dolce" del trackpad, dopo l'ultimo tick reale lanciamo un
-//  loop rAF che applica zoom decrescenti con frizione esponenziale.
-//
-//  Rilevamento mouse vs trackpad:
-//    1) deltaMode === 1 (LINE) o 2 (PAGE)         → sempre mouse.
-//    2) deltaMode === 0 (PIXEL) con |deltaY| ≥ 50 → mouse (Chrome converte
-//       i tick a 100-120 px). I trackpad emettono valori frazionari piccoli.
-//
-//  Stop immediato dell'inerzia su:
-//    • nuovo evento wheel reale (l'utente ricomanda)
-//    • mousedown di qualunque bottone (incluso destro: lascia campo libero
-//      alla rotazione fine di mouseObserver.js)
-//    • keydown (l'utente cambia focus o usa scorciatoie)
-//    • blur della finestra
-//    • inizio di un tratto freehand/acquerello (canvas._isCurrentlyDrawing)
-//
-//  L'inerzia tiene attivo lo zoom-burst snapshot via _bumpZoomBurstEndTimer
-//  ad ogni frame, così il backstore di Fabric viene riallocato UNA volta
-//  sola a fine inerzia (stessa logica del burst rotella standard).
-// =============================================================================
-
-// === Parametri inerzia mouse ===
-const MOUSE_INERTIA_ARM_DELAY_MS = 120;   // ms di silenzio dopo l'ultimo tick: se
-                                         // entro 60ms arriva un altro tick reale
-                                         // l'inerzia non parte (l'utente sta
-                                         // ancora girando attivamente).
-const MOUSE_INERTIA_FRICTION = 0.92;     // decay per frame @60fps: il velocity
-                                         // si riduce del 14% ogni 16ms.
-                                         // 0.86 → tau ~107ms (90% in ~260ms).
-const MOUSE_INERTIA_MIN_VELOCITY = 0.6;  // soglia di stop assoluto: sotto questa
-                                         // velocity l'inerzia termina.
-const MOUSE_INERTIA_GAIN = 0.40;         // velocity iniziale = ultimo dy * gain.
-                                         // 0.40 con dy=120 → vel iniziale 48,
-                                         // che scende a 0.6 in ~28 frame ≈ 470ms.
-
-// === Stato inerzia ===
-let __inertiaActive = false;
-let __inertiaVelocity = 0;
-let __inertiaRAF = 0;
-let __inertiaArmTimer = null;
-let __lastWheelDy = 0;
-let __lastWheelWasMouse = false;
-
-// Euristica mouse vs trackpad sull'evento corrente
-function _isLikelyMouseWheelEvent(e) {
-  // deltaMode 1 = LINE, 2 = PAGE → sempre da rotella mouse (Firefox/Edge)
-  if (e.deltaMode === 1 || e.deltaMode === 2) return true;
-  // deltaMode 0 = PIXEL: i tick mouse in Chromium arrivano come 100-120 px
-  // costanti; i trackpad come valori frazionari piccoli (1-30 tipicamente).
-  return Math.abs(e.deltaY) >= 50;
-}
-
-// Stop pulito di tutto lo stato inerzia (sia loop rAF che arm timer)
-function _stopMouseInertia() {
-  if (__inertiaRAF) {
-    cancelAnimationFrame(__inertiaRAF);
-    __inertiaRAF = 0;
-  }
-  if (__inertiaArmTimer) {
-    clearTimeout(__inertiaArmTimer);
-    __inertiaArmTimer = null;
-  }
-  __inertiaActive = false;
-  __inertiaVelocity = 0;
-}
-
-// Programma l'avvio dell'inerzia dopo MOUSE_INERTIA_ARM_DELAY_MS di silenzio.
-// Se nel frattempo arriva un altro evento wheel reale, il timer viene 
-// cancellato (rearm) e l'inerzia non parte ancora.
-function _armMouseInertia() {
-  if (__inertiaArmTimer) clearTimeout(__inertiaArmTimer);
-  __inertiaArmTimer = setTimeout(() => {
-    __inertiaArmTimer = null;
-    if (!__lastWheelWasMouse) return;
-    if (canvas._isCurrentlyDrawing) return;
-
-    // Velocity iniziale proporzionale all'ultimo dy reale (preserva direzione)
-    const initVel = __lastWheelDy * MOUSE_INERTIA_GAIN;
-    if (Math.abs(initVel) < MOUSE_INERTIA_MIN_VELOCITY) return;
-
-    _runMouseInertia(initVel);
-  }, MOUSE_INERTIA_ARM_DELAY_MS);
-}
-
-// Loop rAF dell'inerzia: ad ogni frame applica un setZoomCentered con la
-// velocity corrente, poi decade. Riusa la stessa formula di sensibilità
-// adattiva del rAF principale (EMA + speedMult + cap per frame) per
-// coerenza visiva con lo zoom utente.
-function _runMouseInertia(initVel) {
-  __inertiaActive = true;
-  __inertiaVelocity = initVel;
-
-  const tick = () => {
-    if (!__inertiaActive) return;
-    // Safety: se l'utente intanto ha iniziato a disegnare, stop
-    if (canvas._isCurrentlyDrawing) { _stopMouseInertia(); return; }
-
-    const dy = __inertiaVelocity;
-
-    // Aggiorna EMA come fosse un evento reale (mantiene coerenza con la
-    // sensibilità adattiva; il dt è ~16ms perché siamo dentro rAF)
-    const now = performance.now();
-    const dt = now - __wheelLastEventT;
-    __wheelLastEventT = now;
-    const dtClamped = Math.max(8, Math.min(100, dt || 16));
-    const instantSpeed = Math.abs(dy) * (16 / dtClamped);
-    __wheelSpeedEMA = ZOOM_EMA_ALPHA * instantSpeed + (1 - ZOOM_EMA_ALPHA) * __wheelSpeedEMA;
-
-    // Stessa formula del rAF reale: speedMult → sensitivity → factor → cap
-    const speedMult = _wheelSpeedMultiplier(__wheelSpeedEMA);
-    const effectiveSensitivity = ZOOM_BASE_SENSITIVITY * speedMult;
-    const f_raw = Math.exp(-dy * effectiveSensitivity);
-    const f = Math.max(PER_FRAME_FACTOR_CAP_DOWN, Math.min(PER_FRAME_FACTOR_CAP_UP, f_raw));
-
-    setZoomCentered(view.scale * f, __wheelLastClientX, __wheelLastClientY);
-
-    // Mantieni vivo il burst snapshot: il backstore si riallocherà UNA
-    // volta sola quando l'inerzia esaurisce + ZOOM_BURST_END_MS di silenzio
-    _bumpZoomBurstEndTimer();
-
-    // Decay esponenziale e check soglia
-    __inertiaVelocity *= MOUSE_INERTIA_FRICTION;
-    if (Math.abs(__inertiaVelocity) < MOUSE_INERTIA_MIN_VELOCITY) {
-      _stopMouseInertia();
-      return;
-    }
-
-    __inertiaRAF = requestAnimationFrame(tick);
-  };
-
-  __inertiaRAF = requestAnimationFrame(tick);
+// Converte un delta accumulato (acc) + la sensibilità efficace in un fattore di
+// zoom per-frame, con SATURAZIONE MORBIDA invece del vecchio clamp netto.
+// L'esponente viene "ammorbidito" con tanh: cresce con la velocità ma si avvicina
+// dolcemente al tetto (ln del vecchio cap) senza mai sbatterci contro di colpo.
+// Resta comunque dentro [1/CAP_UP .. CAP_UP] perché tanh è limitato.
+function _zoomFactorFromDelta(acc, effectiveSensitivity) {
+  const rawExp = -acc * effectiveSensitivity;
+  const maxExp = Math.log(PER_FRAME_FACTOR_CAP_UP); // asintoto = vecchio cap (≈0.47)
+  const softExp = maxExp * Math.tanh(rawExp / maxExp);
+  return Math.exp(softExp);
 }
 
 workspace.addEventListener(
   "wheel",
   (e) => {
     e.preventDefault();
-
-    // Un nuovo evento wheel reale (utente che gira ancora la rotella o usa il
-    // trackpad) cancella sempre l'inerzia in corso o programmata: comanda la mano.
-    if (__inertiaActive || __inertiaArmTimer) _stopMouseInertia();
 
     const now = performance.now();
     const dt = now - __wheelLastEventT;
@@ -1206,23 +1404,14 @@ workspace.addEventListener(
     __wheelLastClientX = e.clientX;
     __wheelLastClientY = e.clientY;
 
-    // Salva info per eventuale arm dell'inerzia (sotto)
-    __lastWheelDy = dy;
-    __lastWheelWasMouse = _isLikelyMouseWheelEvent(e);
-
-    // Aggiorno l'EMA dell'intensità: peso |dy| con la frequenza istantanea.
-    // Se dt è piccolo (eventi rapidi) il contributo è alto; se dt è grande
-    // (eventi distanti) il contributo è basso. Cappo dt a 100ms per stabilità.
+    // EMA dell'intensità: peso |dy| con la frequenza istantanea. Cappo dt a 100ms.
     const dtClamped = Math.max(8, Math.min(100, dt || 16));
-    const instantSpeed = Math.abs(dy) * (16 / dtClamped); // normalizzato su un frame
+    const instantSpeed = Math.abs(dy) * (16 / dtClamped);
     __wheelSpeedEMA = ZOOM_EMA_ALPHA * instantSpeed + (1 - ZOOM_EMA_ALPHA) * __wheelSpeedEMA;
 
     // ── ZOOM SNAPSHOT BURST ───────────────────────────────────────────────
-    // IMPORTANTE: _enterZoomBurst va chiamato QUI (non nel rAF) perché lo
-    // snapshot deve riflettere lo stato visivo PRIMA del primo applyTransform.
-    // Se lo facessimo nel rAF, il setZoomCentered avrebbe già modificato il
-    // transform CSS del paper, e lo snapshot risulterebbe disallineato
-    // visivamente nel primo frame del burst.
+    // _enterZoomBurst va chiamato QUI (non nel rAF): lo snapshot deve riflettere
+    // lo stato visivo PRIMA del primo applyTransform.
     _enterZoomBurst();
     _bumpZoomBurstEndTimer();
 
@@ -1234,50 +1423,18 @@ workspace.addEventListener(
         __wheelAccumDeltaY = 0;
         if (acc === 0) return;
 
-        // Moltiplicatore di velocità dall'EMA corrente
         const speedMult = _wheelSpeedMultiplier(__wheelSpeedEMA);
         const effectiveSensitivity = ZOOM_BASE_SENSITIVITY * speedMult;
 
-        // Fattore grezzo + clamp per frame (guardia ultima anti-velocità)
-        const f_raw = Math.exp(-acc * effectiveSensitivity);
-        const f = Math.max(PER_FRAME_FACTOR_CAP_DOWN, Math.min(PER_FRAME_FACTOR_CAP_UP, f_raw));
+        // Fattore con saturazione morbida (niente più clamp netto)
+        const f = _zoomFactorFromDelta(acc, effectiveSensitivity);
 
         setZoomCentered(view.scale * f, __wheelLastClientX, __wheelLastClientY);
-        // setZoomCentered durante un burst fa solo applyTransform — zero lavoro
-        // Fabric. Tutto il pesante viene consolidato in _exitZoomBurst.
       });
-    }
-
-    // Arma l'inerzia SOLO se è un evento da mouse (non trackpad: il SO già
-    // fornisce momentum naturale per il trackpad). Se entro 60ms arriva un
-    // altro tick reale, l'arm viene resettato e l'inerzia non parte.
-    if (__lastWheelWasMouse) {
-      _armMouseInertia();
     }
   },
   { passive: false }
 );
-
-// ── STOP INERZIA su interazioni utente ────────────────────────────────────
-//  Qualunque azione utente diretta interrompe l'inerzia in corso o programmata.
-//  Listener in CAPTURE su window per intercettare prima di altri handler
-//  (incluso mouseObserver.js per la rotazione fine col destro).
-window.addEventListener("mousedown", () => {
-  if (__inertiaActive || __inertiaArmTimer) _stopMouseInertia();
-}, true);
-
-window.addEventListener("keydown", () => {
-  if (__inertiaActive || __inertiaArmTimer) _stopMouseInertia();
-}, true);
-
-window.addEventListener("blur", () => {
-  if (__inertiaActive || __inertiaArmTimer) _stopMouseInertia();
-});
-
-// Anche l'inizio di un tratto Fabric (freehand/acquerello) deve fermare l'inerzia
-canvas.on("mouse:down", () => {
-  if (__inertiaActive || __inertiaArmTimer) _stopMouseInertia();
-});
 
 // Pulsanti zoom
 if (zoomInBtn)
@@ -1345,6 +1502,7 @@ workspace.addEventListener("mousedown", (e) => {
 });
 
 window.addEventListener("mouseup", () => {
+  const wasPanning = panning;
   panning = false;
   if (wasDrawingMode) {
     canvas.isDrawingMode = true;
@@ -1352,6 +1510,10 @@ window.addEventListener("mouseup", () => {
   }
   isAltPanning = false;
   window.isAltPanning = false; // ← reset flag
+
+  // Render finale dopo un pan: garantisce che le forme rientrate in vista durante
+  // il trascinamento siano disegnate nitide all'ultima posizione del foglio.
+  if (wasPanning) canvas.requestRenderAll();
 });
 
 // Pan con RAF batching: gli accumulatori _panDx/_panDy collezionano i delta
@@ -1361,6 +1523,10 @@ window.addEventListener("mouseup", () => {
 let _panRAF = null;
 let _panDx = 0;
 let _panDy = 0;
+let _panLastRenderT = 0;
+const PAN_RENDER_THROTTLE_MS = 90; // ridisegna le forme rientrate in vista durante
+                                   // il pan, max ~11×/sec (no render a ogni frame)
+
 window.addEventListener("mousemove", (e) => {
   if (!panning) return;
   _panDx += e.clientX - last.x;
@@ -1375,6 +1541,16 @@ window.addEventListener("mousemove", (e) => {
     _panDx = 0;
     _panDy = 0;
     applyTransform();
+
+    // Il culling salta le forme fuori dallo SCHERMO, ma il rettangolo visibile
+    // si sposta col pan → quelle che rientrano vanno ridisegnate. applyTransform()
+    // è solo CSS e non rende, quindi senza questo restano vuote. Throttle a tempo
+    // per non fare un render completo a ogni frame durante un pan veloce.
+    const now = performance.now();
+    if (now - _panLastRenderT >= PAN_RENDER_THROTTLE_MS) {
+      _panLastRenderT = now;
+      canvas.requestRenderAll();
+    }
   });
 });
 

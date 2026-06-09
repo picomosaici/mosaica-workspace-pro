@@ -582,10 +582,10 @@
   <div class="header-inner">
     <div class="logo-badge">
       <div class="logo-dot">🎨</div>
-      User Guide · V 5.2026
+      User Guide · V 06.2026
     </div>
     <h1>Mosaica<br><em>Workspace Pro</em></h1>
-    <p class="header-sub">Complete guide to using the application for real-scale mosaic design, freehand drawing, digital watercolor, and laser CAM export.</p>
+    <p class="header-sub">Complete guide to using the application for to-scale mosaic design, freehand drawing, digital watercolor, and laser CAM export.</p>
     <span class="header-flag">🇬🇧</span>
   </div>
 </header>
@@ -611,6 +611,7 @@
     <a href="#wacom">Wacom Tablet</a>
     <a href="#inputmapping">Input Mapping</a>
     <a href="#scorciatoie">Shortcuts</a>
+    <a href="#sicurezza">Security &amp; Updates</a>
   </div>
 </nav>
 
@@ -664,14 +665,15 @@
   </div>
 
   <h3>Top Bar — File Dropdown</h3>
-  <p>Clicking <strong>File</strong> in the top bar opens a menu with three actions and a checkbox:</p>
+  <p>Clicking <strong>File</strong> in the top bar opens a menu with these entries:</p>
   <ul>
     <li><strong>📂 Open Project…</strong> — opens an existing <code>.msp.json</code> file.</li>
     <li><strong>💾 Save Project</strong> — saves the current project in <code>.msp.json</code> format.</li>
     <li><strong>New Project</strong> (purple button) — clears the canvas and creates a blank sheet with a small reference rectangle. Opens a <strong>confirmation modal</strong> first because this action deletes all unsaved work.</li>
+    <li><strong>🌐 Language</strong> — sub-section with two flag selectors <strong>🇮🇹 Italiano</strong> and <strong>🇬🇧 English</strong>. Clicking a flag switches the interface language and <strong>the app restarts automatically</strong> to apply translations to every module (toolbar, inspector, modals, user guide). The choice is persistent: it is saved in <code>%APPDATA%\mosaica-workspace-pro\language.json</code> and honored on every subsequent launch. The user guide follows the language too: in Italian it opens <code>Guida_utente.html</code>, in English <code>Guida_utente_EN.html</code>.</li>
     <li><strong>☐ Open project at startup</strong> — checkbox to enable automatic opening of the last saved project (see dedicated section).</li>
+    <li><strong>🔄 Check for updates</strong> — checks the official GitHub repository for a newer version and, with your confirmation, downloads and installs it (see the <a href="#sicurezza" style="color:var(--blue);">Security &amp; Updates</a> section).</li>
   </ul>
-
   <h3>Top Bar — Export Dropdown</h3>
   <p>Clicking <strong>Export</strong> in the top bar opens a menu with three items, each opening a detailed choice modal:</p>
   <ul>
@@ -694,7 +696,7 @@
   <div class="card-grid col3">
     <div class="card-mini">
       <h4>🖱️ Mouse Wheel</h4>
-      <p>Zoom centered on the cursor. Precise and fluid. <strong>Range 40%–800%</strong>: beyond these limits the value snaps to the extreme.</p>
+      <p>Cursor-centered zoom with a <strong>"Photoshop-style" system</strong>: during the gesture Mosaica takes a <strong>GPU snapshot</strong> of the canvas and scales it via CSS, so zooming stays fluid even on heavy projects (hundreds of tiles, large backgrounds, dozens of pen/watercolor strokes). The Fabric backstore is reallocated only once at the end of the gesture. <strong>Range 40%–800%</strong>: beyond these limits the value snaps to the extreme.</p>
     </div>
     <div class="card-mini">
       <h4>⌥ Alt + Drag</h4>
@@ -705,6 +707,11 @@
       <p>With no object selected, arrows pan. With an object selected, they move the object (1 px, 10 px with Shift).</p>
     </div>
   </div>
+
+  <h3>Adaptive Wheel Sensitivity</h3>
+  <p>Wheel zoom has a <strong>sensitivity that adapts to gesture speed</strong>: when you turn the wheel slowly the zoom stays precise, one notch at a time; when you spin it quickly the zoom accelerates naturally to cover more range in less time, exactly like professional graphic editors. Speed is measured in events/second and smoothed with an exponential moving average (EMA) that decays over ~250 ms — so the moment you slow down, zoom returns to precise mode immediately. A <em>safety cap</em> on individual event intensity also protects against driver/OS spikes.</p>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>The GPU snapshot is capped at <strong>4096 px on the longest side</strong> to keep RAM in check: at very high zoom levels you may notice a slight softening for a few milliseconds during the gesture, after which Fabric rasterizes at full quality. This is intentional, matching the behavior of Photoshop and Figma.</div></div>
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
     <li>Use <strong>Alt + drag</strong> to navigate the sheet without leaving the active tool; the cursor changes to "pan" automatically.</li>
@@ -951,6 +958,32 @@
 
   <div class="callout tip"><div class="callout-icon"></div><div>Once in the canvas, the custom shape behaves exactly like all the others: <strong>radial menu</strong>, <strong>blue handles</strong> for resizing and rotating, <strong>mm measurements</strong> in the Inspector and status bar, application of <strong>color</strong> and <strong>texture</strong>, <strong>duplication</strong>, <strong>group/ungroup</strong>, <strong>lasso selection</strong>, <strong>undo/redo</strong>, and is <strong>saved</strong> in the <code>.msp.json</code> project along with everything else — including any side curves.</div></div>
 
+  <h4 style="margin:14px 0 6px;">Working sheet: formats and units</h4>
+  <p>At the top of the modal you choose the <strong>sheet format</strong> you draw on: the presets <strong>A5, A4, A3, A2, A1, A0</strong> or <strong>Custom</strong> with width and height typed by hand. The field unit can be switched between <strong>mm</strong>, <strong>cm</strong> and <strong>inches</strong> (conversion is automatic). Next to it you always see the sheet size and <strong>area</strong> updated in real time; rulers and grid adapt to the new format immediately.</p>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div>A shape can be <strong>inserted into the main canvas</strong> only if the builder sheet is <strong>A4 or smaller</strong>: Mosaica's canvas is a real A4. On larger sheets (A3→A0) the builder is for <em>designing and saving</em> the composition (see "Multiple shapes together"), but the <strong>Insert</strong> button stays disabled until you go back to a format ≤ A4.</div></div>
+
+  <h4 style="margin:14px 0 6px;">Shape color and opacity</h4>
+  <p>The builder toolbar has a <strong>color picker</strong> and an <strong>opacity</strong> slider (0–100%) that act on the <strong>active</strong> shape. The last combination you choose becomes the <strong>default</strong> inherited by the shapes you create afterwards, so you can draw a consistent set without resetting it every time.</p>
+
+  <h4 style="margin:14px 0 6px;">Rounding corners — global and per single vertex</h4>
+  <ul>
+    <li><strong>All corners</strong> — the "All corners" slider (in mm) rounds <em>every</em> vertex of the active shape with the same radius.</li>
+    <li><strong>Selected corner</strong> — in the editing phase <strong>click a single vertex</strong> to select it, then use the "Selected corner" slider to give it a radius <em>independent</em> of the others. Each vertex remembers its own radius: you can have a shape with a single soft corner and all the others sharp.</li>
+  </ul>
+  <div class="callout tip"><div class="callout-icon"></div><div>The "All corners" slider takes precedence: moving it <strong>overrides</strong> the per-vertex radii set by hand. It is best to set the global rounding first and then fine-tune individual vertices.</div></div>
+
+  <h4 style="margin:14px 0 6px;">Multiple shapes together — "palladiana" projects</h4>
+  <p>In the builder you can draw <strong>several independent shapes on the same sheet</strong> ("software within the software"), designed to lay out a <strong>palladiana</strong> pattern or an irregular-tile mosaic before bringing it into the canvas.</p>
+  <ul>
+    <li><strong>➕ New shape</strong> — closes the current shape and starts a new empty one, inheriting the default color, opacity and rounding.</li>
+    <li>Each closed shape can be <strong>moved</strong> by dragging its body, <strong>reselected</strong> to edit its vertices and curves, or <strong>deleted</strong> with <strong>🗑 Delete shape</strong>.</li>
+    <li><strong>💾 Save palladiana</strong> / <strong>📂 Open palladiana</strong> — save and reload the <em>entire builder project</em> (all shapes with their vertices, curves, radii, colors, plus the sheet format) to a dedicated file, so you can resume the composition later.</li>
+  </ul>
+
+  <h4 style="margin:14px 0 6px;">Reference image (tracing)</h4>
+  <p>You can load a <strong>reference image</strong> into the builder to <strong>trace</strong> it with the vertices: the image is drawn <em>under the grid</em> and <strong>clipped to the sheet</strong>. Entering "image edit mode" you <strong>move and scale</strong> it with the handles; leaving that mode you go back to tracing vertices over it.</p>
+  <div class="callout tip"><div class="callout-icon"></div><div>The <strong>grid adapts its own color</strong> to the image automatically: over light images it turns dark (blue, distinguishable from black strokes), over dark images it turns light (cyan), so the vertices always stay readable on top of the reference.</div></div>
+
   <h4 style="margin:14px 0 6px;">Keyboard Shortcuts Inside the Modal</h4>
   <ul>
     <li><kbd>Enter</kbd> → in drawing closes the shape (with ≥3 vertices); in editing inserts the shape into the canvas.</li>
@@ -1083,7 +1116,7 @@
   <p><strong>+</strong> is left click (clockwise rotation / larger scale); <strong>−</strong> is right click (counter-clockwise / smaller scale).</p>
 
   <h3>Fine Rotation with Right Button + Wheel</h3>
-  <p>There is a second method for precise rotation: <strong>hold the right button over a shape and use the mouse wheel</strong>. The cursor becomes a blue rotation icon while the right button is held. Same steps as the radial button (0.25° default, 0.5° with Shift, 1° with Ctrl). Release the right button to close the rotation session (a single push in the undo/redo history).</p>
+  <p>There is a second method for precise rotation: <strong>hold the right button over a shape and use the mouse wheel</strong>. The cursor becomes a blue rotation icon while the right button is held. Same steps as the radial button (0.25° default, 0.5° with Shift, 1° with Ctrl). Release the right button to close the rotation session (a single entry in the undo/redo history).</p>
 
   <div class="callout tip"><div class="callout-icon"></div><div>With <strong>multiple objects selected</strong> the <strong>⎇ Group</strong> and <strong>⎆ Ungroup</strong> buttons appear in green. A group moves, resizes, and rotates as a single unit.</div></div>
 
@@ -1401,10 +1434,8 @@
     </div>
   </div>
 
-  <div class="callout tip"><div class="callout-icon"></div><div>You can add your own custom tips: save any <strong>RGBA PNG with transparent background</strong> in the <code>textures/brush/</code> folder and it will automatically appear in the "Tip" modal at the next opening. Recommended resolution: 256–512 px on the longest side.</div></div><div class="callout tip"><div class="callout-icon"></div><div>You can add your own custom tips: save any grayscale PNG in the <code>textures/brush/</code> folder and it will automatically appear in the "Tip" modal at the next opening.</div></div>
-
-  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
-    <li>To add custom tips, save <strong>RGBA PNG files with transparent background</strong> in the <code>textures/brush/</code> folder: they will automatically appear in the modal at the next app opening. Draw the brush silhouette with the alpha channel (full alpha = pigment, faded alpha = soft edges).</li><li>To add custom tips, save <strong>grayscale PNG files</strong> in the <code>textures/brush/</code> folder: they will automatically appear in the modal at the next app opening.</li>
+    <div class="callout tip"><div class="callout-icon"></div><div>You can add your own custom tips: save any <strong>RGBA PNG with transparent background</strong> in the <code>textures/brush/</code> folder and it will automatically appear in the "Tip" modal at the next opening. Recommended resolution: 256–512 px on the longest side.</div></div>  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li>To add custom tips, save <strong>RGBA PNG files with transparent background</strong> in the <code>textures/brush/</code> folder: they will automatically appear in the modal at the next app opening. Draw the brush silhouette with the alpha channel (full alpha = pigment, faded alpha = soft edges).</li><li>To add custom tips, save <strong>RGBA PNG files with transparent background</strong> in the <code>textures/brush/</code> folder: they will automatically appear in the modal at the next app opening. Draw the brush silhouette with the alpha channel (full alpha = pigment, faded alpha = soft edges).</li><li>To add custom tips, save <strong>grayscale PNG files</strong> in the <code>textures/brush/</code> folder: they will automatically appear in the modal at the next app opening.</li>
     <li>Each tip has its own independent <strong>Initial Rotation</strong>: experiment with different angles for each texture to discover unexpected stroke variations.</li>
     <li>"Dry brush" tips with holes and streaks (e.g. <code>brush_dry_grain.png</code>) give very realistic glaze effects when combined with rough paper texture.</li>
     <li>If a tip seems too large or too small relative to the stroke, remember that the global brush <strong>Width</strong> scales all tips proportionally.</li>
@@ -1655,7 +1686,7 @@
 
   <p>When entering full screen, a brief <strong>toast at the top</strong> reminds you to press ESC to exit.</p>
 
-  <div class="callout tip"><div class="callout-icon"></div><div>The two buttons ⛶ and 🗗 automatically swap based on the window state: only the relevant one is visible. The state is also synchronized with changes via the OS keyboard.</div></div>
+  <div class="callout tip"><div class="callout-icon"></div><div>The two buttons ⛶ and 🗗 automatically swap based on the window state: only the relevant one is visible. The state is also synchronized with changes from OS keyboard shortcuts.</div></div>
 </section>
 
 <!-- ── EXPORT ── -->
@@ -2084,12 +2115,71 @@
   </ul></div></div>
 </section>
 
+<!-- ── SECURITY & UPDATES ── -->
+<section id="sicurezza">
+  <div class="section-label">19</div>
+  <h2>Security &amp; Online Updates</h2>
+  <p>Mosaica Workspace Pro is an <strong>offline drawing application</strong>: the only thing it does on the network is <strong>check whether a new version exists</strong> on the official GitHub repository and, at your request, download its installer. Everything else in the program never talks to the internet. This section explains how updates work and which protections are always active.</p>
+
+  <h3>Checking and installing updates</h3>
+  <p>Open the <strong>File</strong> menu in the top bar and click <strong>🔄 Check for updates</strong>. Mosaica queries the official GitHub releases and opens the <strong>"Mosaica Updates"</strong> modal, always showing the result:</p>
+  <ul>
+    <li><strong>You are up to date</strong> → message "You are using the latest version of Mosaica Workspace Pro".</li>
+    <li><strong>A new version is available</strong> → you see the <strong>current version</strong>, the <strong>new version</strong>, the <strong>release notes</strong> and the installer name/size. From here you can <strong>Download and install</strong>, postpone with <strong>Later</strong>, or <strong>Skip this version</strong> (it will no longer be proposed in automatic checks until a newer one is released).</li>
+  </ul>
+  <p>During the download a <strong>progress bar</strong> shows percentage and bytes; you can keep working and, if you wish, press <strong>Cancel</strong>. Once the download is finished choose <strong>Install now</strong> (Mosaica closes and launches the installer) or <strong>Install later</strong>.</p>
+  <div class="callout tip"><div class="callout-icon"></div><div>When you choose <strong>Install now</strong>, <strong>auto-save</strong> runs before closing: if you have unsaved work, the "Saving…" overlay secures it before the installer starts. You lose nothing.</div></div>
+
+  <h3>Automatic check at startup</h3>
+  <p>If the <strong>"Check at startup"</strong> box is enabled, a few seconds after opening Mosaica performs a <strong>silent</strong> check: it opens the modal <em>only</em> if it actually finds a new (and not "skipped") version. The automatic check is limited to no more than once every <strong>6 hours</strong>, so it never gets in the way. You can disable it by unchecking the box in the modal.</p>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div>Automatic updates work only on the <strong>installed Windows version</strong>. In development mode (<code>npm run dev</code>) or on other platforms Mosaica simply tells you so — it does not download anything.</div></div>
+
+  <h3>How Mosaica protects the download</h3>
+  <p>Downloading and running an installer is the most delicate moment: that is why the update goes through a series of <strong>purpose-built security checks</strong> before any file is launched.</p>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>🔒 GitHub only</h4>
+      <p>The download is allowed only towards the official GitHub domains (HTTPS). Any <strong>redirect</strong> is re-checked: if it points to a foreign host, it is <strong>blocked</strong> and aborted.</p>
+    </div>
+    <div class="card-mini">
+      <h4>🧾 Verified filename</h4>
+      <p>The installer must have a simple name with the <code>.exe</code> extension, with no path separators and no <code>..</code> (no "path traversal").</p>
+    </div>
+    <div class="card-mini">
+      <h4>🧬 File integrity</h4>
+      <p>After the download Mosaica checks the <strong>size</strong> (within sensible limits: 1–500 MB), that the file is really a Windows executable (<strong>"MZ" magic bytes</strong>) and compares its <strong>SHA-256 hash</strong> with the one published by GitHub. If the hash does not match, the file is <strong>deleted</strong> and the installation refused.</p>
+    </div>
+    <div class="card-mini">
+      <h4>🗒️ Security log</h4>
+      <p>Relevant events are recorded in <code>%APPDATA%\mosaica-workspace-pro\security.log</code> (with automatic rotation). It is only for diagnostics: no data leaves your PC.</p>
+    </div>
+  </div>
+  <div class="callout tip"><div class="callout-icon"></div><div>Older releases may not have the SHA-256 hash: in that case the size and file-type checks remain active, and the event is recorded in the log. It is one fewer check, not an absence of checks.</div></div>
+
+  <h3>Always-on defenses (even offline)</h3>
+  <p>Regardless of updates, Mosaica "locks itself down" at startup so it stays what it is meant to be: a local editor.</p>
+  <ul>
+    <li><strong>No web navigation</strong>: the window cannot be taken to external pages; http(s) links (e.g. the project page) open in the <strong>system browser</strong>, never inside the app. No popups, no nested windows.</li>
+    <li><strong>Permissions denied by principle</strong>: camera, microphone, geolocation, notifications and the like are <strong>always refused</strong> — Mosaica does not need them.</li>
+    <li><strong>Strict Content-Security-Policy</strong>: the program loads only its own local resources and never runs code coming from the network. The renderer never talks to the internet directly: every network operation goes through the main process.</li>
+    <li><strong>Independent of the drawing engine</strong>: this security layer does not touch Fabric and is fully compatible with <strong>Fabric.js from v5.1.0 to v5.3.0</strong>.</li>
+  </ul>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div>On the first launch after an update, Windows Defender may show the "Unknown publisher" warning because the installer is not signed with a paid certificate. This is normal: click <strong>More info → Run anyway</strong>. The SHA-256 verification done by Mosaica still guarantees that the downloaded file is identical to the published one.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical tips</strong><ul>
+    <li>Leave <strong>"Check at startup"</strong> on: the check is light, silent and notifies you only when something genuinely new is released.</li>
+    <li>If a version does not interest you, use <strong>Skip this version</strong>: automatic checks will ignore it until a later one is released.</li>
+    <li>You can keep drawing during the download: installation starts only when you press <strong>Install now</strong>, and auto-save protects your work anyway.</li>
+    <li>If you are offline or GitHub does not respond, the manual check tells you clearly and the app keeps working normally offline.</li>
+  </ul></div></div>
+</section>
+
 </main>
 
 <!-- ════════════════════════════════ FOOTER ════════════════════════════════ -->
 <footer>
   <strong>Mosaica Workspace Pro</strong> · User Guide · By Pico Mosaici<br>
-  <span style="margin-top:6px;display:block;">Updated to version · V 5.2026</span>
+  <span style="margin-top:6px;display:block;">Updated to version · V 06.2026</span>
   <span style="margin-top:6px;display:block;">© 2026 Pico Mosaici® by Pietro Coraggio | Venafro (IS) | All rights reserved</span>
 </footer>
 

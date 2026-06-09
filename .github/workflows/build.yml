@@ -61,24 +61,19 @@ jobs:
           body: |
             ## 🎨 Mosaica Workspace Pro ${{ github.ref_name }}
 
-            Versione **06.2026** — Mosaica diventa multilingue, lo zoom vola, e mouse e tastiera sono finalmente tuoi.
+            Aggiornamento di Giugno 2026 — il builder delle forme "palladiana" fa un salto avanti e lo zoom da rotella diventa ancora più diretto.
 
             ### ✨ Cosa c'è di nuovo
 
-            - 🌍 **Interfaccia in Italiano e Inglese** — cambia lingua dal menu *File*, l'app si riavvia e si traduce tutto, guida utente compresa
-            - 🔍 **Zoom Photoshop-style** — la rotella ora è fluida anche su progetti pesanti (centinaia di tessere, sfondi grandi, decine di tratti acquerello). Niente più scatti o blocchi a metà gesto
-            - 🖱️ **Mappa mouse e tastiera come vuoi tu** — dal pulsante *Input* nella barra superiore puoi assegnare azioni a:
-              - Tasti singoli del mouse (compresi i laterali X1/X2 di mouse gaming e HP)
-              - Combinazioni di tasti mouse (es. sinistro + destro)
-              - Scorciatoie di tastiera personalizzate (es. Ctrl+L)
-              - Tasti come frecce direzionali (es. W/A/S/D)
-            - 🎁 **Installer multilingua** con selettore di lingua all'avvio e pannello dettagli tradotto
+            - 🧩 **Builder palladiana potenziato** — disegna più forme indipendenti sullo stesso foglio, ognuna con il suo colore e la sua opacità, e salva/riapri l'intera composizione in un file dedicato
+            - 📐 **Fogli da A5 ad A0 + Personalizzato** nel builder, con unità in mm / cm / pollici
+            - ✨ **Angoli arrotondabili** tutti insieme o vertice per vertice, e **lati curvabili** singolarmente (curve di Bézier) con un semplice trascinamento
+            - 🖼️ **Immagine di riferimento** caricabile nel builder per ricalcare una sagoma, con la griglia che adatta da sola il proprio colore per restare leggibile
 
-            ### 🛡️ Cosa NON è cambiato (apposta)
+            ### 🛠️ Miglioramenti
 
-            - Le scorciatoie classiche (Ctrl+Z, Ctrl+C/V/X, Canc, Ctrl+/-, frecce) restano attive come sempre
-            - La rotazione fine col tasto destro sulle forme funziona ancora
-            - In modalità disegno (Penna/Acquerello/Gomma) il tasto sinistro disegna sempre, anche se l'hai mappato a qualcos'altro
+            - 🖱️ **Zoom da rotella senza inerzia** — risponde tacca per tacca, senza più scivolare dopo l'ultimo scatto: più diretto e prevedibile
+            - ⚡ **Resa nitida più pronta** dopo lo zoom: l'immagine ad alta definizione torna subito a fine gesto
 
             ### 📥 Installazione
 
@@ -90,7 +85,7 @@ jobs:
 
             ### 📝 Note tecniche
 
-            - Versione interna: `6.2026.0`
-            - Electron 41 · Fabric.js 7.x (compatibilità garantita da 5.1.0)
-            - 443 chiavi i18n simmetriche IT + EN
-            - Snapshot GPU cappato a 4096px lato lungo per non gonfiare la RAM
+            - Versione interna: `6.2026.1`
+            - Electron 41 · Fabric.js 5.1.0 → 5.3.0 (minima 5.1.0, massima testata 5.3.0)
+            - 589 chiavi i18n simmetriche IT + EN
+            - Progetti palladiana salvati in file `.mspp.json` (coordinate in mm reali)

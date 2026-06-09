@@ -5,6 +5,7 @@ const fs = require("fs");
 const PDFDocument = require("pdfkit");
 
 const { loadCalibration, saveCalibration } = require("./storage/calibrationStore");
+const security = require("./security");
 
 let mainWindow;
 let isRestarting = false;
@@ -12,6 +13,7 @@ let autosaveCloseInProgress = false; // protezione anti-rientro nel close handle
 
 // rimuove definitivamente il menu nativo
 Menu.setApplicationMenu(null);
+
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -27,6 +29,19 @@ function createWindow() {
       webSecurity: false
     }
   });
+  
+  mainWindow.loadFile(path.join(__dirname, "index.html"));
+  mainWindow.setFullScreen(true);
+  
+  // ── 🛡️ CYBER-SECURITY: aggancia CSP, permission handler, navigation guard
+  // PRIMA di loadFile, così la prima richiesta del renderer ha già le protezioni.
+  try {
+    security.lockDownSession(mainWindow.webContents.session);
+    security.lockDownWindow(mainWindow);
+  } catch (e) {
+    console.error("[security] init falliti:", e);
+  }
+
   mainWindow.loadFile(path.join(__dirname, "index.html"));
   mainWindow.setFullScreen(true);
 
@@ -43,18 +58,9 @@ function createWindow() {
   });
 
   // ── Auto-salvataggio alla chiusura ────────────────────────────────────────
-  // Niente più dialog nativo "Esci/Annulla": il renderer ha un proprio overlay
-  // che gestisce l'autosave e offre i pulsanti "Esci ora" / "Annulla chiusura".
-  // Comportamento:
-  //   1. Se stiamo riavviando con Ctrl+R → bypass completo (riavvio pulito).
-  //   2. Altrimenti preventDefault + segnale al renderer "autosave:close-
-  //      requested". L'autosave (file di sessione o sovrascrittura del
-  //      progetto aperto) viene eseguito e poi il renderer chiama
-  //      "autosave:confirm-close" che fa destroy() della finestra.
-  //   3. Watchdog: se il renderer non risponde entro 30s, chiusura forzata.
   mainWindow.on("close", (e) => {
-    if (isRestarting) return; // Ctrl+R: lascia chiudere
-    if (autosaveCloseInProgress) return; // seconda volta → lascia chiudere
+    if (isRestarting) return;
+    if (autosaveCloseInProgress) return;
 
     e.preventDefault();
     autosaveCloseInProgress = true;
@@ -66,9 +72,7 @@ function createWindow() {
     // Watchdog: se per qualche motivo il renderer non risponde, forza chiusura.
     setTimeout(() => {
       if (mainWindow && !mainWindow.isDestroyed()) {
-        try {
-          mainWindow.destroy();
-        } catch (_) {}
+        try { mainWindow.destroy(); } catch (_) {}
       }
     }, 30000);
   });
@@ -216,6 +220,45 @@ ipcMain.handle("projects:openDialog", async () => {
     defaultPath: dir,
     properties: ["openFile"],
     filters: [{ name: "Project", extensions: ["msp.json"] }]
+  });
+  if (canceled || !filePaths.length) return null;
+  const full = filePaths[0];
+  const filename = path.basename(full);
+  const content = fs.readFileSync(full, "utf8");
+  return { filename, content, path: full };
+});
+
+// ===== PROGETTI PALLADIANA (.mspp.json) — file SEPARATI dai progetti mosaico =====
+// Stesso identico meccanismo dei progetti, ma con estensione .mspp.json e cartella
+// dedicata, così le due tipologie non si mescolano mai (né in elenco né in apertura).
+function getPalladianaDir() {
+  return getUserDataSubdir("palladiana");
+}
+
+ipcMain.handle("palladiana:list", async () => {
+  const dir = getPalladianaDir();
+  const files = fs.readdirSync(dir).filter((f) => /\.mspp\.json$/i.test(f));
+  return files.map((f) => ({ filename: f, path: path.join(dir, f) }));
+});
+
+ipcMain.handle("palladiana:save", async (_, meta) => {
+  const { canceled, filePath } = await dialog.showSaveDialog({
+    defaultPath: path.join(getPalladianaDir(), "palladiana.mspp.json"),
+    filters: [{ name: "Mosaica Palladiana", extensions: ["mspp.json"] }]
+  });
+  if (canceled || !filePath) return { canceled: true };
+
+  let finalPath = filePath.endsWith(".mspp.json") ? filePath : filePath + ".mspp.json";
+  fs.writeFileSync(finalPath, meta.content, "utf8");
+  return { path: finalPath, filename: path.basename(finalPath) };
+});
+
+ipcMain.handle("palladiana:openDialog", async () => {
+  const dir = getPalladianaDir();
+  const { canceled, filePaths } = await dialog.showOpenDialog({
+    defaultPath: dir,
+    properties: ["openFile"],
+    filters: [{ name: "Mosaica Palladiana", extensions: ["mspp.json"] }]
   });
   if (canceled || !filePaths.length) return null;
   const full = filePaths[0];
@@ -957,17 +1000,7 @@ function _getUpdatesDir() {
 }
 
 function _isGithubUrl(u) {
-  try {
-    const url = new URL(u);
-    return (
-      url.protocol === "https:" &&
-      (url.hostname === "github.com" ||
-        url.hostname === "api.github.com" ||
-        url.hostname.endsWith(".githubusercontent.com"))
-    );
-  } catch {
-    return false;
-  }
+  return security.isGithubUrl(u);
 }
 
 ipcMain.handle("update:get-platform-info", () => {
@@ -1011,12 +1044,24 @@ ipcMain.handle("update:set-settings", (_e, settings) => {
 ipcMain.handle("update:fetch-latest", (_e, owner, repo) => {
   return new Promise((resolve, reject) => {
     if (!owner || !repo || !/^[a-zA-Z0-9._-]+$/.test(owner) || !/^[a-zA-Z0-9._-]+$/.test(repo)) {
+      security.logSecurityEvent("warn", "fetch_latest_bad_args", { owner, repo });
       return reject(new Error("Owner/repo non validi"));
     }
     const url = `https://api.github.com/repos/${owner}/${repo}/releases/latest`;
-    const req = net.request({ method: "GET", url, redirect: "follow" });
+    if (!security.isGithubUrl(url)) {
+      // Paranoia: l'URL costruito DEVE matchare l'allowlist.
+      security.logSecurityEvent("error", "fetch_latest_url_rejected", { url });
+      return reject(new Error("URL API non valido"));
+    }
+
+    const req = net.request({ method: "GET", url, redirect: "manual" });
     req.setHeader("User-Agent", "Mosaica-Workspace-Pro-Updater");
     req.setHeader("Accept", "application/vnd.github+json");
+
+    // Redirect guard: api.github.com → segui solo se ancora GitHub
+    security.attachRedirectGuard(req, (badUrl) => {
+      reject(new Error("Redirect bloccato verso host esterno: " + badUrl));
+    });
 
     const timeoutId = setTimeout(() => {
       try { req.abort(); } catch (_) {}
@@ -1029,11 +1074,18 @@ ipcMain.handle("update:fetch-latest", (_e, owner, repo) => {
       response.on("end", () => {
         clearTimeout(timeoutId);
         if (response.statusCode !== 200) {
+          security.logSecurityEvent("warn", "fetch_latest_http_error", { status: response.statusCode });
           return reject(new Error(`GitHub API HTTP ${response.statusCode}`));
+        }
+        // Limite difensivo sulla dimensione della risposta JSON
+        if (chunks.length > 2 * 1024 * 1024) {
+          security.logSecurityEvent("warn", "fetch_latest_response_too_big", { bytes: chunks.length });
+          return reject(new Error("Risposta GitHub troppo grande"));
         }
         try {
           resolve(JSON.parse(chunks));
         } catch (e) {
+          security.logSecurityEvent("warn", "fetch_latest_parse_error", { message: e.message });
           reject(new Error("Risposta GitHub non valida: " + e.message));
         }
       });
@@ -1046,92 +1098,178 @@ ipcMain.handle("update:fetch-latest", (_e, owner, repo) => {
 
 ipcMain.handle("update:download-asset", (event, args) => {
   return new Promise((resolve) => {
-    const { url, filename, expectedSize } = args || {};
-    if (!url || !_isGithubUrl(url)) {
+    const { url, filename, expectedSize, expectedDigest } = args || {};
+
+    // ── Validazioni iniziali (allowlist URL + nome file)
+    if (!url || !security.isGithubUrl(url)) {
+      security.logSecurityEvent("error", "download_url_rejected", { url });
       return resolve({ ok: false, error: "URL non consentito (deve essere su github.com)" });
     }
-    if (!filename || !/^[A-Za-z0-9._-]+\.exe$/i.test(filename)) {
+    if (!security.validateInstallerFilename(filename)) {
+      security.logSecurityEvent("error", "download_filename_rejected", { filename });
       return resolve({ ok: false, error: "Nome file installer non valido" });
     }
 
-    // Cleanup di vecchi .exe nella cartella updates (teniamo solo il nuovo)
+    // ── Cleanup di vecchi .exe nella cartella updates (teniamo solo il nuovo)
     const dir = _getUpdatesDir();
     try {
       for (const f of fs.readdirSync(dir)) {
-        if (/\.exe$/i.test(f)) {
+        if (/\.(exe|part)$/i.test(f)) {
           try { fs.unlinkSync(path.join(dir, f)); } catch (_) {}
         }
       }
     } catch (_) {}
 
+    // ── Download su file .part: il rename ad .exe avviene SOLO dopo verifica integrità
     const destPath = path.join(dir, filename);
-    activeDownloadPath = destPath;
+    const tmpPath = destPath + ".part";
+    activeDownloadPath = tmpPath;
 
-    const stream = fs.createWriteStream(destPath);
+    const stream = fs.createWriteStream(tmpPath);
     activeDownloadStream = stream;
 
-    const req = net.request({ method: "GET", url, redirect: "follow" });
+    const req = net.request({ method: "GET", url, redirect: "manual" });
     req.setHeader("User-Agent", "Mosaica-Workspace-Pro-Updater");
     req.setHeader("Accept", "application/octet-stream");
     activeDownloadRequest = req;
 
-    let total = expectedSize || 0;
+    // ── Redirect guard: ogni hop DEVE restare in dominio GitHub
+    let redirectAborted = false;
+    security.attachRedirectGuard(req, (badUrl) => {
+      redirectAborted = true;
+      try { stream.close(); } catch (_) {}
+      try { fs.unlinkSync(tmpPath); } catch (_) {}
+      activeDownloadRequest = null;
+      activeDownloadStream = null;
+      activeDownloadPath = null;
+      resolve({ ok: false, error: "Redirect bloccato verso host esterno: " + badUrl });
+    });
+
+    let total = (typeof expectedSize === "number" && expectedSize > 0) ? expectedSize : 0;
     let downloaded = 0;
 
     req.on("response", (response) => {
       if (response.statusCode !== 200) {
         try { stream.close(); } catch (_) {}
-        try { fs.unlinkSync(destPath); } catch (_) {}
+        try { fs.unlinkSync(tmpPath); } catch (_) {}
         activeDownloadRequest = null;
         activeDownloadStream = null;
         activeDownloadPath = null;
+        security.logSecurityEvent("warn", "download_http_error", { status: response.statusCode, url });
         return resolve({ ok: false, error: `HTTP ${response.statusCode}` });
       }
       const cl = parseInt(response.headers["content-length"] || "0", 10);
       if (cl > 0) total = cl;
 
+      // Hard cap: se il server dichiara una size oltre il limite, rifiutiamo subito
+      if (total > security.MAX_INSTALLER_SIZE_BYTES) {
+        try { stream.close(); } catch (_) {}
+        try { fs.unlinkSync(tmpPath); } catch (_) {}
+        activeDownloadRequest = null;
+        activeDownloadStream = null;
+        activeDownloadPath = null;
+        security.logSecurityEvent("error", "download_size_cap_exceeded", { total });
+        try { req.abort(); } catch (_) {}
+        return resolve({ ok: false, error: "Dimensione installer oltre il limite di sicurezza" });
+      }
+
       response.on("data", (chunk) => {
         downloaded += chunk.length;
+        // Difesa runtime: se durante il download superiamo il cap, interrompi
+        if (downloaded > security.MAX_INSTALLER_SIZE_BYTES) {
+          security.logSecurityEvent("error", "download_size_cap_runtime", { downloaded });
+          try { req.abort(); } catch (_) {}
+          return;
+        }
         try { stream.write(chunk); } catch (_) {}
         try {
           event.sender.send("update:download-progress", { downloaded, total });
         } catch (_) {}
       });
+
       response.on("end", () => {
         stream.end();
-        stream.on("finish", () => {
+        stream.on("finish", async () => {
+          // ── VERIFICA INTEGRITÀ prima di esporre il file
+          const verify = await security.verifyDownloadedAsset(tmpPath, {
+            digest: expectedDigest || null,
+            size: expectedSize || 0
+          });
+
+          if (!verify.ok) {
+            // File compromesso o corrotto: cancella e segnala
+            try { fs.unlinkSync(tmpPath); } catch (_) {}
+            activeDownloadRequest = null;
+            activeDownloadStream = null;
+            activeDownloadPath = null;
+            security.logSecurityEvent("error", "download_verify_failed", {
+              reason: verify.reason,
+              actualDigest: verify.actualDigest,
+              expectedDigest: verify.expectedDigest,
+              size: verify.size
+            });
+            return resolve({ ok: false, error: "Verifica integrità fallita: " + verify.reason });
+          }
+
+          // Verifica OK: rinomina .part → .exe (commit atomico)
+          try {
+            fs.renameSync(tmpPath, destPath);
+          } catch (e) {
+            try { fs.unlinkSync(tmpPath); } catch (_) {}
+            activeDownloadRequest = null;
+            activeDownloadStream = null;
+            activeDownloadPath = null;
+            security.logSecurityEvent("error", "download_rename_failed", { message: e.message });
+            return resolve({ ok: false, error: "Impossibile finalizzare il file: " + e.message });
+          }
+
           activeDownloadRequest = null;
           activeDownloadStream = null;
           activeDownloadPath = null;
-          resolve({ ok: true, path: destPath, size: downloaded });
+
+          security.logSecurityEvent("info", "download_verified", {
+            file: filename,
+            size: verify.size,
+            digest: verify.actualDigest,
+            digestProvidedByGithub: !!expectedDigest
+          });
+
+          resolve({
+            ok: true,
+            path: destPath,
+            size: verify.size,
+            verified: true,
+            digest: verify.actualDigest
+          });
         });
       });
+
       response.on("error", (err) => {
         try { stream.close(); } catch (_) {}
-        try { fs.unlinkSync(destPath); } catch (_) {}
+        try { fs.unlinkSync(tmpPath); } catch (_) {}
         activeDownloadRequest = null;
         activeDownloadStream = null;
         activeDownloadPath = null;
-        resolve({ ok: false, error: err.message });
+        if (!redirectAborted) resolve({ ok: false, error: err.message });
       });
     });
 
     req.on("error", (err) => {
       try { stream.close(); } catch (_) {}
-      try { fs.unlinkSync(destPath); } catch (_) {}
+      try { fs.unlinkSync(tmpPath); } catch (_) {}
       activeDownloadRequest = null;
       activeDownloadStream = null;
       activeDownloadPath = null;
-      resolve({ ok: false, error: err.message });
+      if (!redirectAborted) resolve({ ok: false, error: err.message });
     });
 
     req.on("abort", () => {
       try { stream.close(); } catch (_) {}
-      try { fs.unlinkSync(destPath); } catch (_) {}
+      try { fs.unlinkSync(tmpPath); } catch (_) {}
       activeDownloadRequest = null;
       activeDownloadStream = null;
       activeDownloadPath = null;
-      resolve({ ok: false, error: "Download annullato dall'utente" });
+      if (!redirectAborted) resolve({ ok: false, error: "Download annullato dall'utente" });
     });
 
     req.end();
@@ -1145,19 +1283,34 @@ ipcMain.handle("update:cancel-download", () => {
   return { ok: true };
 });
 
-ipcMain.handle("update:install-and-quit", (_e, installerPath) => {
+ipcMain.handle("update:install-and-quit", async (_e, installerPath) => {
   if (!installerPath || typeof installerPath !== "string") {
+    security.logSecurityEvent("warn", "install_path_missing", {});
     return { ok: false, error: "Path installer mancante" };
   }
   if (!fs.existsSync(installerPath) || !/\.exe$/i.test(installerPath)) {
+    security.logSecurityEvent("warn", "install_path_invalid", { installerPath });
     return { ok: false, error: "Installer non trovato o non valido" };
   }
-  // Salva il path: lo spawn detached avverrà in 'before-quit' DOPO che
-  // l'autosave del renderer ha completato e la finestra è stata distrutta.
+
+  // ── 🛡️ Ri-verifica integrità just-in-time, prima di spawnare:
+  // se nel frattempo qualcuno ha sostituito il file sul disco,
+  // rifiutiamo l'esecuzione.
+  const verify = await security.verifyDownloadedAsset(installerPath, {});
+  if (!verify.ok) {
+    try { fs.unlinkSync(installerPath); } catch (_) {}
+    security.logSecurityEvent("error", "install_preflight_verify_failed", { reason: verify.reason });
+    return { ok: false, error: "Verifica installer fallita: " + verify.reason };
+  }
+
+  security.logSecurityEvent("info", "install_armed", {
+    installerPath,
+    size: verify.size,
+    digest: verify.actualDigest
+  });
+
   pendingInstallerPath = installerPath;
 
-  // Triggera chiusura normale: passa per il close handler esistente, che
-  // attiva l'overlay di autoSave.js e poi chiama autosave:confirm-close.
   if (mainWindow && !mainWindow.isDestroyed()) {
     setTimeout(() => {
       try { mainWindow.close(); } catch (_) {}

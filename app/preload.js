@@ -120,6 +120,18 @@ contextBridge.exposeInMainWorld("projectAPI", {
 });
 
 /* ===============================
+   🧩 PROGETTI PALLADIANA (.mspp.json)
+   ------------------------------------------------------------
+   File separati dai progetti mosaico. `save` passa da tracked()
+   così riusa la barra di avanzamento del saveLoader.
+================================ */
+contextBridge.exposeInMainWorld("palladianaAPI", {
+   listPalladiana: () => ipcRenderer.invoke("palladiana:list"),
+   save: tracked("savePalladiana", "palladiana:save"),
+   openDialog: () => ipcRenderer.invoke("palladiana:openDialog")
+});
+
+/* ===============================
    💾 AUTO-SAVE (silenzioso, NON tracked)
    ------------------------------------------------------------
    Non passa da `tracked()` di proposito: l'auto-salvataggio

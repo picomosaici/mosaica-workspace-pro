@@ -30,6 +30,7 @@ Sviluppata su tecnologia Electron e Fabric.js, offre un'esperienza nativa Window
 ## ✨ Funzionalità
 
 - 🟦 **Modelli geometrici dedicati al mosaico**: settori circolari, triangoli, trapezoidi, sagome personalizzate
+- ✂️ **Builder forme non regolari** con foglio in mm reali (A5→A0 + personalizzato), arrotondamento per singolo vertice, curve di Bézier sui lati, immagine di riferimento per il ricalco e composizioni multi-forma (posa palladiana)
 - ✏️ **Disegno a mano libera** con pennelli pressure-sensitive
 - 💧 **Stamp brush acquerello** per effetti pittorici realistici
 - 🎨 **Sistema di calibrazione** colore e dimensione tessere
@@ -42,12 +43,16 @@ Sviluppata su tecnologia Electron e Fabric.js, offre un'esperienza nativa Window
 - ⌨️ **Scorciatoie da tastiera** personalizzabili
 - 🚀 **Accelerazione GPU** per progetti complessi
 - 🌍 **Interfaccia multilingue** Italiano / Inglese con guida utente nella lingua dell'app
+- 🔄 **Aggiornamenti automatici** da GitHub: controllo all'avvio e manuale (menu File → *Verifica aggiornamenti*), download con barra di avanzamento e verifica d'integrità **SHA-256**, installazione che preserva il lavoro tramite auto-salvataggio
+- 🔒 **Sicurezza integrata**: app *offline-first* con Content-Security-Policy stretta, permessi di sistema negati e allowlist dei soli domini GitHub per gli aggiornamenti
 
 ## 📥 Download e installazione
 
 Scarica l'ultima versione dalla pagina [**Releases**](https://github.com/picomosaici/mosaica-workspace-pro/releases/latest), esegui il file `MosaicaWorkspacePro-Setup-MM.YYYY.exe` e segui le istruzioni dell'installer.
 
 > 💡 Al primo avvio Windows Defender potrebbe mostrare un avviso "Editore sconosciuto" (l'installer non è firmato con certificato digitale). Clicca su **Ulteriori informazioni → Esegui comunque**.
+
+> 🔄 Una volta installata, Mosaica può avvisarti da sola quando esce una nuova versione: dal menu **File → Verifica aggiornamenti** scarichi e installi l'ultima release direttamente da GitHub, con verifica d'integrità SHA-256 e salvataggio automatico del lavoro prima del riavvio.
 
 ### Requisiti di sistema
 

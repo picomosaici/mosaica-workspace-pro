@@ -581,7 +581,7 @@
   <div class="header-inner">
     <div class="logo-badge">
       <div class="logo-dot">🎨</div>
-      Guida Utente · V 5.2026
+      Guida Utente · V 06.2026
     </div>
     <h1>Mosaica<br><em>Workspace Pro</em></h1>
     <p class="header-sub">Guida completa all'uso dell'applicazione per la progettazione di mosaici in scala reale, disegno a mano libera, acquerello digitale ed esportazione per laser CAM.</p>
@@ -610,6 +610,7 @@
     <a href="#wacom">Tavoletta Wacom</a>
     <a href="#inputmapping">Mappatura Input</a>
     <a href="#scorciatoie">Scorciatoie</a>
+    <a href="#sicurezza">Sicurezza &amp; Aggiornamenti</a>
   </div>
 </nav>
 
@@ -662,15 +663,16 @@
     </div>
   </div>
 
-  <h3>Top Bar — dropdown File</h3>
-  <p>Cliccando <strong>File</strong> nella top bar si apre un menu con tre azioni e una checkbox:</p>
+ <h3>Top Bar — dropdown File</h3>
+  <p>Cliccando <strong>File</strong> nella top bar si apre un menu con queste voci:</p>
   <ul>
     <li><strong>📂 Apri progetto…</strong> — apre un file <code>.msp.json</code> esistente.</li>
     <li><strong>💾 Salva progetto</strong> — salva il progetto corrente in formato <code>.msp.json</code>.</li>
     <li><strong>Nuovo progetto</strong> (pulsante viola) — pulisce il canvas e crea un foglio vuoto con un piccolo rettangolo di riferimento. Apre prima un <strong>modale di conferma</strong> perché l'azione cancella tutto il lavoro non salvato.</li>
+    <li><strong>🌐 Lingua</strong> — sottosezione con i due selettori <strong>🇮🇹 Italiano</strong> e <strong>🇬🇧 English</strong>. Cliccando una bandiera la lingua dell'interfaccia cambia e <strong>l'app si riavvia automaticamente</strong> per applicare le traduzioni a tutti i moduli (toolbar, inspector, modali, guida utente). La scelta è persistente: viene salvata in <code>%APPDATA%\mosaica-workspace-pro\language.json</code> e rispettata ad ogni avvio successivo. Anche la guida utente segue la lingua: in italiano si apre <code>Guida_utente.html</code>, in inglese <code>Guida_utente_EN.html</code>.</li>
     <li><strong>☐ Apri progetto all'avvio</strong> — checkbox per attivare l'apertura automatica dell'ultimo progetto salvato (vedi sezione dedicata).</li>
+    <li><strong>🔄 Verifica aggiornamenti</strong> — controlla se sul repository GitHub ufficiale c'è una versione più recente e, su tua conferma, la scarica e installa (vedi sezione <a href="#sicurezza" style="color:var(--blue);">Sicurezza &amp; Aggiornamenti</a>).</li>
   </ul>
-
   <h3>Top Bar — dropdown Esporta</h3>
   <p>Cliccando <strong>Esporta</strong> nella top bar si apre un menu con tre voci, ognuna delle quali apre un modale di scelta dettagliata:</p>
   <ul>
@@ -689,11 +691,11 @@
     <li><strong>Calibrazione</strong> — fattore di scala correttivo applicato (default 1.000).</li>
   </ul>
 
-  <h3>Navigare la vista</h3>
+<h3>Navigare la vista</h3>
   <div class="card-grid col3">
     <div class="card-mini">
       <h4>🖱️ Rotella mouse</h4>
-      <p>Zoom centrato sul cursore. Preciso e fluido. <strong>Range 40%–800%</strong>: oltre questi limiti il valore viene agganciato all'estremo.</p>
+      <p>Zoom centrato sul cursore con <strong>sistema "Photoshop-style"</strong>: durante il gesto Mosaica scatta uno <strong>snapshot GPU</strong> del canvas e lo scala via CSS, così le zoomate restano fluide anche su progetti pesanti (centinaia di tessere, sfondi grandi, decine di tratti penna/acquerello). La riallocazione del backstore Fabric avviene una sola volta a fine gesto. <strong>Range 40%–800%</strong>: oltre questi limiti il valore viene agganciato all'estremo.</p>
     </div>
     <div class="card-mini">
       <h4>⌥ Alt + trascina</h4>
@@ -704,6 +706,11 @@
       <p>Con nessun oggetto selezionato, le frecce fanno pan. Con oggetto selezionato, spostano l'oggetto (1 px, 10 px con Shift).</p>
     </div>
   </div>
+
+  <h3>Sensibilità adattiva della rotella</h3>
+  <p>Lo zoom da rotella ha una <strong>sensibilità che si adatta alla velocità del gesto</strong>: quando giri la rotella lentamente lo zoom resta preciso, una "tacca" per "tacca"; quando la fai girare velocemente lo zoom accelera in modo naturale per coprire più range in meno tempo, esattamente come negli editor grafici professionali. La velocità è misurata in eventi/secondo e filtrata con una media mobile esponenziale (EMA), con decadimento di circa 250 ms — quindi appena rallenti, lo zoom torna immediatamente preciso. C'è anche un <em>cap di sicurezza</em> sull'intensità dei singoli eventi che protegge da spike anomali di driver o SO.</p>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Lo snapshot GPU è cappato a <strong>4096 px sul lato lungo</strong> per tenere la RAM sotto controllo: ai zoom molto alti puoi notare un leggero ammorbidimento per qualche millisecondo durante il gesto, poi Fabric rasterizza alla qualità piena. È un comportamento voluto, identico a quello di Photoshop e Figma.</div></div>
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
     <li>Usa <strong>Alt + trascina</strong> per navigare sul foglio senza uscire dallo strumento attivo; il cursore cambia in "pan" automaticamente.</li>
@@ -949,6 +956,32 @@
   <p>Quando la forma ti soddisfa, premi <strong>✅ Inserisci nel canvas</strong> (oppure <strong>Invio</strong> se sei già in fase editing): il modale si chiude e la forma viene piazzata <em>al centro della porzione di canvas visibile</em> — esattamente con la stessa logica di posizionamento del pulsante <strong>➕ Aggiungi forma</strong>, indipendente da zoom e pan del canvas principale. La forma mantiene le dimensioni del preview a scala 1:1 in mm reali.</p>
 
   <div class="callout tip"><div class="callout-icon"></div><div>Una volta nel canvas, la forma personalizzata si comporta esattamente come tutte le altre: <strong>menu radiale</strong>, <strong>maniglie azzurre</strong> per ridimensionare e ruotare, <strong>misure in mm</strong> nell'Inspector e nella status bar, applicazione di <strong>colore</strong> e <strong>texture</strong>, <strong>duplicazione</strong>, <strong>group/ungroup</strong>, <strong>selezione lazo</strong>, <strong>undo/redo</strong>, e viene <strong>salvata</strong> nel progetto <code>.msp.json</code> insieme a tutto il resto — comprese le eventuali curve dei lati.</div></div>
+
+  <h4 style="margin:14px 0 6px;">Foglio di lavoro: formati e unità</h4>
+  <p>In alto nel modale scegli il <strong>formato del foglio</strong> su cui disegni: i preset <strong>A5, A4, A3, A2, A1, A0</strong> oppure <strong>Personalizzato</strong> con larghezza e altezza digitate a mano. L'unità dei campi è selezionabile tra <strong>mm</strong>, <strong>cm</strong> e <strong>pollici</strong> (la conversione è automatica). Accanto vedi sempre dimensione e <strong>area</strong> del foglio aggiornate in tempo reale; righelli e griglia si riadattano subito al nuovo formato.</p>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div>Una forma può essere <strong>inserita nel canvas principale</strong> solo se il foglio del builder è <strong>A4 o più piccolo</strong>: il canvas di Mosaica è un A4 reale. Su fogli più grandi (A3→A0) il builder serve per <em>progettare e salvare</em> la composizione (vedi "Più forme insieme"), ma il pulsante <strong>Inserisci</strong> resta disattivato finché non torni a un formato ≤ A4.</div></div>
+
+  <h4 style="margin:14px 0 6px;">Colore e opacità della forma</h4>
+  <p>Nella toolbar del builder hai un <strong>selettore colore</strong> e uno slider <strong>opacità</strong> (0–100%) che agiscono sulla forma <strong>attiva</strong>. L'ultima combinazione scelta diventa il <strong>default</strong> ereditato dalle forme che crei dopo, così puoi disegnare una serie coerente senza reimpostare ogni volta.</p>
+
+  <h4 style="margin:14px 0 6px;">Arrotondare gli angoli — globale e per singolo vertice</h4>
+  <ul>
+    <li><strong>Tutti gli angoli</strong> — lo slider "Tutti gli angoli" (in mm) arrotonda con lo stesso raggio <em>tutti</em> i vertici della forma attiva.</li>
+    <li><strong>Angolo selezionato</strong> — in fase di editing <strong>clicca un singolo vertice</strong> per selezionarlo, poi usa lo slider "Angolo selezionato" per dargli un raggio <em>indipendente</em> dagli altri. Ogni vertice memorizza il proprio raggio: puoi avere una forma con un solo spigolo morbido e tutti gli altri vivi.</li>
+  </ul>
+  <div class="callout tip"><div class="callout-icon"></div><div>Lo slider "Tutti gli angoli" ha la precedenza: muovendolo <strong>sovrascrive</strong> i raggi per-vertice impostati a mano. Conviene impostare prima l'arrotondamento globale e poi rifinire i singoli vertici.</div></div>
+
+  <h4 style="margin:14px 0 6px;">Più forme insieme — progetti "palladiana"</h4>
+  <p>Nel builder puoi disegnare <strong>più forme indipendenti sullo stesso foglio</strong> ("software nel software"), pensato per progettare una <strong>posa palladiana</strong> o un mosaico di tessere irregolari prima di portarlo nel canvas.</p>
+  <ul>
+    <li><strong>➕ Nuova forma</strong> — chiude la forma corrente e ne avvia una nuova vuota, che eredita colore, opacità e arrotondamento di default.</li>
+    <li>Ogni forma chiusa può essere <strong>spostata</strong> trascinandone il corpo, <strong>riselezionata</strong> per modificarne vertici e curve, oppure <strong>eliminata</strong> con <strong>🗑 Elimina forma</strong>.</li>
+    <li><strong>💾 Salva palladiana</strong> / <strong>📂 Apri palladiana</strong> — salvano e ricaricano l'<em>intero progetto del builder</em> (tutte le forme con i loro vertici, curve, raggi, colori, più il formato del foglio) in un file dedicato, così puoi riprendere la composizione in un secondo momento.</li>
+  </ul>
+
+  <h4 style="margin:14px 0 6px;">Immagine di riferimento (ricalco)</h4>
+  <p>Puoi caricare un'<strong>immagine di riferimento</strong> nel builder per <strong>ricalcarla</strong> con i vertici: l'immagine viene disegnata <em>sotto la griglia</em> e <strong>clippata al foglio</strong>. Entrando in "modalità modifica immagine" la <strong>sposti e la scali</strong> con le maniglie; uscendo da quella modalità torni a tracciare i vertici sopra di essa.</p>
+  <div class="callout tip"><div class="callout-icon"></div><div>La <strong>griglia adatta automaticamente il proprio colore</strong> all'immagine: su immagini chiare diventa scura (blu, distinguibile dai tratti neri), su immagini scure diventa chiara (ciano), così i vertici restano sempre leggibili sopra il riferimento.</div></div>
 
   <h4 style="margin:14px 0 6px;">Scorciatoie da tastiera dentro il modale</h4>
   <ul>
@@ -1400,10 +1433,10 @@
     </div>
   </div>
 
-  <div class="callout tip"><div class="callout-icon"></div><div>Puoi aggiungere le tue punte personalizzate: salva qualsiasi <strong>PNG RGBA con sfondo trasparente</strong> nella cartella <code>textures/brush/</code> e apparirà automaticamente nel modale "Punta" alla prossima apertura. Risoluzione consigliata: 256–512 px sul lato maggiore.</div></div><div class="callout tip"><div class="callout-icon"></div><div>Puoi aggiungere le tue punte personalizzate: salva qualsiasi PNG in scala di grigi nella cartella <code>textures/brush/</code> e apparirà automaticamente nel modale "Punta" alla prossima apertura.</div></div>
+  <div class="callout tip"><div class="callout-icon"></div><div>Puoi aggiungere le tue punte personalizzate: salva qualsiasi <strong>PNG RGBA con sfondo trasparente</strong> nella cartella <code>textures/brush/</code> e apparirà automaticamente nel modale "Punta" alla prossima apertura. Risoluzione consigliata: 256–512 px sul lato maggiore.</div></div>
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
-    <li>Per aggiungere punte personalizzate, salva file <strong>PNG RGBA con sfondo trasparente</strong> nella cartella <code>textures/brush/</code>: appariranno automaticamente nel modale alla prossima apertura dell'app. Disegna la silhouette del pennello con il canale alpha (alpha pieno = pigmento, alpha sfumato = bordi morbidi).</li><li>Per aggiungere punte personalizzate, salva file <strong>PNG in scala di grigi</strong> nella cartella <code>textures/brush/</code>: appariranno automaticamente nel modale alla prossima apertura dell'app.</li>
+    <li>Per aggiungere punte personalizzate, salva file <strong>PNG RGBA con sfondo trasparente</strong> nella cartella <code>textures/brush/</code>: appariranno automaticamente nel modale alla prossima apertura dell'app. Disegna la silhouette del pennello con il canale alpha (alpha pieno = pigmento, alpha sfumato = bordi morbidi).</li>
     <li>Ogni punta ha la sua <strong>Rotazione iniziale</strong> indipendente: sperimenta angoli diversi per ogni texture per scoprire variazioni di tratto inaspettate.</li>
     <li>Le punte "dry brush" con buchi e striature (es. <code>brush_dry_grain.png</code>) danno effetti di velatura molto realistici quando combinate con la texture carta ruvida.</li>
     <li>Se una punta sembra troppo grande o troppo piccola rispetto al tratto, ricorda che la <strong>Larghezza</strong> globale del pennello scala tutte le punte proporzionalmente.</li>
@@ -1840,7 +1873,7 @@
     <li>
       <div>
         <div class="step-title">Premi fisicamente il tasto basso</div>
-        <div class="step-body">Mosaica cattura il codice (es. <code>code 2</code>, oppure <code>contextmenu sintetico</code> se il driver sparа solo contextmenu) e lo salva in <code>learnedLowerButtonCode</code>.</div>
+        <div class="step-body">Mosaica cattura il codice (es. <code>code 2</code>, oppure <code>contextmenu sintetico</code> se il driver spara solo contextmenu) e lo salva in <code>learnedLowerButtonCode</code>.</div>
       </div>
     </li>
     <li>
@@ -2083,12 +2116,71 @@
   </ul></div></div>
 </section>
 
+<!-- ── SICUREZZA & AGGIORNAMENTI ── -->
+<section id="sicurezza">
+  <div class="section-label">19</div>
+  <h2>Sicurezza &amp; Aggiornamenti online</h2>
+  <p>Mosaica Workspace Pro è un'<strong>applicazione di disegno offline</strong>: l'unica cosa che fa in rete è <strong>controllare se esiste una nuova versione</strong> sul repository GitHub ufficiale e, su tua richiesta, scaricarne l'installer. Tutto il resto del programma non parla con internet. Questa sezione spiega come funzionano gli aggiornamenti e quali protezioni sono sempre attive.</p>
+
+  <h3>Verificare e installare gli aggiornamenti</h3>
+  <p>Apri il menu <strong>File</strong> nella top bar e clicca <strong>🔄 Verifica aggiornamenti</strong>. Mosaica interroga le release ufficiali su GitHub e apre il modale <strong>"Aggiornamenti di Mosaica"</strong> mostrando sempre l'esito:</p>
+  <ul>
+    <li><strong>Sei aggiornato</strong> → messaggio "Stai usando l'ultima versione di Mosaica Workspace Pro".</li>
+    <li><strong>C'è una nuova versione</strong> → vedi la <strong>versione corrente</strong>, la <strong>nuova versione</strong>, le <strong>note di rilascio</strong> e nome/peso dell'installer. Da qui puoi <strong>Scarica e installa</strong>, rimandare con <strong>Più tardi</strong>, oppure <strong>Salta questa versione</strong> (non verrà più riproposta nei controlli automatici finché non ne esce un'altra).</li>
+  </ul>
+  <p>Durante il download una <strong>barra di avanzamento</strong> mostra percentuale e byte; puoi continuare a lavorare e, se vuoi, premere <strong>Annulla</strong>. A download finito scegli <strong>Installa ora</strong> (Mosaica si chiude e lancia l'installer) oppure <strong>Installa più tardi</strong>.</p>
+  <div class="callout tip"><div class="callout-icon"></div><div>Quando scegli <strong>Installa ora</strong>, l'<strong>auto-salvataggio</strong> parte prima della chiusura: se hai lavoro non salvato, l'overlay "Salvataggio in corso…" lo mette al sicuro prima che parta l'installer. Non perdi nulla.</div></div>
+
+  <h3>Controllo automatico all'avvio</h3>
+  <p>Se la casella <strong>"Controlla all'avvio"</strong> è attiva, pochi secondi dopo l'apertura Mosaica fa un controllo <strong>silenzioso</strong>: apre il modale <em>solo</em> se trova davvero una versione nuova (e non "saltata"). Il controllo automatico è limitato a non più di una volta ogni <strong>6 ore</strong>, per non disturbare. Puoi disattivarlo togliendo la spunta dalla casella nel modale.</p>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div>Gli aggiornamenti automatici funzionano solo sulla <strong>versione installata per Windows</strong>. In modalità sviluppo (<code>npm run dev</code>) o su altre piattaforme Mosaica te lo dice e basta — non scarica nulla.</div></div>
+
+  <h3>Come Mosaica protegge il download</h3>
+  <p>Scaricare ed eseguire un installer è il momento più delicato: per questo l'aggiornamento passa una serie di <strong>controlli di sicurezza ad hoc</strong> prima che qualunque file venga avviato.</p>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>🔒 Solo GitHub</h4>
+      <p>Il download è ammesso esclusivamente verso i domini ufficiali di GitHub (HTTPS). Ogni eventuale <strong>redirect</strong> viene ricontrollato: se punta a un host estraneo, viene <strong>bloccato</strong> e annullato.</p>
+    </div>
+    <div class="card-mini">
+      <h4>🧾 Nome file verificato</h4>
+      <p>L'installer deve avere un nome semplice con estensione <code>.exe</code>, senza separatori di percorso né <code>..</code> (niente "path traversal").</p>
+    </div>
+    <div class="card-mini">
+      <h4>🧬 Integrità del file</h4>
+      <p>Dopo il download Mosaica controlla la <strong>dimensione</strong> (entro limiti sensati: 1–500 MB), che il file sia davvero un eseguibile Windows (<strong>magic bytes "MZ"</strong>) e ne confronta l'<strong>impronta SHA-256</strong> con quella pubblicata da GitHub. Se l'hash non corrisponde, il file viene <strong>cancellato</strong> e l'installazione rifiutata.</p>
+    </div>
+    <div class="card-mini">
+      <h4>🗒️ Registro di sicurezza</h4>
+      <p>Gli eventi rilevanti vengono annotati in <code>%APPDATA%\mosaica-workspace-pro\security.log</code> (con rotazione automatica). Serve solo per diagnostica: nessun dato esce dal tuo PC.</p>
+    </div>
+  </div>
+  <div class="callout tip"><div class="callout-icon"></div><div>Le release più vecchie potrebbero non avere l'impronta SHA-256: in quel caso restano comunque attivi i controlli di dimensione e di tipo file, e l'evento viene annotato nel registro. È una verifica in meno, non un'assenza di controlli.</div></div>
+
+  <h3>Difese sempre attive (anche offline)</h3>
+  <p>Indipendentemente dagli aggiornamenti, Mosaica si "blinda" all'avvio perché resti ciò che deve essere: un editor locale.</p>
+  <ul>
+    <li><strong>Nessuna navigazione web</strong>: la finestra non può essere portata su pagine esterne; i link http(s) (es. la pagina del progetto) si aprono nel <strong>browser di sistema</strong>, mai dentro l'app. Niente popup, niente finestre annidate.</li>
+    <li><strong>Permessi negati per principio</strong>: fotocamera, microfono, geolocalizzazione, notifiche e simili sono <strong>sempre rifiutati</strong> — Mosaica non ne ha bisogno.</li>
+    <li><strong>Content-Security-Policy stretta</strong>: il programma carica solo le proprie risorse locali e non esegue codice arrivato dalla rete. Il renderer non parla mai direttamente con internet: ogni operazione di rete passa dal processo principale.</li>
+    <li><strong>Indipendente dal motore di disegno</strong>: questo strato di sicurezza non tocca Fabric ed è pienamente compatibile con <strong>Fabric.js da v5.1.0 a v5.3.0</strong>.</li>
+  </ul>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div>Al primo avvio dopo un aggiornamento, Windows Defender potrebbe mostrare l'avviso "Editore sconosciuto" perché l'installer non è firmato con certificato a pagamento. È normale: clicca <strong>Ulteriori informazioni → Esegui comunque</strong>. La verifica SHA-256 fatta da Mosaica garantisce comunque che il file scaricato sia identico a quello pubblicato.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li>Lascia attivo <strong>"Controlla all'avvio"</strong>: il controllo è leggero, silenzioso e ti avvisa solo quando esce davvero qualcosa di nuovo.</li>
+    <li>Se una versione non ti interessa, usa <strong>Salta questa versione</strong>: i controlli automatici la ignoreranno finché non ne esce una successiva.</li>
+    <li>Puoi continuare a disegnare durante il download: l'installazione parte solo quando premi <strong>Installa ora</strong>, e comunque l'autosave protegge il lavoro.</li>
+    <li>Se sei senza connessione o GitHub non risponde, la verifica manuale te lo dice chiaramente e l'app continua a funzionare normalmente offline.</li>
+  </ul></div></div>
+</section>
+
 </main>
 
 <!-- ════════════════════════════════ FOOTER ════════════════════════════════ -->
 <footer>
   <strong>Mosaica Workspace Pro</strong> · Guida Utente · By Pico Mosaici<br>
-  <span style="margin-top:6px;display:block;">Aggiornata alla versione · V 5.2026</span>
+  <span style="margin-top:6px;display:block;">Aggiornata alla versione · V 06.2026</span>
   <span style="margin-top:6px;display:block;">© 2026 Pico Mosaici® di Pietro Coraggio | Venafro (IS) | Tutti i diritti riservati</span>
 </footer>
 

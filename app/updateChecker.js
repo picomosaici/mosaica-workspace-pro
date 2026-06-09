@@ -807,7 +807,10 @@
       const res = await window.updaterAPI.downloadAsset({
         url: asset.browser_download_url,
         filename: asset.name,
-        expectedSize: asset.size || 0
+        expectedSize: asset.size || 0,
+        // 🛡️ Hash SHA-256 fornito da GitHub (formato "sha256:hex...").
+        // Le release vecchie potrebbero non averlo: il main fa graceful fallback.
+        expectedDigest: (asset.digest && typeof asset.digest === "string") ? asset.digest : null
       });
       if (!res || !res.ok) {
         throw new Error((res && res.error) || "Download fallito");

@@ -1,0 +1,121 @@
+============================================================
+MOSAICA WORKSPACE PRO
+============================================================
+
+Copyright (C) 2026 Pico Mosaici (picomosaici@gmail.com)
+Tutti i diritti riservati.
+
+============================================================
+SOFTWARE PROPRIETARIO - GRATUITO
+============================================================
+
+Mosaica Workspace Pro e' un software proprietario, distribuito
+GRATUITAMENTE al pubblico per uso personale e professionale.
+
+L'installazione e l'uso del software implicano l'accettazione
+integrale delle seguenti condizioni.
+
+============================================================
+1. CONCESSIONE D'USO
+============================================================
+
+A chiunque scarichi o riceva una copia di questo software
+viene concessa, a titolo gratuito, una licenza non esclusiva,
+non trasferibile e revocabile per:
+
+a) installare e utilizzare il software su un numero illimitato
+   di dispositivi di propria competenza;
+
+b) utilizzare il software per scopi personali, didattici,
+   professionali e commerciali (es. attivita' di mosaicisti
+   professionisti, artisti, designer, illustratori);
+
+c) creare, salvare ed esportare opere realizzate tramite il
+   software, di cui l'utente mantiene ogni diritto.
+
+============================================================
+2. LIMITAZIONI
+============================================================
+
+E' espressamente vietato:
+
+a) decompilare, disassemblare, effettuare reverse engineering
+   o modificare il codice del software, salvo nei limiti
+   inderogabili previsti dalla legge;
+
+b) rivendere, noleggiare, prestare, sublicenziare o
+   ridistribuire il software a pagamento o gratuitamente
+   tramite canali diversi da quelli ufficiali di Pico Mosaici;
+
+c) rimuovere, alterare od occultare le indicazioni di
+   copyright, i marchi, i nomi e gli avvisi presenti nel
+   software o nella documentazione;
+
+d) utilizzare il software per attivita' illecite o in
+   violazione di diritti di terzi.
+
+============================================================
+3. PROPRIETA' INTELLETTUALE
+============================================================
+
+Il software, il codice sorgente, la grafica, i marchi e ogni
+altro elemento associato a Mosaica Workspace Pro restano di
+esclusiva proprieta' di Pico Mosaici.
+
+La presente licenza concede esclusivamente il diritto d'uso
+del software, NON la proprieta' del medesimo.
+
+Le opere create dall'utente tramite il software (mosaici,
+disegni, esportazioni) restano di esclusiva proprieta'
+dell'utente stesso.
+
+============================================================
+4. ASSENZA DI GARANZIE
+============================================================
+
+Il software e' fornito "COSI' COM'E'" ("AS IS"), senza alcuna
+garanzia espressa o implicita, inclusa ma non limitata a
+garanzie di commerciabilita', idoneita' a uno scopo specifico
+e non violazione di diritti di terzi.
+
+L'utente utilizza il software a proprio esclusivo rischio.
+
+============================================================
+5. LIMITAZIONE DI RESPONSABILITA'
+============================================================
+
+In nessun caso Pico Mosaici potra' essere ritenuto
+responsabile per danni diretti, indiretti, incidentali,
+consequenziali, esemplari o di qualsiasi altra natura
+(inclusi a titolo esemplificativo: perdita di dati, perdita
+di lavoro, mancato guadagno, interruzione di attivita')
+derivanti dall'uso o dall'impossibilita' d'uso del software,
+anche se Pico Mosaici fosse stato avvisato della possibilita'
+di tali danni.
+
+============================================================
+6. AGGIORNAMENTI
+============================================================
+
+Pico Mosaici si riserva il diritto di rilasciare
+aggiornamenti, modifiche o nuove versioni del software, di
+modificare le presenti condizioni o di cessare lo sviluppo
+in qualsiasi momento e senza obbligo di preavviso.
+
+============================================================
+7. LEGGE APPLICABILE
+============================================================
+
+Le presenti condizioni sono regolate dalla legge italiana.
+Per qualsiasi controversia sara' competente in via esclusiva
+il foro del luogo di residenza di Pico Mosaici.
+
+============================================================
+CONTATTI
+============================================================
+
+Pico Mosaici
+Email: picomosaici@gmail.com
+Web: https://github.com/picomosaici/mosaica-workspace-pro
+
+============================================================

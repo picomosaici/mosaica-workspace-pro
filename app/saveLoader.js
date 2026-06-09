@@ -40,6 +40,24 @@
     if (window.__saveLoaderInitialized) return;
     window.__saveLoaderInitialized = true;
 
+    // ── i18n helper (con fallback) ──
+    function __st(key, params, fallback) {
+      try {
+        if (window.i18n && typeof window.i18n.t === "function") {
+          const v = window.i18n.t(key, params);
+          if (v === key && fallback != null) return fallback;
+          return v;
+        }
+      } catch (_) {}
+      let s = (fallback != null ? String(fallback) : key);
+      if (params) {
+        s = s.replace(/\{(\w+)\}/g, (m, k) =>
+          Object.prototype.hasOwnProperty.call(params, k) ? String(params[k]) : m
+        );
+      }
+      return s;
+    }
+
     // ──────────────────────────────────────────────────────────────────
     //  COSTANTI
     // ──────────────────────────────────────────────────────────────────
@@ -194,7 +212,7 @@
 
     function startSession({ title, flag, phases }) {
         session = {
-            title: title || "Salvataggio in corso",
+            title: title || __st("saveloader.title.default", null, "Salvataggio in corso"),
             flag: flag || "📁",
             phases: phases.map((p) => ({ ...p, started: false, ended: false, startTime: 0 })),
             currentIdx: -1,
@@ -205,7 +223,7 @@
         };
         titleEl.textContent = session.title;
         flagEl.textContent = session.flag;
-        subtitleEl.textContent = phases[0]?.subtitle || "Preparazione…";
+        subtitleEl.textContent = phases[0]?.subtitle || __st("saveloader.sub.preparing", null, "Preparazione…");
         setProgress(0);
         show();
         activatePhase(0);
@@ -314,7 +332,7 @@
             rafId = null;
         }
         clearWatchdog();
-        subtitleEl.textContent = "Salvataggio annullato";
+        subtitleEl.textContent = __st("saveloader.sub.cancelled", null, "Salvataggio annullato");
         setTimeout(() => {
             hide();
             session = null;
@@ -328,7 +346,7 @@
             rafId = null;
         }
         clearWatchdog();
-        subtitleEl.textContent = msg ? `Errore: ${String(msg).slice(0, 80)}` : "Errore durante il salvataggio";
+        subtitleEl.textContent = msg ? __st("saveloader.sub.errorWith", { msg: String(msg).slice(0, 80) }, `Errore: ${String(msg).slice(0, 80)}`) : __st("saveloader.sub.error", null, "Errore durante il salvataggio");
         setTimeout(() => {
             hide();
             session = null;
@@ -352,12 +370,12 @@
                 // ── Salva progetto ─────────────────────────────────────────────
                 if (t.closest("#saveProjectBtn")) {
                     startSession({
-                        title: "Salvataggio progetto",
+                        title: __st("saveloader.title.saveProject", null, "Salvataggio progetto"),
                         flag: "💾",
                         phases: [
-                            { weight: 25, subtitle: "Preparazione dei dati progetto…", tauMs: 1500 },
-                            { weight: 30, subtitle: "Trasferimento al sistema…", tauMs: 700 },
-                            { weight: 45, subtitle: "Scrittura su disco…", tauMs: 2000 }
+                            { weight: 25, subtitle: __st("saveloader.sub.prepProject", null, "Preparazione dei dati progetto…"), tauMs: 1500 },
+                            { weight: 30, subtitle: __st("saveloader.sub.transfer", null, "Trasferimento al sistema…"), tauMs: 700 },
+                            { weight: 45, subtitle: __st("saveloader.sub.writeDisk", null, "Scrittura su disco…"), tauMs: 2000 }
                         ]
                     });
                     return;
@@ -366,12 +384,12 @@
                 // ── Conferma export PDF ────────────────────────────────────────
                 if (t.closest("#pdfExportConfirmBtn")) {
                     startSession({
-                        title: "Esportazione PDF A4",
+                        title: __st("saveloader.title.exportPdf", null, "Esportazione PDF A4"),
                         flag: "📄",
                         phases: [
-                            { weight: 50, subtitle: "Generazione immagine 300 DPI…", tauMs: 2800 },
-                            { weight: 25, subtitle: "Trasferimento al sistema…", tauMs: 700 },
-                            { weight: 25, subtitle: "Composizione PDF e scrittura file…", tauMs: 1500 }
+                            { weight: 50, subtitle: __st("saveloader.sub.gen300", null, "Generazione immagine 300 DPI…"), tauMs: 2800 },
+                            { weight: 25, subtitle: __st("saveloader.sub.transfer", null, "Trasferimento al sistema…"), tauMs: 700 },
+                            { weight: 25, subtitle: __st("saveloader.sub.composePdfWrite", null, "Composizione PDF e scrittura file…"), tauMs: 1500 }
                         ]
                     });
                     return;
@@ -381,12 +399,12 @@
                 if (t.closest("#pngSvgExportConfirmBtn")) {
                     // Titolo neutro: il wrapper IPC corrispondente affinerà i sottotitoli
                     startSession({
-                        title: "Esportazione immagine",
+                        title: __st("saveloader.title.exportImage", null, "Esportazione immagine"),
                         flag: "🖼️",
                         phases: [
-                            { weight: 55, subtitle: "Composizione canvas finale…", tauMs: 2400 },
-                            { weight: 20, subtitle: "Trasferimento al sistema…", tauMs: 600 },
-                            { weight: 25, subtitle: "Scrittura file…", tauMs: 1300 }
+                            { weight: 55, subtitle: __st("saveloader.sub.composeCanvas", null, "Composizione canvas finale…"), tauMs: 2400 },
+                            { weight: 20, subtitle: __st("saveloader.sub.transfer", null, "Trasferimento al sistema…"), tauMs: 600 },
+                            { weight: 25, subtitle: __st("saveloader.sub.writeFile", null, "Scrittura file…"), tauMs: 1300 }
                         ]
                     });
                     return;
@@ -405,14 +423,14 @@
                     const fileCount = isSeparate ? checked.length : 1;
 
                     startSession({
-                        title: "Esportazione disegno mano libera",
+                        title: __st("saveloader.title.exportFreehand", null, "Esportazione disegno mano libera"),
                         flag: "✏️",
                         phases: [
-                            { weight: 50, subtitle: "Composizione livelli (carta + penna + acquerello)…", tauMs: 2500 },
-                            { weight: 20, subtitle: "Trasferimento al sistema…", tauMs: 500 },
+                            { weight: 50, subtitle: __st("saveloader.sub.composeLayers", null, "Composizione livelli (carta + penna + acquerello)…"), tauMs: 2500 },
+                            { weight: 20, subtitle: __st("saveloader.sub.transfer", null, "Trasferimento al sistema…"), tauMs: 500 },
                             {
                                 weight: 30,
-                                subtitle: `Scrittura ${fileCount} file…`,
+                                subtitle: __st("saveloader.sub.writeNFiles", { n: fileCount }, `Scrittura ${fileCount} file…`),
                                 tauMs: 1500 * Math.max(1, fileCount * 0.7)
                             }
                         ]
@@ -448,17 +466,17 @@
                 if (kind === "saveProject") {
                     if (!session) {
                         startSession({
-                            title: "Salvataggio progetto",
+                            title: __st("saveloader.title.saveProject", null, "Salvataggio progetto"),
                             flag: "💾",
                             phases: [
-                                { weight: 30, subtitle: "Trasferimento al sistema…", tauMs: 700 },
-                                { weight: 70, subtitle: "Scrittura su disco…", tauMs: tau }
+                                { weight: 30, subtitle: __st("saveloader.sub.transfer", null, "Trasferimento al sistema…"), tauMs: 700 },
+                                { weight: 70, subtitle: __st("saveloader.sub.writeDisk", null, "Scrittura su disco…"), tauMs: tau }
                             ]
                         });
                         notifyIPC(0);
                     } else {
                         // Pre-loader già attivo (avviato dal click): passa direttamente alla fase di scrittura.
-                        notifyIPC(session.phases.length - 1, "Scrittura su disco…", tau);
+                        notifyIPC(session.phases.length - 1, __st("saveloader.sub.writeDisk", null, "Scrittura su disco…"), tau);
                     }
                     return;
                 }
@@ -466,17 +484,17 @@
                 if (kind === "exportPDFImage") {
                     if (!session) {
                         startSession({
-                            title: "Esportazione PDF A4",
+                            title: __st("saveloader.title.exportPdf", null, "Esportazione PDF A4"),
                             flag: "📄",
                             phases: [
-                                { weight: 30, subtitle: "Trasferimento al sistema…", tauMs: 700 },
-                                { weight: 50, subtitle: "Composizione PDF A4…", tauMs: tau },
-                                { weight: 20, subtitle: "Scrittura file PDF…", tauMs: 800 }
+                                { weight: 30, subtitle: __st("saveloader.sub.transfer", null, "Trasferimento al sistema…"), tauMs: 700 },
+                                { weight: 50, subtitle: __st("saveloader.sub.composePdfA4", null, "Composizione PDF A4…"), tauMs: tau },
+                                { weight: 20, subtitle: __st("saveloader.sub.writePdfFile", null, "Scrittura file PDF…"), tauMs: 800 }
                             ]
                         });
                         notifyIPC(0);
                     } else {
-                        notifyIPC(session.phases.length - 2, "Composizione PDF A4…", tau);
+                        notifyIPC(session.phases.length - 2, __st("saveloader.sub.composePdfA4", null, "Composizione PDF A4…"), tau);
                     }
                     return;
                 }
@@ -484,18 +502,18 @@
                 if (kind === "exportFullPNG") {
                     if (!session) {
                         startSession({
-                            title: "Esportazione PNG completo",
+                            title: __st("saveloader.title.exportPng", null, "Esportazione PNG completo"),
                             flag: "🖼️",
                             phases: [
-                                { weight: 30, subtitle: "Trasferimento al sistema…", tauMs: 700 },
-                                { weight: 70, subtitle: "Scrittura PNG ad alta risoluzione…", tauMs: tau }
+                                { weight: 30, subtitle: __st("saveloader.sub.transfer", null, "Trasferimento al sistema…"), tauMs: 700 },
+                                { weight: 70, subtitle: __st("saveloader.sub.writePngHi", null, "Scrittura PNG ad alta risoluzione…"), tauMs: tau }
                             ]
                         });
                         notifyIPC(0);
                     } else {
-                        if (titleEl) titleEl.textContent = "Esportazione PNG completo";
+                        if (titleEl) titleEl.textContent = __st("saveloader.title.exportPng", null, "Esportazione PNG completo");
                         if (flagEl) flagEl.textContent = "🖼️";
-                        notifyIPC(session.phases.length - 1, "Scrittura PNG ad alta risoluzione…", tau);
+                        notifyIPC(session.phases.length - 1, __st("saveloader.sub.writePngHi", null, "Scrittura PNG ad alta risoluzione…"), tau);
                     }
                     return;
                 }
@@ -503,18 +521,18 @@
                 if (kind === "exportShapesSVG") {
                     if (!session) {
                         startSession({
-                            title: "Esportazione SVG forme",
+                            title: __st("saveloader.title.exportSvg", null, "Esportazione SVG forme"),
                             flag: "🧩",
                             phases: [
-                                { weight: 30, subtitle: "Trasferimento al sistema…", tauMs: 600 },
-                                { weight: 70, subtitle: "Scrittura SVG vettoriale…", tauMs: tau }
+                                { weight: 30, subtitle: __st("saveloader.sub.transfer", null, "Trasferimento al sistema…"), tauMs: 600 },
+                                { weight: 70, subtitle: __st("saveloader.sub.writeSvg", null, "Scrittura SVG vettoriale…"), tauMs: tau }
                             ]
                         });
                         notifyIPC(0);
                     } else {
-                        if (titleEl) titleEl.textContent = "Esportazione SVG forme";
+                        if (titleEl) titleEl.textContent = __st("saveloader.title.exportSvg", null, "Esportazione SVG forme");
                         if (flagEl) flagEl.textContent = "🧩";
-                        notifyIPC(session.phases.length - 1, "Scrittura SVG vettoriale…", tau);
+                        notifyIPC(session.phases.length - 1, __st("saveloader.sub.writeSvg", null, "Scrittura SVG vettoriale…"), tau);
                     }
                     return;
                 }
@@ -524,16 +542,16 @@
                     const tauFh = tau * Math.max(1, fileCount * 0.7);
                     if (!session) {
                         startSession({
-                            title: "Esportazione disegno mano libera",
+                            title: __st("saveloader.title.exportFreehand", null, "Esportazione disegno mano libera"),
                             flag: "✏️",
                             phases: [
-                                { weight: 25, subtitle: "Trasferimento al sistema…", tauMs: 600 },
-                                { weight: 75, subtitle: `Scrittura ${fileCount} file…`, tauMs: tauFh }
+                                { weight: 25, subtitle: __st("saveloader.sub.transfer", null, "Trasferimento al sistema…"), tauMs: 600 },
+                                { weight: 75, subtitle: __st("saveloader.sub.writeNFiles", { n: fileCount }, `Scrittura ${fileCount} file…`), tauMs: tauFh }
                             ]
                         });
                         notifyIPC(0);
                     } else {
-                        notifyIPC(session.phases.length - 1, `Scrittura ${fileCount} file…`, tauFh);
+                        notifyIPC(session.phases.length - 1, __st("saveloader.sub.writeNFiles", { n: fileCount }, `Scrittura ${fileCount} file…`), tauFh);
                     }
                     return;
                 }

@@ -3,6 +3,51 @@ MOSAICA WORKSPACE PRO - NOTE DI RILASCIO
 ============================================================
 
 ------------------------------------------------------------
+Versione 06.2026.1  (Giugno 2026)
+------------------------------------------------------------
+
+NOVITA':
+  + Builder forme personalizzate potenziato per i progetti
+    "palladiana": piu' forme indipendenti sullo stesso
+    foglio, ognuna spostabile, riselezionabile e
+    cancellabile, con Salva/Apri dedicati (file .mspp.json)
+  + Formati foglio del builder da A5 fino ad A0, piu'
+    Personalizzato, con unita' selezionabile mm / cm /
+    pollici e area del foglio sempre in vista
+  + Colore e opacita' impostabili per singola forma, con
+    l'ultima scelta ereditata come default dalle forme
+    successive
+  + Arrotondamento angoli nel builder: slider globale
+    "Tutti gli angoli" piu' raggio indipendente per il
+    singolo vertice selezionato ("Angolo selezionato")
+  + Curvatura dei singoli lati: trascinando la maniglia al
+    centro di un lato lo trasformi in una curva di Bezier;
+    doppio click o tasto destro lo riporta dritto
+  + Immagine di riferimento nel builder (ricalco): disegnata
+    sotto la griglia e clippata al foglio, con la griglia
+    che adatta automaticamente il colore alla luminosita'
+    dell'immagine
+
+MIGLIORAMENTI:
+  * Rimossa l'inerzia simulata dello zoom da rotella col
+    mouse: lo zoom risponde tacca per tacca, senza
+    scivolamento dopo l'ultimo scatto (risposta piu'
+    diretta e prevedibile)
+  * Passaggio alla resa ad alta definizione piu' pronto a
+    fine gesto: l'immagine nitida torna subito dopo l'ultimo
+    scatto di rotella, senza attesa residua
+
+NOTE TECNICHE:
+  - Versione interna: 6.2026.1
+  - Electron: 41.x
+  - Fabric.js: 5.1.0 -> 5.3.0 (minima 5.1.0, massima testata 5.3.0)
+  - 589 chiavi i18n simmetriche IT + EN
+  - Progetti palladiana salvati in file .mspp.json con
+    coordinate in millimetri reali (indipendenti dalla
+    calibrazione dello schermo)
+
+
+------------------------------------------------------------
 Versione 06.2026  (Giugno 2026)
 ------------------------------------------------------------
 
@@ -28,6 +73,13 @@ NOVITA':
       - Combinazioni di tasti mouse (chord, es. SX+DX)
       - Scorciatoie tastiera personalizzate (es. Ctrl+L)
       - Tasti come frecce direzionali (es. W/A/S/D)
+  + Sistema aggiornamenti online da GitHub Releases:
+    controllo all'avvio (silenzioso) e manuale (menu File ->
+    "Verifica aggiornamenti"), note di rilascio nel modale,
+    download con barra di avanzamento e installazione che
+    preserva il lavoro tramite auto-salvataggio
+  + "Salta questa versione" e "Controlla all'avvio" per
+    gestire le notifiche di aggiornamento
 
 MIGLIORAMENTI:
   * Zoom da rotella senza piu' scatti o blocchi a meta'
@@ -49,16 +101,41 @@ MIGLIORAMENTI:
     tasto sinistro disegna sempre
   * Preservazione opzionale della rotazione fine sul
     tasto destro sopra le forme ruotabili
+  * Internazionalizzazione completata anche nei moduli
+    secondari finora rimasti in italiano: costruttore di
+    forme personalizzate, overlay immagine di riferimento,
+    schermata di caricamento (salvataggio/export PDF/PNG/
+    SVG e disegno a mano libera) e conferma di riavvio
+  * Corretto il nome "Pico Mosaici" -> "Mosaica Workspace
+    Pro" nella conferma di riavvio (Ctrl+R)
+
+SICUREZZA:
+  * Allowlist stretta dei soli domini GitHub per il sistema
+    di aggiornamento (HTTPS), con validazione di ogni redirect
+  * Verifica integrita' dell'installer scaricato: dimensione
+    (1-500 MB), magic bytes PE ("MZ") e confronto SHA-256 con
+    il digest pubblicato da GitHub (graceful fallback sulle
+    release prive di digest)
+  * Hardening BrowserWindow/sessione: blocco navigazione fuori
+    dall'app, blocco window.open/webview, Content-Security-
+    Policy stretta, tutti i permessi (camera/microfono/geo...)
+    negati per principio
+  * Registro di sicurezza in userData/security.log con
+    rotazione automatica a 512 KB
 
 NOTE TECNICHE:
   - Versione interna: 6.2026.0
   - Electron: 41.x
-  - Fabric.js: 7.x (compatibilita' garantita da 5.1.0)
+  - Fabric.js: 5.1.0 -> 5.3.0 (minima 5.1.0, massima testata 5.3.0)
   - Persistenza lingua in userData/language.json
-  - 443 chiavi i18n simmetriche IT + EN
+  - 544 chiavi i18n simmetriche IT + EN
   - Snapshot GPU cappato a 4096px lato lungo (RAM safe)
   - Sensibilita' zoom: curva 1 - exp(-(x/tau)^2) con
     EMA alpha 0.25 e decay 250 ms
+  - Aggiornamenti: GitHub Releases API, settaggi in
+    userData/update-settings.json, controllo auto max 1/6h
+  - Installer verificato: dimensione 1-500 MB, PE "MZ",
+    SHA-256 confrontato con il digest GitHub
 
 ------------------------------------------------------------
 Versione 05.2026  (Maggio 2026)
@@ -80,7 +157,7 @@ MIGLIORAMENTI:
 NOTE TECNICHE:
   - Versione interna: 5.2026.0
   - Electron: 41.x
-  - Fabric.js: 7.x (compatibilita' garantita da 5.1.0)
+  - Fabric.js: 5.1.0 -> 5.3.0 (minima 5.1.0, massima testata 5.3.0)
 
 ============================================================
 Contatti: picomosaici@gmail.com

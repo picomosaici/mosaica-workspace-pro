@@ -1,6 +1,6 @@
 {
   "name": "mosaica-workspace-pro",
-  "version": "6.2026.0",
+  "version": "6.2026.1",
   "description": "Mosaica Workspace Pro - Strumento professionale per mosaici, disegno a mano libera e acquerello digitale",
   "author": {
     "name": "Pico Mosaici",
@@ -32,7 +32,7 @@
     "pack": "electron-builder --dir",
     "dist:win": "electron-builder --win --x64",
     "dist": "npm run clean && npm run dist:win",
-    "bump": "node scripts/bump-version.js"
+    "bump": "node app/bump-version.js"
   },
   "build": {
     "appId": "com.picomosaici.mosaicaworkspacepro",
@@ -60,7 +60,7 @@
         "to": "Guida_utente.html"
       },
       {
-       "from": "Guida_utente_EN.html",
+        "from": "Guida_utente_EN.html",
         "to": "Guida_utente_EN.html"
       },
       {
@@ -72,7 +72,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "app.ico"
@@ -94,7 +96,10 @@
       "runAfterFinish": true,
       "displayLanguageSelector": true,
       "multiLanguageInstaller": true,
-      "installerLanguages": ["it_IT", "en_US"],
+      "installerLanguages": [
+        "it_IT",
+        "en_US"
+      ],
       "language": "1040",
       "uninstallDisplayName": "Mosaica Workspace Pro 06.2026"
     }
@@ -105,7 +110,7 @@
     "rimraf": "^5.0.0"
   },
   "dependencies": {
-    "fabric": "^7.2.0",
+    "fabric": "^5.3.0",
     "pdfkit": "^0.15.2"
   }
 }
