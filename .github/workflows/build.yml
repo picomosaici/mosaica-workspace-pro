@@ -26,20 +26,23 @@ jobs:
 
     steps:
       - name: Checkout del codice
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
           cache: 'npm'
 
-      - name: Installa prerequisiti per canvas
+      - name: Installa prerequisiti canvas (GTK 2)
         shell: powershell
         run: |
           choco install -y gtk-runtime libjpeg-turbo --no-progress
-          echo "GTK_Root=C:\GTK" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          echo "C:\GTK\bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          if (-not (Test-Path 'C:\GTK\bin')) {
+            throw "GTK non trovato in C:\GTK\bin dopo l'installazione."
+          }
+          "GTK_Root=C:\GTK" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "C:\GTK\bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
 
       - name: Installa dipendenze
         run: npm ci
