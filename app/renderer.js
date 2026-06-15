@@ -647,6 +647,36 @@ canvas.selectionKey = "ctrlKey"; // Ctrl per multi-selezione
 canvas.altSelectionKey = "shiftKey"; // Shift per altre funzioni se necessario
 // NON impostare canvas.selectionKey = null !!
 
+// ============== BORDINO PER-FORMA NELLE MULTI-SELEZIONI ==============
+// updateHandlesSpacing imposta hasBorders=false / borderColor="transparent"
+// su ogni forma toccata (per togliere il bordo nella selezione SINGOLA).
+// Effetto collaterale: nelle ActiveSelection il bordino interno compariva
+// solo sulle forme MAI selezionate singolarmente (mix casuale).
+// Qui intercettiamo il rendering dei controlli della ActiveSelection e
+// forziamo uno stile uniforme sui figli, indipendente dallo stato di
+// ciascuna forma. Vale per lazo, CTRL+click e rettangolo (passano tutti
+// da qui). Compatibile Fabric 5.1.0 → 5.3.0: la firma _renderControls
+// (ctx, styleOverride, childrenOverride) è stabile in tutta la linea 5.x.
+// Non tocca la selezione singola né i Group statici.
+const MULTISEL_CHILD_BORDER_COLOR = "#00c8ff"; // stesso ciano delle maniglie
+const MULTISEL_CHILD_BORDER_DASH = [5, 4];     // tratteggio: si distingue dai bordi delle tessere
+
+(function patchActiveSelectionChildBorders() {
+  if (!window.fabric || !fabric.ActiveSelection) return;
+  const proto = fabric.ActiveSelection.prototype;
+  const origRenderControls = proto._renderControls;
+
+  proto._renderControls = function (ctx, styleOverride, childrenOverride) {
+    const forcedChildren = Object.assign({}, childrenOverride, {
+      hasBorders: true,
+      hasControls: false, // i figli non mostrano maniglie (solo il wrapper)
+      borderColor: MULTISEL_CHILD_BORDER_COLOR,
+      borderDashArray: MULTISEL_CHILD_BORDER_DASH
+    });
+    return origRenderControls.call(this, ctx, styleOverride, forcedChildren);
+  };
+})();
+
 // Gestore mouse:down per Ctrl+click — lascia che Fabric gestisca la selezione nativa,
 // ma intercettiamo solo per aggiornare il menu radiale
 canvas.on("mouse:down", (opt) => {
@@ -1500,6 +1530,42 @@ workspace.addEventListener("mousedown", (e) => {
   last.x = e.clientX;
   last.y = e.clientY;
 });
+
+// ── FIX PAN: intercetta Alt+click sul canvas PRIMA di Fabric (fase capture) ──
+// Senza questo blocco il mousedown arriva anche a Fabric, che:
+//   1. deseleziona la selezione attiva se il click cade su area vuota, oppure
+//   2. seleziona la forma sotto il mouse e la trascina insieme al pan
+//      (con tante forme e zoom alto è praticamente inevitabile beccarne una).
+// stopPropagation() in fase capture impedisce a Fabric di vedere l'evento:
+// il pan diventa "puro", la selezione corrente resta intatta e nessuna
+// forma viene agganciata o spostata. Alt+drag sul canvas è quindi
+// ESCLUSIVAMENTE pan, come da comportamento documentato di Mosaica.
+workspace.addEventListener(
+  "mousedown",
+  (e) => {
+    if (e.button !== 0) return;
+    if (!(e.altKey || altPressed)) return;
+    if (!e.target || e.target.tagName !== "CANVAS") return;
+
+    // Fabric non deve ricevere questo mousedown
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Se eravamo in modalità disegno (penna/acquerello/gomma), sospendila
+    // esattamente come fa il listener classico del pan.
+    if (canvas.isDrawingMode) {
+      wasDrawingMode = true;
+      canvas.isDrawingMode = false;
+    }
+    isAltPanning = true;
+    window.isAltPanning = true; // flag visibile ai brush (penna/acquerello)
+
+    panning = true;
+    last.x = e.clientX;
+    last.y = e.clientY;
+  },
+  { capture: true, passive: false }
+);
 
 window.addEventListener("mouseup", () => {
   const wasPanning = panning;
@@ -2573,6 +2639,31 @@ const RADIAL_DEFAULT_RADIUS = 110;
 // calcolato da positionRadial).
 let radialSizeOffsetPct = 0;
 
+// ============== ÀNCORA DEL DOCK MULTI-SELEZIONE ==============
+// Memorizza l'ULTIMA forma aggiunta alla selezione corrente: il dock
+// verticale dei pulsanti si posiziona accanto a lei. Aggiornata dai
+// listener selection:created/updated (e.selected contiene solo le forme
+// appena aggiunte, qualunque sia la modalità: lazo, CTRL+click, rettangolo).
+let radialDockAnchorObj = null;
+
+function updateRadialDockAnchor(e) {
+  const active = canvas.getActiveObject();
+  if (!active || active.type !== "activeSelection") {
+    radialDockAnchorObj = null;
+    return;
+  }
+  const added = e && Array.isArray(e.selected) ? e.selected : [];
+  if (added.length > 0) {
+    radialDockAnchorObj = added[added.length - 1];
+  }
+  // Se l'àncora non fa più parte della selezione (es. rimossa con
+  // CTRL+click), ripiega sull'ultimo oggetto della selezione corrente.
+  const objs = active._objects || [];
+  if (!radialDockAnchorObj || objs.indexOf(radialDockAnchorObj) < 0) {
+    radialDockAnchorObj = objs.length ? objs[objs.length - 1] : null;
+  }
+}
+
 // ============== FUNZIONI CENTRO SELEZIONE (semplificata come nel vecchio renderer) ==============
 function getSelectionCenterPoint() {
   const active = canvas.getActiveObject();
@@ -3190,7 +3281,6 @@ function bakeTrapezoidScaleIntoPoints(obj) {
 // Esposizione globale (utile per debug e per chiamate da altri moduli)
 window.bakeTrapezoidScaleIntoPoints = bakeTrapezoidScaleIntoPoints;
 
-// ============== BAKE TRIANGOLO ==============
 // ========== BAKE TRIANGOLO (fix riordino) ==========
 function bakeTriangleScaleIntoPoints(obj) {
   if (!obj || obj.type !== "polygon") return false;
@@ -3250,6 +3340,7 @@ window.bakeTriangleScaleIntoPoints = bakeTriangleScaleIntoPoints;
 
 // ============== EVENT LISTENER SELEZIONE ==============
 canvas.on("selection:created", (e) => {
+  updateRadialDockAnchor(e);
   const sel = e?.selected || [];
   showRadialForSelection(sel);
   updateRadialSliceVisibility(); // ← ex listener duplicato
@@ -3277,6 +3368,7 @@ canvas.on("selection:created", (e) => {
 });
 
 canvas.on("selection:updated", (e) => {
+  updateRadialDockAnchor(e);
   const sel = e?.selected || [];
   showRadialForSelection(sel);
   updateRadialSliceVisibility(); // ← ex listener duplicato
@@ -5139,13 +5231,23 @@ if (radial) {
   radial.style.transition = "left 160ms ease, top 160ms ease, width 180ms ease, height 180ms ease, opacity 160ms ease";
 }
 
-// ============== MENU RADIALE – DIMENSIONE STABILE (non cambia più con la rotazione) ==============
+// ============== MENU RADIALE ==============
 function positionRadial() {
   if (!radial) return;
 
   const active = canvas.getActiveObject();
   if (!active) {
     hideRadial();
+    return;
+  }
+
+  // ── MULTI-SELEZIONE → dock verticale accanto all'ultima forma selezionata.
+  // Il layout circolare insegue il bounding box della selezione e con molte
+  // forme (anche a zoom basso) usciva dallo schermo. Il dock è compatto,
+  // sempre dentro la finestra, indipendente da zoom e numero di forme.
+  if (active.type === "activeSelection") {
+    positionRadialDockVertical(active);
+    updateMeasureOverlay();
     return;
   }
 
@@ -5183,6 +5285,125 @@ function positionRadial() {
 
   arrangeRadialButtonsDynamic(desiredRadius);
   updateMeasureOverlay();
+}
+
+// ============== DOCK VERTICALE PER MULTI-SELEZIONE ==============
+const DOCK_BTN_GAP = 8;         // spazio tra i pulsanti
+const DOCK_GAP_FROM_SHAPE = 22; // distanza dal bordo della forma àncora
+const DOCK_SCREEN_MARGIN = 12;  // margine minimo dai bordi finestra
+
+function positionRadialDockVertical(active) {
+  if (!radial) return;
+
+  radial.style.display = "block";
+  radial.style.opacity = "1";
+
+  const buttons = Array.from(radial.querySelectorAll(".radial-btn")).filter((b) => b.offsetParent !== null);
+  const n = buttons.length;
+  if (n === 0) return;
+
+  // Riusa la cache dimensioni pulsante di arrangeRadialButtonsDynamic
+  if (!_radialBtnSize) {
+    const first = buttons[0];
+    _radialBtnSize = { w: first.offsetWidth || 48, h: first.offsetHeight || 48 };
+  }
+  const bw = _radialBtnSize.w;
+  const bh = _radialBtnSize.h;
+
+  // ── Di norma 1 colonna; si spezza in più colonne SOLO se la colonna
+  //    intera non entra nell'altezza della finestra ──
+  const availH = Math.max(bh, window.innerHeight - DOCK_SCREEN_MARGIN * 2);
+  const fullColH = n * bh + (n - 1) * DOCK_BTN_GAP;
+  const cols = Math.max(1, Math.ceil(fullColH / availH));
+  const rows = Math.ceil(n / cols);
+  const dockW = cols * bw + (cols - 1) * DOCK_BTN_GAP;
+  const dockH = rows * bh + (rows - 1) * DOCK_BTN_GAP;
+
+  // ── Àncora: ultima forma selezionata (fallback: ultima della selezione) ──
+  let anchorObj = radialDockAnchorObj;
+  const objs = active._objects || [];
+  if (!anchorObj || objs.indexOf(anchorObj) < 0) {
+    anchorObj = objs.length ? objs[objs.length - 1] : active;
+  }
+
+  // ── Bounding box ASSOLUTO dell'àncora in coordinate canvas ──────────────
+  // ATTENZIONE (era il bug): su un figlio di ActiveSelection NON si può
+  // usare getBoundingRect(true, true) — i figli hanno left/top RELATIVI al
+  // centro della selezione (stessa convenzione gestita in paste/duplica) e
+  // le aCoords ignorano la matrice del wrapper, quindi tornava un rettangolo
+  // "relativo" vicino allo zero → dock in alto a sinistra, zoom ignorato.
+  // calcTransformMatrix() invece INCLUDE la matrice del wrapper (posizione,
+  // scala, rotazione della selezione): trasformiamo i 4 angoli locali della
+  // forma e ne ricaviamo il bbox assoluto. Segue la forma anche durante il
+  // drag della selezione. Compatibile Fabric 5.1.0 → 5.3.0.
+  let aRect;
+  try {
+    const m = anchorObj.calcTransformMatrix();
+    const hw = (anchorObj.width || 0) / 2;
+    const hh = (anchorObj.height || 0) / 2;
+    const pts = [
+      fabric.util.transformPoint({ x: -hw, y: -hh }, m),
+      fabric.util.transformPoint({ x: hw, y: -hh }, m),
+      fabric.util.transformPoint({ x: hw, y: hh }, m),
+      fabric.util.transformPoint({ x: -hw, y: hh }, m)
+    ];
+    aRect = fabric.util.makeBoundingBoxFromPoints(pts);
+  } catch (err) {
+    // Fallback prudente: bbox dell'intera selezione (il wrapper è un oggetto
+    // top-level, quindi per lui getBoundingRect assoluto è corretto).
+    aRect = active.getBoundingRect(true, true);
+  }
+
+  // ── Canvas → schermo: stessa formula di canvasToScreen (lo zoom di
+  //    Mosaica è un CSS transform su #paper, quindi × view.scale) ──
+  const paperRect = paper.getBoundingClientRect();
+  const sLeft = paperRect.left + aRect.left * view.scale;
+  const sTop = paperRect.top + aRect.top * view.scale;
+  const sW = aRect.width * view.scale;
+  const sH = aRect.height * view.scale;
+  const sRight = sLeft + sW;
+
+  // ── Lato: a destra della forma se c'è spazio, altrimenti a sinistra;
+  //    se nessuno dei due basta (zoom altissimo, forma larga quanto lo
+  //    schermo) il clamp finale lo tiene comunque dentro la finestra ──
+  const spaceRight = window.innerWidth - DOCK_SCREEN_MARGIN - (sRight + DOCK_GAP_FROM_SHAPE);
+  const spaceLeft = sLeft - DOCK_GAP_FROM_SHAPE - DOCK_SCREEN_MARGIN;
+
+  let left;
+  if (spaceRight >= dockW || spaceRight >= spaceLeft) {
+    left = sRight + DOCK_GAP_FROM_SHAPE;
+  } else {
+    left = sLeft - DOCK_GAP_FROM_SHAPE - dockW;
+  }
+  left = Math.min(Math.max(left, DOCK_SCREEN_MARGIN), Math.max(DOCK_SCREEN_MARGIN, window.innerWidth - DOCK_SCREEN_MARGIN - dockW));
+
+  // ── Verticale: centrato sulla parte VISIBILE della forma àncora.
+  //    A zoom alto la forma può essere più alta dello schermo: il suo
+  //    centro geometrico finirebbe fuori vista e il dock con lui. Quindi
+  //    prima limitiamo il centro-àncora alla finestra, poi centriamo. ──
+  const visTop = Math.max(sTop, 0);
+  const visBottom = Math.min(sTop + sH, window.innerHeight);
+  const anchorCy = visBottom > visTop
+    ? (visTop + visBottom) / 2                       // forma (in parte) visibile
+    : Math.min(Math.max(sTop + sH / 2, 0), window.innerHeight); // forma del tutto fuori vista
+
+  let top = anchorCy - dockH / 2;
+  top = Math.min(Math.max(top, DOCK_SCREEN_MARGIN), Math.max(DOCK_SCREEN_MARGIN, window.innerHeight - DOCK_SCREEN_MARGIN - dockH));
+
+  // Stessi 4 valori inline letti da updateMeasureOverlay → gli indicatori
+  // L/A si agganciano da soli sotto il dock, senza modifiche all'overlay.
+  radial.style.width = `${dockW}px`;
+  radial.style.height = `${dockH}px`;
+  radial.style.left = `${Math.round(left)}px`;
+  radial.style.top = `${Math.round(top)}px`;
+
+  // ── Disposizione pulsanti in colonna (riempie per colonne) ──
+  buttons.forEach((btn, i) => {
+    const col = Math.floor(i / rows);
+    const row = i % rows;
+    btn.style.left = `${col * (bw + DOCK_BTN_GAP)}px`;
+    btn.style.top = `${row * (bh + DOCK_BTN_GAP)}px`;
+  });
 }
 
 let _radialBtnSize = null; // ← aggiungere come variabile modulo vicino a RADIAL_DEFAULT_RADIUS

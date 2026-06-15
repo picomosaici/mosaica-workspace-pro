@@ -61,19 +61,15 @@ jobs:
           body: |
             ## 🎨 Mosaica Workspace Pro ${{ github.ref_name }}
 
-            Aggiornamento di Giugno 2026 — il builder delle forme "palladiana" fa un salto avanti e lo zoom da rotella diventa ancora più diretto.
-
-            ### ✨ Cosa c'è di nuovo
-
-            - 🧩 **Builder palladiana potenziato** — disegna più forme indipendenti sullo stesso foglio, ognuna con il suo colore e la sua opacità, e salva/riapri l'intera composizione in un file dedicato
-            - 📐 **Fogli da A5 ad A0 + Personalizzato** nel builder, con unità in mm / cm / pollici
-            - ✨ **Angoli arrotondabili** tutti insieme o vertice per vertice, e **lati curvabili** singolarmente (curve di Bézier) con un semplice trascinamento
-            - 🖼️ **Immagine di riferimento** caricabile nel builder per ricalcare una sagoma, con la griglia che adatta da sola il proprio colore per restare leggibile
+            Aggiornamento di rifinitura — il pan diventa più fluido e gli slider di geometria più maneggevoli.
 
             ### 🛠️ Miglioramenti
 
-            - 🖱️ **Zoom da rotella senza inerzia** — risponde tacca per tacca, senza più scivolare dopo l'ultimo scatto: più diretto e prevedibile
-            - ⚡ **Resa nitida più pronta** dopo lo zoom: l'immagine ad alta definizione torna subito a fine gesto
+            - 🖱️ **Pan più fluido** (Alt + trascina): i movimenti vengono raccolti e applicati una volta per frame, niente più ricalcoli in eccesso sui monitor ad alta frequenza — resta morbido anche con tavole molto cariche
+            - 🎯 **Alt + trascina = pan "puro"**: la selezione attiva resta intatta e nessuna forma viene agganciata o spostata per sbaglio
+            - 📐 **Slider del trapezio più maneggevoli**: il massimo si ri-arma a ogni rilascio (valore corrente + 10 mm), così ingrandisci a piccoli passi senza tetto fisso e senza che il cursore "salti indietro"
+            - ↩️ **Storico più pulito**: una sola voce Annulla/Ripristina a fine regolazione, non più una per ogni micro-spostamento dello slider
+            - 🎛️ **Slider menu radiale**: regolazione 0…+30%, doppio click per azzerare
 
             ### 📥 Installazione
 
@@ -85,7 +81,7 @@ jobs:
 
             ### 📝 Note tecniche
 
-            - Versione interna: `6.2026.1`
+            - Versione interna: `6.2026.2`
             - Electron 41 · Fabric.js 5.1.0 → 5.3.0 (minima 5.1.0, massima testata 5.3.0)
+            - Pan con batching su requestAnimationFrame (un applyTransform per frame; render forme rientrate throttle ~90 ms; render finale a fine gesto)
             - 589 chiavi i18n simmetriche IT + EN
-            - Progetti palladiana salvati in file `.mspp.json` (coordinate in mm reali)

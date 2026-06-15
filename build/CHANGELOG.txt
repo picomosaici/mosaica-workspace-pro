@@ -3,6 +3,48 @@ MOSAICA WORKSPACE PRO - NOTE DI RILASCIO
 ============================================================
 
 ------------------------------------------------------------
+Versione 06.2026.2  (Giugno 2026)
+------------------------------------------------------------
+
+MIGLIORAMENTI:
+  * Pan (Alt + trascina) piu' fluido: i movimenti del mouse
+    vengono raccolti e applicati una sola volta per frame,
+    eliminando i ricalcoli in eccesso sui monitor ad alta
+    frequenza (120Hz+). Il trascinamento resta morbido anche
+    con tavole molto cariche
+  * Durante il pan le forme che rientrano nell'area visibile
+    vengono ridisegnate con cadenza regolare e tornano nitide
+    all'ultima posizione a fine gesto
+  * Alt + trascina sul canvas e' ora pan "puro": la selezione
+    attiva resta intatta e nessuna forma viene agganciata o
+    spostata per sbaglio (evento intercettato prima di Fabric)
+  * Slider geometria del trapezio piu' maneggevoli: il limite
+    massimo si ri-arma ad ogni rilascio (valore corrente +
+    10 mm), cosi' puoi ingrandire la forma a piccoli passi
+    senza un tetto fisso e senza che il cursore "salti
+    indietro" mentre lo muovi
+  * Lo storico (Annulla / Ripristina) registra una sola voce
+    a fine regolazione, non piu' una per ogni micro-spostamento
+    dello slider
+  * Protezione contro valori non validi (NaN / negativi)
+    durante le regolazioni da slider
+  * Slider dimensione del menu radiale: regolazione 0...+30%,
+    con doppio click per azzerare
+
+NOTE TECNICHE:
+  - Versione interna: 6.2026.2
+  - Electron: 41.x
+  - Fabric.js: 5.1.0 -> 5.3.0 (minima 5.1.0, massima testata 5.3.0)
+  - Pan con batching su requestAnimationFrame: un solo
+    applyTransform per frame; render delle forme rientrate
+    in vista con throttle ~90 ms; render finale garantito a
+    fine gesto
+  - Slider trapezio: max dinamico ri-armato a "change"
+    (rilascio) e in popolamento, mai durante il drag
+  - 589 chiavi i18n simmetriche IT + EN
+
+
+------------------------------------------------------------
 Versione 06.2026.1  (Giugno 2026)
 ------------------------------------------------------------
 
