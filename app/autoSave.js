@@ -55,6 +55,17 @@
   const CLOSE_COUNTDOWN_S = 4; // chiusura automatica dopo n s
   const MAX_SESSION_FILES = 10; // tenuti su disco (gestito dal main)
 
+  // ── Guardia anti-svuotamento ───────────────────────────────────────────────
+  // Se il canvas "collassa" all'improvviso (da molte forme a 0/pochissime) — la
+  // firma tipica di un crash/reload del renderer — NON sovrascriviamo il progetto
+  // su disco con lo stato vuoto. L'autosave si mette in pausa e lo segnala;
+  // riprende da solo appena il canvas torna popolato. Per svuotare DAVVERO un
+  // progetto basta il salvataggio MANUALE: questa guardia agisce solo
+  // sull'autosave (periodico e di chiusura).
+  const EMPTY_GUARD_MIN_HEALTHY = 3; // forme minime perché la guardia si "armi" (TUNABLE)
+  const EMPTY_GUARD_COLLAPSE_RATIO = 0.2; // sotto il 20% del picco = collasso sospetto (TUNABLE)
+  const PEAK_SAMPLE_THROTTLE_MS = 1500; // ogni quanto ricontare le forme su edit (TUNABLE)
+
   // Nomi mesi in italiano per il nome-file richiesto
   const MESI_IT = [
     "Gennaio",
@@ -83,6 +94,8 @@
   let intervalId = null;
   let isClosing = false; // chiusura in corso (overlay aperto)
   let closeCountdownTimer = null;
+  let peakRealCount = 0; // max n. di forme "vere" viste in sessione (per la guardia)
+  let _lastPeakSample = 0; // throttle del campionamento di peakRealCount
 
   // ───────────────────────────────────────────────────────────
   //  UTILITY
@@ -154,6 +167,58 @@
       return null;
     }
   }
+  
+  // Legge l'orientamento del foglio + rotazione carta dalle globali di renderer.js,
+  // più lo stato carta Fase 3 (accesa/spenta + personalizzata).
+  // Deve restare identico al blocco "sheet" del salvataggio manuale (saveProjectBtn).
+  function getSheetInfo() {
+    try {
+      const ps = typeof window.getPaperTextureState === "function" ? window.getPaperTextureState() : {};
+      return {
+        wMM: A4_MM_W,
+        hMM: A4_MM_H,
+        paperRotDeg: paperTextureRotationDeg,
+        paperEnabled: ps && ps.enabled !== undefined ? !!ps.enabled : true,
+        paperCustom: (ps && ps.customDataURL) || null
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // Conta le forme "vere" sul canvas: esclude lo sfondo utente e la texture
+  // carta (entrambi excludeFromExport) e tutto ciò marcato come background.
+  // Tessere, palladiana inserita, penna e acquerello contano: sono il lavoro.
+  function countRealObjects(c) {
+    if (!c || typeof c.getObjects !== "function") return 0;
+    let n = 0;
+    const objs = c.getObjects();
+    for (let i = 0; i < objs.length; i++) {
+      const o = objs[i];
+      if (!o) continue;
+      if (o.__isBackground) continue;
+      if (o.excludeFromExport) continue;
+      n++;
+    }
+    return n;
+  }
+
+  // Aggiorna il "picco" di forme viste (monotòno crescente in sessione).
+  function raisePeak(c) {
+    const n = countRealObjects(c);
+    if (n > peakRealCount) peakRealCount = n;
+    return n;
+  }
+
+  // True se stiamo per sovrascrivere un progetto REALE su disco con un canvas
+  // crollato (firma di un crash). In tal caso l'autosave va messo in pausa.
+  function isSuspiciousCollapse(c) {
+    if (!getProjectPath()) return false; // nessun progetto su disco da proteggere
+    const realNow = countRealObjects(c);
+    if (peakRealCount < EMPTY_GUARD_MIN_HEALTHY) return false; // progetto piccolo: ok
+    const floor = Math.floor(peakRealCount * EMPTY_GUARD_COLLAPSE_RATIO);
+    return realNow <= floor;
+  }
 
   // ───────────────────────────────────────────────────────────
   //  SERIALIZZAZIONE PROGETTO
@@ -202,18 +267,17 @@
         }
       });
 
-      // 2. Pattern bitmap → __textureDataURL (per la riapertura)
+      // 2. Texture: NON si baka piu' il bitmap dentro ogni tessera (era una
+      // delle cause dell'esplosione di RAM). Si sincronizzano solo i metadati
+      // leggeri dal pattern; le immagini vere finiscono UNA volta sola nel
+      // registro condiviso (projectData.textures, vedi punto 5).
       c.getObjects().forEach((o) => {
-        if (o.fill && o.fill.source) {
-          try {
-            const tmp = document.createElement("canvas");
-            tmp.width = o.fill.source.width || 100;
-            tmp.height = o.fill.source.height || 100;
-            tmp.getContext("2d").drawImage(o.fill.source, 0, 0);
-            o.__textureDataURL = tmp.toDataURL("image/png");
-          } catch (_) {
-            /* cross-origin: skip */
-          }
+        if (o.fill && o.fill.__texId) {
+          o.__textureId = o.fill.__texId;
+          if (o.fill.__spanMM) o.__textureSpanMM = o.fill.__spanMM;
+          if (typeof o.fill.__colorize === "boolean") o.__textureColorize = o.fill.__colorize;
+          if (o.fill.__colorize && o.fill.__tint) o.__textureTint = o.fill.__tint;
+          o.__textureDataURL = null; // legacy ripulito
         }
       });
 
@@ -249,12 +313,15 @@
           "data",
           "__isFreehand",
           "__isBackground",
-          "__isWatercolor",
+          "__isWatercolor", "__clipPoly",
           "__watercolorParams",
           "__addedAt",
           "__shapeType",
           "customId",
-          "__textureDataURL",
+          "__textureId",
+          "__textureSpanMM",
+          "__textureColorize",
+          "__textureTint",
           "selectable",
           "evented",
           "hasControls",
@@ -266,8 +333,16 @@
           "lockRotation",
           "hoverCursor"
         ]),
+        textures: typeof collectTextureRegistry === "function" ? collectTextureRegistry(c.getObjects()) : {},
         freehandSettings: getFreehandSet(),
-        backgroundMeta: backgroundData
+        backgroundMeta: backgroundData,
+        // Orientamento del foglio + rotazione texture carta (identico al salvataggio
+        // manuale): senza, l'autosave riapriva sempre verticale perdendo l'orizzontale.
+        sheet: getSheetInfo(),
+        // Perimetro di contenimento del disegno a mano libera: va salvato anche
+        // qui (serializzatore separato), altrimenti si perde negli autosalvataggi.
+        freehandClipPolygon:
+          typeof window.getFreehandClipPolygon === "function" ? window.getFreehandClipPolygon() : null
       };
 
       // 6. Ripristina sfondo nel canvas (stato visivo invariato)
@@ -287,11 +362,33 @@
   // ───────────────────────────────────────────────────────────
   async function doPeriodicSave(force = false) {
     if (saving || isClosing) return;
-    if (!getCanvas()) return;
+    const c = getCanvas();
+    if (!c) return;
+
+    // Campiona il picco di forme viste (serve alla guardia anti-svuotamento).
+    raisePeak(c);
+
     if (!force && !dirty) return;
 
     const now = Date.now();
     if (!force && now - lastSaveTime < MIN_GAP_BETWEEN_SAVES_MS) return;
+
+    // GUARDIA: il canvas è crollato e stiamo per sovrascrivere un progetto vero?
+    // Allora NON salvare: proteggi il lavoro. `dirty` resta true, così appena il
+    // canvas torna popolato il giro successivo salva normalmente. Per svuotare
+    // davvero il progetto c'è il salvataggio manuale.
+    if (isSuspiciousCollapse(c)) {
+      showStatusBadge("errore", "canvas vuoto: salvataggio in pausa per sicurezza");
+      setTimeout(hideStatusBadge, 3000);
+      console.warn(
+        "[autoSave] collasso canvas sospetto (picco=" +
+          peakRealCount +
+          ", ora=" +
+          countRealObjects(c) +
+          "): autosave in pausa, progetto NON sovrascritto."
+      );
+      return;
+    }
 
     saving = true;
     showStatusBadge("salvataggio");
@@ -342,6 +439,23 @@
   async function doCloseSave() {
     if (isClosing) return;
     isClosing = true;
+
+    // GUARDIA anche alla chiusura: se il canvas è collassato (crash) NON
+    // sovrascriviamo il progetto buono su disco. Chiudiamo lasciandolo intatto.
+    const cClose = getCanvas();
+    if (cClose && isSuspiciousCollapse(cClose)) {
+      console.warn("[autoSave] chiusura con canvas collassato: progetto NON sovrascritto.");
+      showCloseOverlay({
+        title: "Chiusura senza salvare",
+        detail:
+          "Il canvas risulta vuoto/incompleto (possibile crash). Per sicurezza il " +
+          "progetto su disco NON è stato sovrascritto: il tuo lavoro è preservato.",
+        pathOrMsg: getProjectPath() || "",
+        busy: false
+      });
+      startCloseCountdown(CLOSE_COUNTDOWN_S + 2);
+      return;
+    }
 
     showCloseOverlay({
       title: "Salvataggio in corso…",
@@ -415,6 +529,13 @@
       if (serializing) return; // ignora i nostri remove/add temporanei
       if (getRestoring()) return; // ignora il loadFromJSON in corso
       dirty = true;
+      // Campiona il picco di forme (throttled): tiene la guardia anti-svuotamento
+      // sempre allineata al lavoro reale, anche tra un autosave e l'altro.
+      const t = Date.now();
+      if (t - _lastPeakSample > PEAK_SAMPLE_THROTTLE_MS) {
+        _lastPeakSample = t;
+        raisePeak(c);
+      }
     };
     c.on("object:added", markDirty);
     c.on("object:modified", markDirty);

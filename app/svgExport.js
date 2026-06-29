@@ -91,7 +91,24 @@
 
       // Cloniamo le forme per non toccare gli oggetti reali del canvas utente.
       // Stesso pattern usato in exportFullCanvasPNG (renderer.js).
-      const clones = await Promise.all(shapes.map((s) => new Promise((resolve) => s.clone((cl) => resolve(cl)))));
+      // NB: clone() serializza via toObject() e il Pattern texture emette solo
+      // un colore segnaposto -> il clone perde la texture. Per il modo "filled"
+      // la rimettiamo con restoreTextureOnClone (esposto da renderer.js), che
+      // riusa la sorgente viva dell'originale. Per "outline" il fill viene
+      // comunque scartato, quindi non serve.
+      const clones = await Promise.all(
+        shapes.map(
+          (s) =>
+            new Promise((resolve) =>
+              s.clone((cl) => {
+                if (mode === "filled" && typeof window.restoreTextureOnClone === "function") {
+                  window.restoreTextureOnClone(s, cl);
+                }
+                resolve(cl);
+              })
+            )
+        )
+      );
 
       clones.forEach((cl) => {
         if (mode === "outline") {

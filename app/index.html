@@ -215,6 +215,63 @@
         cursor: pointer;
       }
 
+      /* ── COLORI RAPIDI (pastiglie tonde) ──────────────────────────
+         Costanti regolabili: --qc-dot (diametro pallino),
+         --qc-gap (spazio), --qc-rows (righe visibili prima dello scroll).
+         La scrollbar verticale compare da sola oltre --qc-rows righe. */
+      #quickColors {
+        --qc-dot: 30px;
+        --qc-gap: 10px;
+        --qc-rows: 2;
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--qc-gap);
+        max-width: 234px;
+        max-height: calc(
+          var(--qc-rows) * var(--qc-dot) + (var(--qc-rows) - 1) * var(--qc-gap) + 8px
+        );
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 4px 6px 4px 4px;
+        box-sizing: border-box;
+        scrollbar-width: thin;
+        scrollbar-color: var(--col-accent-hot) rgba(0, 0, 0, 0.45);
+      }
+      #quickColors::-webkit-scrollbar {
+        width: 6px;
+      }
+      #quickColors::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.45);
+        border-radius: 3px;
+        margin: 2px 0;
+      }
+      #quickColors::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, var(--col-accent), var(--col-accent-hot));
+        border-radius: 3px;
+        border: 1px solid rgba(0, 0, 0, 0.35);
+      }
+      #quickColors::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, var(--col-accent-hot), var(--col-accent));
+      }
+      #quickColors .smallColor {
+        width: var(--qc-dot);
+        height: var(--qc-dot);
+        flex: 0 0 auto;
+        border-radius: 50%;
+        border-style: solid;
+        border-width: 1px;
+        padding: 0;
+        cursor: pointer;
+        box-sizing: border-box;
+        transition: transform 0.08s ease, box-shadow 0.12s ease;
+      }
+      #quickColors .smallColor:hover {
+        transform: scale(1.15);
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+      }
+      #quickColors .smallColor:active {
+        transform: scale(0.95);
+      }
       /* ══════════════════════════════════════════════════════════
          TOP BAR (NUOVA)
          ══════════════════════════════════════════════════════════ */
@@ -556,6 +613,140 @@
   color: #fff;
   background: rgba(43, 108, 255, 0.18);
 }
+
+      /* ── Pannello texture: colonna (pulsantino "tutte" sopra la griglia) ── */
+      .texture-col {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: 0;
+      }
+      .texture-all-btn {
+        flex: 0 0 auto;
+        height: 30px;
+        margin: 0 5px 6px 4px;
+        border-radius: 6px;
+        border: 1px solid var(--col-border-strong);
+        background: linear-gradient(180deg, var(--col-accent), #1b50c8);
+        color: #fff;
+        font-size: 15px;
+        line-height: 1;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .texture-all-btn:hover { filter: brightness(1.12); }
+      .texture-all-btn.active { outline: 2px solid var(--col-accent-hot); outline-offset: 1px; }
+
+      /* ── Popover condivisi (texture-su-tutte, dimensione pennello) ── */
+      .mwp-popover {
+        position: fixed;
+        z-index: 9999;
+        width: 248px;
+        padding: 10px 12px;
+        background: var(--col-bg-panel);
+        border: 1px solid var(--col-border-strong);
+        border-radius: 10px;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+        color: var(--col-text);
+        font-family: inherit;
+      }
+      .mwp-popover[aria-hidden="true"] { display: none; }
+      .mwp-pop-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      .mwp-pop-title {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        color: var(--col-accent-hot);
+      }
+      .mwp-pop-close {
+        background: transparent;
+        border: 0;
+        color: var(--col-text-muted);
+        font-size: 15px;
+        cursor: pointer;
+        line-height: 1;
+        padding: 2px 6px;
+        border-radius: 4px;
+      }
+      .mwp-pop-close:hover { background: rgba(255, 255, 255, 0.08); color: var(--col-text); }
+      .mwp-pop-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 7px 0;
+      }
+      .mwp-pop-row .tap-lbl {
+        flex: 0 0 auto;
+        min-width: 44px;
+        color: var(--col-text-muted);
+        font-size: 12px;
+      }
+      .mwp-pop-row select {
+        flex: 1 1 auto;
+        min-width: 0;
+        background: #1b1b1b;
+        color: var(--col-text);
+        border: 1px solid var(--col-border-strong);
+        border-radius: 6px;
+        padding: 4px 6px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .mwp-pop-row input[type="range"] {
+        flex: 1 1 auto;
+        min-width: 0;
+        accent-color: var(--col-accent);
+      }
+      .mwp-pop-row .tap-val {
+        flex: 0 0 auto;
+        min-width: 58px;
+        text-align: right;
+        color: var(--col-text);
+        font-variant-numeric: tabular-nums;
+        font-size: 12px;
+      }
+      .mwp-pop-check {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 8px 0;
+        cursor: pointer;
+        color: var(--col-text-muted);
+        font-size: 12px;
+      }
+      .mwp-pop-check input { accent-color: var(--col-accent); }
+      .mwp-pop-hint {
+        font-size: 11px;
+        color: var(--col-text-muted);
+        line-height: 1.45;
+        margin: 6px 0 8px 0;
+      }
+      .mwp-pop-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 6px;
+      }
+      .mwp-pop-btn {
+        background: var(--col-bg-section);
+        border: 1px solid var(--col-border);
+        color: var(--col-text);
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .mwp-pop-btn:hover { border-color: var(--col-border-strong); background: rgba(255, 255, 255, 0.06); }
+      .mwp-pop-btn.danger { border-color: #7a2a2a; background: rgba(180, 40, 40, 0.18); color: #ffd9d9; }
+      .mwp-pop-btn.primary { border-color: var(--col-accent); color: #fff; background: rgba(43, 108, 255, 0.18); }
       #calibPanel #applyCalib {
         margin-top: 6px;
         width: 100%;
@@ -1456,98 +1647,7 @@
         <input id="colorInput" type="color" value="#78a0ff" data-i18n-title="colorPopup.colorInput.tooltip" title="Scegli colore" />
       </div>
       <div style="height: 8px"></div>
-      <div style="display: flex; gap: 6px; flex-wrap: wrap; max-width: 240px">
-        <button
-          class="smallColor"
-          data-color="#ff0000"
-          style="
-            width: 28px;
-            height: 20px;
-            background: #ff0000;
-            border: 1px solid #7a0000;
-            border-radius: 4px;
-          "></button>
-        <button
-          class="smallColor"
-          data-color="#00a000"
-          style="
-            width: 28px;
-            height: 20px;
-            background: #00a000;
-            border: 1px solid #006400;
-            border-radius: 4px;
-          "></button>
-        <button
-          class="smallColor"
-          data-color="#0078ff"
-          style="
-            width: 28px;
-            height: 20px;
-            background: #0078ff;
-            border: 1px solid #005bb5;
-            border-radius: 4px;
-          "></button>
-        <button
-          class="smallColor"
-          data-color="#ff8c00"
-          style="
-            width: 28px;
-            height: 20px;
-            background: #ff8c00;
-            border: 1px solid #b35900;
-            border-radius: 4px;
-          "></button>
-        <button
-          class="smallColor"
-          data-color="#a000ff"
-          style="
-            width: 28px;
-            height: 20px;
-            background: #a000ff;
-            border: 1px solid #6100b3;
-            border-radius: 4px;
-          "></button>
-        <button
-          class="smallColor"
-          data-color="#8b5a2b"
-          style="
-            width: 28px;
-            height: 20px;
-            background: #8b5a2b;
-            border: 1px solid #5a3a1a;
-            border-radius: 4px;
-          "></button>
-        <button
-          class="smallColor"
-          data-color="#00ffff"
-          style="
-            width: 28px;
-            height: 20px;
-            background: #00ffff;
-            border: 1px solid #00a3a3;
-            border-radius: 4px;
-          "></button>
-        <button
-          class="smallColor"
-          data-color="#ff00ff"
-          style="
-            width: 28px;
-            height: 20px;
-            background: #ff00ff;
-            border: 1px solid #b300b3;
-            border-radius: 4px;
-          "></button>
-        <button
-          class="smallColor"
-          data-color="#ffff00"
-          style="
-            width: 28px;
-            height: 20px;
-            background: #ffff00;
-            border: 1px solid #b3b300;
-            border-radius: 4px;
-          "></button>
-      </div>
+      <div id="quickColors" class="quick-colors"></div>
     </div>
     
     <!-- ════════════════════════════════════════════════════════
@@ -1584,6 +1684,78 @@
       title="Ripristina il valore consigliato per mosaici fitti">
       Default (0.20)
     </button>
+  </div>
+</div>
+
+    <!-- ════════════════════════════════════════════════════════
+     TEXTURE — Popover "applica a tutte le tessere" (#textureAllBtn)
+     ════════════════════════════════════════════════════════ -->
+<div id="textureAllPopover" class="mwp-popover" aria-hidden="true" role="dialog"
+     data-i18n-aria-label="texturePanel.all.ariaLabel" aria-label="Texture su tutte le tessere"
+     style="display: none">
+  <div class="mwp-pop-header">
+    <span class="mwp-pop-title" data-i18n="texturePanel.all.title">▦ Tutte le tessere</span>
+    <button type="button" class="mwp-pop-close" id="textureAllClose"
+            data-i18n-title="texturePanel.all.close" title="Chiudi">✕</button>
+  </div>
+
+  <div class="mwp-pop-row">
+    <label class="tap-lbl" for="textureAllSelect" data-i18n="texturePanel.all.select">Texture</label>
+    <select id="textureAllSelect">
+      <option value="" data-i18n="texturePanel.all.selectPlaceholder">— scegli una texture —</option>
+    </select>
+  </div>
+
+  <div class="mwp-pop-row">
+    <label class="tap-lbl" for="textureAllGrainSlider" data-i18n="texturePanel.all.grain">Grana</label>
+    <input type="range" id="textureAllGrainSlider" min="4" max="60" step="0.5" value="14" />
+    <span class="tap-val" id="textureAllGrainValue">14.0 mm</span>
+  </div>
+
+  <label class="mwp-pop-check">
+    <input type="checkbox" id="textureAllColorizeChk" />
+    <span data-i18n="texturePanel.all.colorize">colora dalla ruota colore</span>
+  </label>
+
+  <p class="mwp-pop-hint" data-i18n="texturePanel.all.hint">
+    Applica la texture scelta a tutte le tessere del canvas (non tocca penna,
+    acquerello, sfondo, Palladiana). Grana e colore valgono per tutte.
+  </p>
+
+  <div class="mwp-pop-actions">
+    <button type="button" class="mwp-pop-btn danger" id="textureAllRemoveBtn"
+            data-i18n="texturePanel.all.remove">Togli da tutte</button>
+  </div>
+</div>
+
+    <!-- ════════════════════════════════════════════════════════
+     PENNELLO selezione — Popover dimensione (right-click su #lassoBrushBtn)
+     ════════════════════════════════════════════════════════ -->
+<div id="brushSettingsPopover" class="mwp-popover" aria-hidden="true" role="dialog"
+     data-i18n-aria-label="lassoBrush.popover.ariaLabel" aria-label="Dimensione pennello selezione"
+     style="display: none">
+  <div class="mwp-pop-header">
+    <span class="mwp-pop-title" data-i18n="lassoBrush.popover.title">🖌️ Pennello selezione</span>
+    <button type="button" class="mwp-pop-close" id="brushSettingsClose"
+            data-i18n-title="lassoBrush.popover.close" title="Chiudi">✕</button>
+  </div>
+
+  <div class="mwp-pop-row">
+    <label class="tap-lbl" for="brushDiameterSlider" data-i18n="lassoBrush.popover.size">Punta</label>
+    <input type="range" id="brushDiameterSlider" min="2" max="60" step="0.5" value="12" />
+    <span class="tap-val" id="brushDiameterValue">12.0 mm</span>
+  </div>
+
+  <p class="mwp-pop-hint" data-i18n="lassoBrush.popover.hint">
+    Diametro della punta in millimetri reali sul foglio: più è grande, più
+    tessere prendi per passata. I tratti si sommano; tieni ALT per deselezionare.
+  </p>
+
+  <div class="mwp-pop-actions">
+    <button type="button" class="mwp-pop-btn primary" id="brushSettingsReset"
+            data-i18n="lassoBrush.popover.resetLabel"
+            data-i18n-title="lassoBrush.popover.resetTooltip"
+            title="Ripristina la dimensione consigliata">Default (12 mm)</button>
   </div>
 </div>
 
@@ -1783,10 +1955,30 @@
           <circle cx="14" cy="21" r="1.5" fill="currentColor" />
         </svg>
       </button>
+      <button
+        id="lassoBrushBtn"
+        class="tool-btn"
+        data-i18n-title="leftToolbar.lassoBrush.tooltip"
+        title="Pennello selezione — dipingi sulle tessere per selezionarle (ALT = deseleziona). Click destro per la dimensione.">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M3 21 q 3 -1 4 -4" stroke-dasharray="2,2" />
+          <path d="M7 17 c 2 -3 5 -7 9 -11 l 2 2 c -4 4 -8 7 -11 9 z" fill="currentColor" fill-opacity="0.25" />
+          <path d="M16 6 l 2 2" />
+        </svg>
+      </button>
       <div class="tool-divider"></div>
       <button id="freehandBtn" class="tool-btn" data-i18n-title="leftToolbar.freehand.tooltip" title="Penna — disegno a mano libera">✏️</button>
       <button id="eraserBtn" class="tool-btn" data-i18n-title="leftToolbar.eraser.tooltip" title="Gomma — cancella tratti freehand">🧼</button>
       <button id="watercolorBtn" class="tool-btn" data-i18n-title="leftToolbar.watercolor.tooltip" title="Acquerello — pennellata con bleed">💧</button>
+      <button id="freehandClipBtn" class="tool-btn" data-i18n-title="leftToolbar.freehandClip.tooltip" title="Perimetro di contenimento del disegno (penna/acquerello). Tap = vertice, trascina = mano libera, Invio = chiudi, ESC = annulla. Click destro = cancella.">⬡</button>
       <div class="tool-divider"></div>
       <button id="selectFreehandBtn" class="tool-btn" data-i18n-title="leftToolbar.selectFreehand.tooltip" title="Lista linee disegnate (selettore)">📋</button>
       <button id="clearAllFreehandBtn" class="tool-btn danger" data-i18n-title="leftToolbar.clearAllFreehand.tooltip" title="Cancella TUTTO il disegno a mano libera">
@@ -1840,6 +2032,35 @@
               data-i18n-title="inspector.dimensions.height.tooltip"
               title="Altezza in mm — Invio per applicare, Esc per annullare" />
             <span class="val">mm</span>
+          </div>
+          <div class="inspector-divider"></div>
+        </div>
+
+        <!-- ── TEXTURE: grana per-tessera (appare solo se la forma ha una texture) ── -->
+        <div id="inspectorTextureBlock" style="display: none">
+          <p class="inspector-section-title" data-i18n="inspector.texture.title">Texture</p>
+          <div class="inspector-row">
+            <span class="lbl" data-i18n="inspector.texture.grain">Grana</span>
+            <input
+              type="range"
+              id="textureGrainSlider"
+              min="4"
+              max="60"
+              step="0.5"
+              value="14"
+              data-i18n-title="inspector.texture.grain.tooltip"
+              title="Dimensione della texture sulla tessera (mm). Piccolo = grana fitta, grande = grana larga." />
+            <span class="val" id="textureGrainValue">14.0 mm</span>
+          </div>
+          <div class="inspector-row">
+            <span class="lbl" data-i18n="inspector.texture.colorize">Colora</span>
+            <label
+              style="display: flex; align-items: center; gap: 6px; flex: 1; cursor: pointer; font-size: 11px; color: var(--col-text-dim)"
+              data-i18n-title="inspector.texture.colorize.tooltip"
+              title="Colora la texture con la ruota colore (usa grana e pori, tinge col colore scelto).">
+              <input type="checkbox" id="textureColorizeChk" style="cursor: pointer" />
+              <span data-i18n="inspector.texture.colorize.hint">dalla ruota colore</span>
+            </label>
           </div>
           <div class="inspector-divider"></div>
         </div>
@@ -2006,7 +2227,17 @@
      ════════════════════════════════════════════════════════ -->
     <div id="texturePanel">
       <span class="texture-vlabel" data-i18n="texturePanel.label">Anteprima texture</span>
-      <div id="textureGrid"></div>
+      <div class="texture-col">
+        <button
+          id="textureAllBtn"
+          class="texture-all-btn"
+          type="button"
+          data-i18n-title="texturePanel.all.btnTooltip"
+          data-i18n-aria-label="texturePanel.all.ariaLabel"
+          aria-label="Applica una texture a tutte le tessere"
+          title="Applica una texture a TUTTE le tessere del canvas (grana e colore inclusi)">▦</button>
+        <div id="textureGrid"></div>
+      </div>
     </div>
 
     <!-- ════════════════════════════════════════════════════════
@@ -2056,6 +2287,36 @@
         <button id="bgRotateLeft" class="bgBtn" data-i18n="bgPanel.rotateLeft.label" data-i18n-title="bgPanel.rotateLeft.tooltip" title="Ruota a sinistra">↶ Ruota</button>
         <button id="bgRotateRight" class="bgBtn" data-i18n="bgPanel.rotateRight.label" data-i18n-title="bgPanel.rotateRight.tooltip" title="Ruota a destra">Ruota ↷</button>
         <button id="bgClearBtn" class="bgBtn danger" data-i18n="bgPanel.clear.label" data-i18n-title="bgPanel.clear.tooltip" title="Rimuovi sfondo">🗑 Rimuovi</button>
+      </div>
+
+      <!-- ── FASE 3: controlli texture carta (on/off, personalizzata, default) ── -->
+      <div class="bgPanel-section" id="paperControls" style="gap: 6px">
+        <span class="bgPanel-label" data-i18n="paperPanel.label">Carta texture</span>
+        <label
+          id="paperToggleWrap"
+          style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; user-select: none">
+          <input id="paperEnabledChk" type="checkbox" checked style="cursor: pointer" />
+          <span data-i18n="paperPanel.toggle">Mostra carta</span>
+        </label>
+        <div style="display: flex; gap: 6px">
+          <button
+            id="paperPickBtn"
+            class="bgBtn"
+            data-i18n="paperPanel.pickBtn.label"
+            data-i18n-title="paperPanel.pickBtn.tooltip"
+            title="Carica una carta personalizzata">
+            🖼 Carica carta
+          </button>
+          <button
+            id="paperResetBtn"
+            class="bgBtn secondary"
+            data-i18n="paperPanel.resetBtn.label"
+            data-i18n-title="paperPanel.resetBtn.tooltip"
+            title="Torna alla carta predefinita">
+            ↺ Predefinita
+          </button>
+        </div>
+        <input id="paperFileInput" type="file" accept="image/*" style="display: none" />
       </div>
     </div>
 
@@ -2978,6 +3239,7 @@
     ══════════════════════════════════════════════════════ -->
     <script src="libs/index.min.js"></script>
     <script src="i18n.js"></script>
+    <script src="proceduralTextures.js"></script>
     <script src="renderer.js"></script>
     <script src="TriangleModel.js"></script>
     <script src="TrapezoidModel.js"></script>
@@ -2990,7 +3252,9 @@
     <script src="autoSave.js"></script>
     <script src="mouseObserver.js"></script>
     <script src="lassoSelection.js"></script>
+    <script src="lassoBrushSelection.js"></script>
     <script src="wacomTablet.js"></script>
+    <script src="freehandTools.js"></script>
     <script src="inputMapping.js"></script>
     <script src="updateChecker.js"></script>
     <script src="customShapeBuilder.js"></script>

@@ -252,6 +252,17 @@ function __wt(key, params, fallback) {
     if (p == null) return 1.0;
     return prefs.minWidthFactor + (prefs.maxWidthFactor - prefs.minWidthFactor) * clamp(p, 0, 1);
   }
+  // Fattore di larghezza a PIENA pressione (il massimo che il tratto puo'
+  // raggiungere). Usato dal cerchio di anteprima (freehandTools) per mostrare
+  // in hover il diametro MASSIMO del tratto: senza pressione attiva non
+  // saprebbe quanto sara' spesso, quindi mostra l'inviluppo esterno cosi'
+  // l'anello non risulta mai piu' piccolo del tratto disegnato. Ritorna 1.0
+  // quando la modulazione di width e' spenta (mouse / Wacom disattivata),
+  // garantendo zero regressioni.
+  function getMaxWidthFactor() {
+    if (!prefs.enabled || !prefs.modulateWidth) return 1.0;
+    return prefs.maxWidthFactor;
+  }
   function getOpacityFactor() {
     if (!prefs.enabled || !prefs.modulateOpacity) return 1.0;
     const p = getProcessedPressure();
@@ -1315,7 +1326,7 @@ function __wt(key, params, fallback) {
 
       _render(ctx) {
         const pts = this.points;
-        if (!pts || pts.length < 2) return;
+        if (!pts || pts.length < 1) return;
 
         const enabled = this.__pressureEnabled !== false;
         const minF = this.__pressureMinFactor != null ? this.__pressureMinFactor : 0.2;
@@ -1346,6 +1357,25 @@ function __wt(key, params, fallback) {
         ctx.lineCap = this.strokeLineCap || "round";
         ctx.lineJoin = this.strokeLineJoin || "round";
 
+        // === TAP A 1 PUNTO → DOT ===
+        // Con un solo punto non c'e' alcun segmento da tracciare: disegniamo
+        // un dot pieno del diametro del tratto (modulato dalla pressione del
+        // punto), coerente con l'anteprima live di PressurePencilBrush._render
+        // che per 1 punto mostra gia' un cerchietto. Stesso offset -halfW/-halfH
+        // dei segmenti, cosi' il dot cade esattamente dove l'utente ha cliccato.
+        if (pts.length === 1) {
+          const p = pts[0];
+          const pr = p.pressure != null ? p.pressure : 0.5;
+          const f = enabled ? minF + (maxF - minF) * clamp(pr, 0, 1) : 1.0;
+          const r = Math.max(0.25, (baseW * f) / 2);
+          ctx.fillStyle = this.stroke || "#000";
+          ctx.beginPath();
+          ctx.arc(p.x - halfW, p.y - halfH, r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+          return;
+        }
+
         for (let i = 1; i < pts.length; i++) {
           const a = pts[i - 1];
           const b = pts[i];
@@ -1375,7 +1405,7 @@ function __wt(key, params, fallback) {
 
       _toSVG() {
         const pts = this.points;
-        if (!pts || pts.length < 2) return [""];
+        if (!pts || pts.length < 1) return [""];
         const enabled = this.__pressureEnabled !== false;
         const minF = this.__pressureMinFactor != null ? this.__pressureMinFactor : 0.2;
         const maxF = this.__pressureMaxFactor != null ? this.__pressureMaxFactor : 1.2;
@@ -1388,6 +1418,17 @@ function __wt(key, params, fallback) {
         // oggetti del documento.
         const halfW = (this.width + baseW) / 2;
         const halfH = (this.height + baseW) / 2;
+
+        // Tap a 1 punto → un cerchio pieno (stessa resa del dot su canvas).
+        if (pts.length === 1) {
+          const p = pts[0];
+          const pr = p.pressure != null ? p.pressure : 0.5;
+          const f = enabled ? minF + (maxF - minF) * clamp(pr, 0, 1) : 1.0;
+          const r = Math.max(0.25, (baseW * f) / 2);
+          return [
+            `\t<circle cx="${(p.x - halfW).toFixed(2)}" cy="${(p.y - halfH).toFixed(2)}" r="${r.toFixed(2)}" fill="${this.stroke}"/>\n`
+          ];
+        }
 
         const lines = [];
         for (let i = 1; i < pts.length; i++) {
@@ -1585,14 +1626,20 @@ function __wt(key, params, fallback) {
       // Override del finalize: invece di creare un fabric.Path con strokeWidth
       // fisso, crea un fabric.PressurePath con i punti+pressione.
       onMouseUp(ev) {
-        if (!this._pressurePoints || this._pressurePoints.length < 2) {
-          // Singolo punto (tap): produce un puntino di Path standard
-          try {
-            return super.onMouseUp(ev);
-          } catch (_) {
-            this._reset();
-            return false;
-          }
+        // Sia il tap a 1 solo punto sia il tratto multi-punto vengono
+        // finalizzati come fabric.PressurePath. Per 1 punto, PressurePath._render
+        // disegna un dot del diametro del tratto (vedi sopra).
+        //
+        // NON deleghiamo piu' a super.onMouseUp per il tap singolo: con un solo
+        // punto fabric.PencilBrush prova a costruire il path con
+        // getSmoothPathFromPoints, che accede a points[1] (inesistente) e lancia
+        // TypeError. L'eccezione veniva intercettata e il tap restava SENZA alcun
+        // segno (il puntino dell'anteprima spariva al rilascio). Finalizzando noi
+        // la PressurePath il dot resta, e' ritagliato dal perimetro, salvato e
+        // gestito da undo/gomma come ogni altro tratto a penna.
+        if (!this._pressurePoints || this._pressurePoints.length < 1) {
+          this._reset();
+          return false;
         }
         this._finalizeAndAddPath();
         return false;
@@ -1756,6 +1803,7 @@ function __wt(key, params, fallback) {
   // Helpers che i brush chiamano direttamente — restituiscono 1.0 quando
   // non c'è pressione/tilt attiva, garantendo zero regressioni sul mouse
   window.wacomGetWidthFactor = getWidthFactor;
+  window.wacomGetMaxWidthFactor = getMaxWidthFactor;
   window.wacomGetOpacityFactor = getOpacityFactor;
   window.wacomGetFlowFactor = getFlowFactor;
   window.wacomGetCurrentPressureRaw = getCurrentPressureRaw;

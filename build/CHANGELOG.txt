@@ -1,3 +1,35 @@
+------------------------------------------------------------
+Versione 07.2026  (Luglio 2026)
+------------------------------------------------------------
+
+NOVITA':
+  + Pennello selezione: nuovo strumento per selezionare le
+    tessere dipingendoci sopra a mano libera, come con un
+    pennello. Le passate si sommano; tenendo premuto CTRL
+    (CMD su Mac) si deseleziona invece di aggiungere.
+    Diametro della punta regolabile in mm reali (tasto
+    destro sull icona); forme bloccate, sfondo e texture
+    sempre ignorati
+  + Perimetro di contenimento: traccia un poligono chiuso
+    entro cui far valere il colore di pennello e acquerello,
+    utile per restare dentro le fughe. Il colore esce solo
+    allinterno del perimetro; viene salvato col progetto e
+    resta valido anche dopo averlo rimosso
+
+MIGLIORAMENTI:
+  * Menu radiale in selezione multipla: selezionando piu'
+    forme con CTRL + click il menu radiale agisce su tutte
+    insieme (colore, texture, blocco, eliminazione,
+    raggruppa / separa); la barra di stato mostra il numero
+    di oggetti selezionati
+  * Guida utente aggiornata (IT + EN) con le sezioni dei
+    nuovi strumenti e la correzione della selezione multipla
+    (ora CTRL + click al posto di Shift)
+
+NOTE TECNICHE:
+  - Versione interna: 7.2026.0
+  - Electron: 41.x
+  - Fabric.js: 5.1.0 -> 5.3.0 (minima 5.1.0, massima testata 5.3.0)
 ============================================================
 MOSAICA WORKSPACE PRO - NOTE DI RILASCIO
 ============================================================

@@ -68,6 +68,7 @@
     lastCheckTs: 0
   };
   let progressUnsubscribe = null; // listener IPC progress
+  let isMinimized = false;        // modale ridotto a "barretta" mentre scarica
 
   // ─── i18n helper (con fallback) ───────────────────────────
   function _t(key, params, fallback) {
@@ -380,6 +381,57 @@
       #updateModal[data-state="downloading"] .upd-section.s-downloading { display: block; }
       #updateModal[data-state="ready"]       .upd-section.s-ready       { display: block; }
       #updateModal[data-state="error"]       .upd-section.s-error       { display: block; }
+
+      /* ── Barretta "download in background" (modale ridotto a icona) ── */
+      #updateMiniPill {
+        position: fixed; right: 22px; bottom: 22px;
+        z-index: 11999;
+        display: none; align-items: center; gap: 12px;
+        width: 280px; max-width: calc(100vw - 44px);
+        padding: 12px 14px;
+        background: linear-gradient(180deg, #1f2330 0%, #181b25 100%);
+        color: #e9ecf3;
+        border: 1px solid #2e3344; border-radius: 12px;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+        cursor: pointer; opacity: 0;
+        transform: translateY(10px);
+        transition: opacity .2s ease, transform .2s ease, border-color .2s;
+      }
+      #updateMiniPill.visible { display: flex; opacity: 1; transform: translateY(0); }
+      #updateMiniPill:hover { border-color: #41506e; }
+      #updateMiniPill .upd-mini-spinner {
+        flex: 0 0 auto;
+        width: 22px; height: 22px;
+        border: 3px solid rgba(255,255,255,0.12);
+        border-top-color: #4ade80; border-radius: 50%;
+        animation: updSpin .9s linear infinite;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 15px;
+      }
+      #updateMiniPill .upd-mini-spinner.done {
+        animation: none; border: 0; width: auto; height: auto;
+      }
+      #updateMiniPill .upd-mini-text { flex: 1; min-width: 0; }
+      #updateMiniPill .upd-mini-title {
+        font-size: 12.5px; font-weight: 700; color: #fff;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      #updateMiniPill .upd-mini-sub {
+        font-size: 11.5px; color: #9aa3b6; margin-top: 2px;
+        font-variant-numeric: tabular-nums;
+      }
+      #updateMiniPill .upd-mini-bar {
+        position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 0 0 12px 12px; overflow: hidden;
+      }
+      #updateMiniPill .upd-mini-fill {
+        height: 100%; width: 0%;
+        background: linear-gradient(90deg, #4ade80, #22d3ee);
+        transition: width .2s ease;
+      }
+      #updateMiniPill.ready { border-color: #22a661; }
+      #updateMiniPill.ready .upd-mini-fill { background: #22a661; }
     `;
     document.head.appendChild(s);
   }
@@ -452,8 +504,9 @@
             <span data-upd-progress-percent>0%</span>
             <span data-upd-progress-bytes>— / —</span>
           </div>
+          <div class="upd-status-msg" data-upd-progress-status style="padding:0 0 8px;min-height:18px;color:#fbbf24;"></div>
           <div style="font-size:12px;color:#8b93a5;text-align:center;">
-            ${_t("update.modal.downloadingHint", null, "Puoi continuare a lavorare. Non chiudere Mosaica.")}
+            ${_t("update.modal.downloadingHint", null, "Puoi ridurre a icona e continuare a lavorare: il download prosegue in background. Non chiudere Mosaica.")}
           </div>
         </div>
 
@@ -487,6 +540,7 @@
           <button class="upd-btn primary" data-upd-action="download">⬇ ${_t("update.modal.download", null, "Scarica e installa")}</button>
 
           <!-- bottoni stato downloading -->
+          <button class="upd-btn ghost" data-upd-action="minimize">${_t("update.modal.minimize", null, "Continua a lavorare")}</button>
           <button class="upd-btn danger-ghost" data-upd-action="cancel-download">${_t("update.modal.cancel", null, "Annulla")}</button>
 
           <!-- bottoni stato ready -->
@@ -502,22 +556,25 @@
     document.body.appendChild(m);
 
     // Listener bottoni (delega)
-    m.querySelector("#updCloseBtn").addEventListener("click", () => closeModal());
+    // La X, il click sul backdrop ed ESC ora chiamano dismissModal():
+    // se è in corso un download riducono a icona (download in background),
+    // altrimenti chiudono normalmente.
+    m.querySelector("#updCloseBtn").addEventListener("click", () => dismissModal());
     m.querySelector("#updAutoCheckChk").addEventListener("change", (e) => {
       currentUserSettings.autoCheckOnStartup = !!e.target.checked;
       saveSettings();
     });
     m.addEventListener("click", (e) => {
-      if (e.target === m) closeModal(); // click sul backdrop
+      if (e.target === m) dismissModal(); // click sul backdrop
     });
     m.querySelectorAll("[data-upd-action]").forEach((btn) => {
       btn.addEventListener("click", () => handleAction(btn.getAttribute("data-upd-action")));
     });
 
-    // ESC chiude
+    // ESC: riduce a icona se sta scaricando, altrimenti chiude
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && m.style.display === "flex" && !isDownloading) {
-        closeModal();
+      if (e.key === "Escape" && m.style.display === "flex") {
+        dismissModal();
       }
     });
 
@@ -534,7 +591,7 @@
       "checking": [],
       "up-to-date": ["close-ok"],
       "available": ["skip", "later", "download"],
-      "downloading": ["cancel-download"],
+      "downloading": ["minimize", "cancel-download"],
       "ready": ["install-later", "install-now"],
       "error": ["retry", "close-ok"]
     };
@@ -558,14 +615,108 @@
   function closeModal() {
     const m = document.getElementById("updateModal");
     if (!m) return;
-    if (isDownloading) {
-      // Non chiudere a vuoto se sta scaricando — l'utente deve premere Annulla.
-      return;
-    }
+    isMinimized = false;
+    hideMiniPill();
     m.classList.remove("visible");
     setTimeout(() => {
       if (m) m.style.display = "none";
     }, 220);
+  }
+
+  // "Chiusura morbida" da X / backdrop / ESC:
+  //  • se sta scaricando → riduce a icona (la barretta) e il download
+  //    prosegue in background, così si può continuare a lavorare;
+  //  • altrimenti → chiude davvero.
+  function dismissModal() {
+    const m = document.getElementById("updateModal");
+    if (!m) return;
+    const state = m.getAttribute("data-state");
+    if (isDownloading || state === "downloading") {
+      minimizeModal();
+    } else {
+      closeModal();
+    }
+  }
+
+  function minimizeModal() {
+    const m = document.getElementById("updateModal");
+    if (!m) return;
+    isMinimized = true;
+    m.classList.remove("visible");
+    setTimeout(() => { if (m && isMinimized) m.style.display = "none"; }, 220);
+    const pill = ensureMiniPill();
+    pill.classList.add("visible");
+  }
+
+  function restoreModal() {
+    isMinimized = false;
+    hideMiniPill();
+    const m = ensureModal();
+    m.style.display = "flex";
+    requestAnimationFrame(() => m.classList.add("visible"));
+    // Lo stato corrente (downloading / ready / error) è già impostato:
+    // non lo reimpostiamo, così l'utente ritrova esattamente dov'era.
+  }
+
+  // ─── Barretta "download in background" ────────────────────
+  function ensureMiniPill() {
+    let pill = document.getElementById("updateMiniPill");
+    if (pill) return pill;
+    injectStyles();
+    pill = document.createElement("div");
+    pill.id = "updateMiniPill";
+    pill.setAttribute("role", "button");
+    pill.setAttribute("tabindex", "0");
+    pill.setAttribute("title", _t("update.mini.tooltip", null, "Aggiornamento in download — clicca per i dettagli"));
+    pill.innerHTML = `
+      <div class="upd-mini-spinner"></div>
+      <div class="upd-mini-text">
+        <div class="upd-mini-title">${_t("update.mini.title", null, "Download aggiornamento")}</div>
+        <div class="upd-mini-sub"><span data-mini-pct>0%</span> · <span data-mini-status>${_t("update.mini.downloading", null, "in corso")}</span></div>
+      </div>
+      <div class="upd-mini-bar"><div class="upd-mini-fill" data-mini-fill></div></div>
+    `;
+    pill.addEventListener("click", () => restoreModal());
+    pill.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); restoreModal(); }
+    });
+    document.body.appendChild(pill);
+    return pill;
+  }
+
+  function hideMiniPill() {
+    const pill = document.getElementById("updateMiniPill");
+    if (pill) pill.classList.remove("visible");
+  }
+
+  function updateMiniPill(pct, status) {
+    const pill = document.getElementById("updateMiniPill");
+    if (!pill) return;
+    const fill = pill.querySelector("[data-mini-fill]");
+    const pctEl = pill.querySelector("[data-mini-pct]");
+    const stEl = pill.querySelector("[data-mini-status]");
+    if (fill) fill.style.width = (pct || 0) + "%";
+    if (pctEl) pctEl.textContent = (pct || 0) + "%";
+    if (stEl) {
+      if (status === "retrying") stEl.textContent = _t("update.mini.retrying", null, "riconnessione…");
+      else if (status === "resuming") stEl.textContent = _t("update.mini.resuming", null, "ripresa…");
+      else if (status === "stalled") stEl.textContent = _t("update.mini.stalled", null, "in attesa…");
+      else stEl.textContent = _t("update.mini.downloading", null, "in corso");
+    }
+  }
+
+  // Trasforma la barretta in stato "pronto per installare" (verde + ✅).
+  function setMiniReady() {
+    const pill = ensureMiniPill();
+    pill.classList.add("ready", "visible");
+    const sp = pill.querySelector(".upd-mini-spinner");
+    if (sp) { sp.classList.add("done"); sp.textContent = "✅"; }
+    const titleEl = pill.querySelector(".upd-mini-title");
+    if (titleEl) titleEl.textContent = _t("update.mini.readyTitle", null, "Aggiornamento pronto");
+    const subEl = pill.querySelector(".upd-mini-sub");
+    if (subEl) subEl.textContent = _t("update.mini.readySub", null, "clicca per installare");
+    const fill = pill.querySelector("[data-mini-fill]");
+    if (fill) fill.style.width = "100%";
   }
 
   // ─── Settings persistenza ─────────────────────────────────
@@ -617,6 +768,9 @@
           _toast(_t("update.toast.skipped", { ver: currentRelease.tag_name }, "Versione {ver} ignorata."));
         }
         closeModal();
+        break;
+      case "minimize":
+        minimizeModal();
         break;
       case "later":
         closeModal();
@@ -758,6 +912,8 @@
   }
 
   function showError(message) {
+    isMinimized = false;
+    hideMiniPill();
     const m = ensureModal();
     openModal("error");
     const errEl = m.querySelector("[data-upd-error-msg]");
@@ -791,15 +947,35 @@
       progressUnsubscribe();
       progressUnsubscribe = null;
     }
+    const statusEl = m.querySelector("[data-upd-progress-status]");
+    if (statusEl) statusEl.textContent = "";
+
     if (window.updaterAPI && window.updaterAPI.onDownloadProgress) {
       progressUnsubscribe = window.updaterAPI.onDownloadProgress((p) => {
         if (!p) return;
         const total = p.total > 0 ? p.total : 0;
         const downloaded = p.downloaded || 0;
         const pct = total > 0 ? Math.min(100, Math.round((downloaded / total) * 100)) : 0;
-        if (fill) fill.style.width = pct + "%";
+        const status = p.status || "downloading";
+        if (fill) {
+          fill.style.width = pct + "%";
+          fill.style.filter = (status === "retrying" || status === "stalled") ? "grayscale(0.55)" : "";
+        }
         if (pctEl) pctEl.textContent = pct + "%";
         if (bytesEl) bytesEl.textContent = formatBytes(downloaded) + " / " + (total ? formatBytes(total) : "—");
+        if (statusEl) {
+          if (status === "retrying") {
+            statusEl.textContent = _t("update.modal.retrying", { n: p.attempt || 1 }, "⚠️ Connessione persa — nuovo tentativo… (tentativo {n})");
+          } else if (status === "resuming") {
+            statusEl.textContent = _t("update.modal.resuming", null, "🔄 Connessione ripristinata — riprendo da dove si era interrotto…");
+          } else if (status === "stalled") {
+            statusEl.textContent = _t("update.modal.stalled", null, "⏳ Connessione lenta o assente — in attesa…");
+          } else {
+            statusEl.textContent = "";
+          }
+        }
+        // Se l'utente ha ridotto a icona, aggiorniamo anche la barretta.
+        if (isMinimized) updateMiniPill(pct, status);
       });
     }
 
@@ -822,6 +998,14 @@
         progressUnsubscribe = null;
       }
       setState("ready");
+      // Se il modale era ridotto a icona NON lo facciamo "saltare in faccia"
+      // mentre l'utente lavora: trasformiamo la barretta in "Pronto" e
+      // mandiamo un avviso. Un clic sulla barretta riapre il modale già
+      // pronto per installare.
+      if (isMinimized) {
+        setMiniReady();
+        _toast(_t("update.toast.readyMinimized", null, "✅ Aggiornamento scaricato — clicca la barretta in basso a destra per installare."));
+      }
     } catch (e) {
       isDownloading = false;
       if (progressUnsubscribe) {

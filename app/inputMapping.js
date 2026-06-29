@@ -486,6 +486,30 @@ function __it(key, params, fallback) {
     if (t.isContentEditable) return true;
     return false;
   }
+  
+  // Muove un <input type="range"> di uno step nella direzione data,
+  // rispettando min/max/step dello slider e notificando l'app con gli
+  // stessi eventi del trascinamento manuale ("input" + "change"), cosi'
+  // penna a mano libera, acquerello, opacita', zoom ecc. reagiscono subito.
+  // Shift = step x10 (coerente con la filosofia "step grande con Shift").
+  function nudgeRangeInput(el, direction, evt) {
+    const step = parseFloat(el.step) || 1;
+    const min = el.min !== "" && el.min != null ? parseFloat(el.min) : 0;
+    const max = el.max !== "" && el.max != null ? parseFloat(el.max) : 100;
+    const mult = evt && evt.shiftKey ? 10 : 1;
+    let delta = 0;
+    if (direction === "right" || direction === "up") delta = step * mult;
+    else if (direction === "left" || direction === "down") delta = -step * mult;
+    else return;
+    let v = parseFloat(el.value);
+    if (!isFinite(v)) v = min;
+    v = Math.min(max, Math.max(min, v + delta));
+    // Arrotonda alla precisione dello step (evita 0.30000000000000004)
+    const decimals = String(step).includes(".") ? String(step).split(".")[1].length : 0;
+    el.value = decimals > 0 ? v.toFixed(decimals) : String(Math.round(v));
+    try { el.dispatchEvent(new Event("input", { bubbles: true })); } catch (_) {}
+    try { el.dispatchEvent(new Event("change", { bubbles: true })); } catch (_) {}
+  }
 
   function isCalibrating() {
     return STATE.calibrationMode !== null;
@@ -739,6 +763,32 @@ function __it(key, params, fallback) {
       handleCalibrationKeyDown(e);
       return;
     }
+    
+    // ── Tasti mappati come frecce SU UNO SLIDER FOCALIZZATO ──────────────
+    // Se il focus e' su un <input type="range"> (QUALUNQUE slider dell'app:
+    // dimensione penna a mano libera, acquerello, opacita', sensibilita',
+    // ecc.), i tasti mappati come frecce muovono lo slider esattamente come
+    // le frecce native del browser: → / ↑ aumentano di uno step, ← / ↓
+    // diminuiscono. Shift = step x10. Va valutato PRIMA del bail su
+    // isInputFocused(), altrimenti i tasti mappati sarebbero muti sugli input.
+    if (!e.ctrlKey && !e.metaKey && !e.altKey && prefs.arrowKeyBindings.length > 0) {
+      const ae = document.activeElement;
+      if (ae && ae.tagName === "INPUT" && ae.type === "range") {
+        const k = (e.key || "").toLowerCase();
+        const sliderBinding = prefs.arrowKeyBindings.find((b) => b.key === k);
+        if (sliderBinding) {
+          try {
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+          } catch (_) {}
+          dbg("ARROW binding su slider:", sliderBinding.key, "→", sliderBinding.direction);
+          nudgeRangeInput(ae, sliderBinding.direction, e);
+          return;
+        }
+      }
+    }
+    
     if (isInputFocused()) {
       dbg("keydown key='" + e.key + "' ignorato (isInputFocused)");
       return;

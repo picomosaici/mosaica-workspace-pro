@@ -581,7 +581,7 @@
   <div class="header-inner">
     <div class="logo-badge">
       <div class="logo-dot">🎨</div>
-      Guida Utente · V 06.2026
+      Guida Utente · V 07.2026
     </div>
     <h1>Mosaica<br><em>Workspace Pro</em></h1>
     <p class="header-sub">Guida completa all'uso dell'applicazione per la progettazione di mosaici in scala reale, disegno a mano libera, acquerello digitale ed esportazione per laser CAM.</p>
@@ -848,11 +848,12 @@
   <p>Clicca su una forma per selezionarla. Appariranno le <strong>maniglie di controllo azzurre</strong> ai bordi e agli angoli per ridimensionare, e il simbolo <strong>↻</strong> per ruotare. Trascina la forma per spostarla.</p>
 
   <h3>Selezione multipla</h3>
-  <p>Hai tre modi:</p>
+  <p>Hai quattro modi:</p>
   <ul>
     <li><strong>Trascinamento</strong> su un'area vuota del foglio → riquadro di selezione classico.</li>
-    <li><strong>Shift + click</strong> su più forme → aggiunge o rimuove forme dalla selezione corrente.</li>
-    <li><strong>Lazo</strong> (vedi sezione dedicata) → traccia un poligono libero per selezionare forme di forma irregolare.</li>
+    <li><strong>Ctrl + click</strong> (⌘ su Mac) su più forme → aggiunge o toglie forme <strong>una alla volta</strong>: ri-cliccando una forma già nella selezione la rimuovi.</li>
+    <li><strong>Lazo</strong> (vedi sezione dedicata) → traccia un poligono libero per racchiudere un'area di forme.</li>
+    <li><strong>Pennello selezione</strong> (vedi sezione dedicata) → dipingi sopra le tessere per raccoglierle lungo una linea o un bordo.</li>
   </ul>
 
   <h3>Misure in millimetri</h3>
@@ -1125,6 +1126,18 @@
   <h3>Applicare una texture</h3>
   <p>Con un oggetto selezionato, clicca direttamente su una delle anteprime nel <strong>Texture Panel</strong> a sinistra estrema. La texture viene ripetuta (repeat) per riempire la forma.</p>
 
+  <h3>Il menu radiale con più forme selezionate</h3>
+  <p>Il menu radiale funziona anche in <strong>multi-selezione</strong>: quando hai più forme attive contemporaneamente, le azioni si applicano <strong>a tutte insieme</strong>. Per selezionare più forme hai quattro modi — riquadro trascinato, <kbd>Ctrl</kbd>+click una a una, Lazo o Pennello selezione (vedi la sezione successiva).</p>
+  <ul>
+    <li><strong>Colore, Incolla colore e Texture</strong> → si applicano a <strong>tutte</strong> le forme selezionate in un colpo solo: comodissimo per colorare interi gruppi di tessere.</li>
+    <li><strong>🔒 Blocca / Sblocca</strong> → agisce su tutta la selezione. Se anche <em>una sola</em> forma è bloccata, il pulsante mostra <strong>🔓 Sblocca</strong> (arancione) per liberarle tutte.</li>
+    <li><strong>🗑️ Elimina</strong> → cancella tutte le forme selezionate (reversibile con <kbd>Ctrl</kbd>+<kbd>Z</kbd>).</li>
+    <li><strong>⎇ Raggruppa</strong> → si <strong>attiva</strong> con due o più forme selezionate e le fonde in un gruppo unico. <strong>⎆ Separa</strong> si attiva invece quando hai selezionato un gruppo, e lo riporta a forme singole.</li>
+    <li><strong>◔ Dividi cerchio</strong> compare solo quando la selezione è un singolo cerchio o ellisse, quindi <strong>non appare</strong> in multi-selezione.</li>
+  </ul>
+  <p>In multi-selezione la Status Bar mostra <strong>"N oggetti"</strong> al posto delle misure della singola forma, e il blocco <strong>Dimensioni</strong> dell'Inspector si nasconde (le misure singole non avrebbero senso su più forme). Il menu si àncora accanto all'<strong>ultima forma aggiunta</strong> alla selezione.</p>
+
+
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
     <li>Se il menu radiale copre l'oggetto che stai modificando, usa lo <strong>slider che appare sotto le misure W/H</strong> per ridurne il raggio; un doppio click sullo slider lo riporta alla dimensione automatica.</li>
     <li>Con più oggetti selezionati appaiono i pulsanti <strong>⎇ Raggruppa</strong> e <strong>⎆ Separa</strong>: raggruppa per spostare insiemi complessi come un'unica forma.</li>
@@ -1217,6 +1230,43 @@
     <li>Le forme <strong>bloccate</strong> (🔒), lo sfondo utente e la texture carta vengono <strong>sempre ignorati</strong>: blocca le tessere già a posto prima di un lazo grosso per non spostarle accidentalmente.</li>
     <li>Durante il lazo il <strong>cursore diventa un crocino</strong> e la selezione a rettangolo nativa di Fabric è temporaneamente sospesa, così non si confondono i due metodi di selezione.</li>
   </ul></div></div>
+
+  <h3>Pennello selezione (dipingi per selezionare)</h3>
+  <p>Accanto al Lazo, nella Left Toolbar c'è il <strong>🖌️ Pennello selezione</strong>: invece di chiudere un'area come fa il Lazo, qui <strong>"dipingi" direttamente sopra le tessere</strong> e tutte quelle che finiscono sotto la striscia del pennello vengono selezionate. È il modo più naturale per raccogliere file di tessere lungo una linea, un bordo curvo o una fuga, senza dover chiudere un poligono.</p>
+
+  <h3>Come si usa</h3>
+  <ol class="step-list">
+    <li>
+      <div>
+        <div class="step-title">Attiva il Pennello selezione</div>
+        <div class="step-body">Clicca l'icona <strong>🖌️</strong> nella Left Toolbar. Se erano attivi penna, gomma o acquerello vengono disattivati automaticamente. Il cursore mostra un <strong>cerchio-anteprima</strong> grande quanto la punta.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Tieni premuto il sinistro e pennella sulle tessere</div>
+        <div class="step-body">La linea <strong>segue il puntatore</strong> esattamente come la penna del disegno a mano libera. Le tessere toccate dalla striscia si <strong>evidenziano in tempo reale</strong>. Puoi fare <strong>più passate</strong>: i tratti <strong>si sommano</strong> finché lo strumento resta attivo.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Conferma la selezione</div>
+        <div class="step-body">Premi <kbd>Invio</kbd> oppure <strong>ri-clicca l'icona</strong> del pennello: l'evidenziazione diventa una <strong>selezione multipla vera</strong> e torni in modalità Seleziona. Con <kbd>Esc</kbd> annulli tutto senza selezionare niente.</div>
+      </div>
+    </li>
+  </ol>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Per <strong>togliere</strong> tessere da una selezione in corso, tieni premuto <kbd>Ctrl</kbd> (⌘ su Mac) mentre pennelli: in quel tratto il pennello <strong>deseleziona</strong> invece di selezionare. Comodo per rifinire i bordi senza ricominciare.</div></div>
+
+  <h3>Dimensione della punta</h3>
+  <p>La larghezza della striscia decide quante tessere prendi per passata. <strong>Click destro</strong> sull'icona apre un piccolo popover con lo slider <strong>Punta</strong>, misurato in <strong>millimetri reali sul foglio</strong> (range 2–60 mm, default 12 mm). Il valore è <strong>persistente</strong>: lo ritrovi com'era alla riapertura. Il pulsante <em>Default (12 mm)</em> ripristina la dimensione consigliata.</p>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Lazo o Pennello?</strong><ul>
+    <li><strong>Pennello</strong> → quando le tessere da prendere stanno <strong>lungo una linea o un bordo</strong> (una fila, una curva, il contorno di una figura): ci passi sopra e le raccogli.</li>
+    <li><strong>Lazo</strong> → quando devi <strong>racchiudere un'area piena</strong> di tessere: chiudi il poligono e prendi tutto ciò che sta dentro.</li>
+    <li>Le forme <strong>bloccate</strong> (🔒), lo sfondo e la texture carta vengono <strong>sempre ignorati</strong> anche dal pennello.</li>
+    <li>Mentre il pennello è attivo le forme non si spostano: puoi <strong>zoomare e fare pan</strong> liberamente tra una passata e l'altra.</li>
+  </ul></div></div>
 </section>
 
 <!-- ── DISEGNO LIBERO ── -->
@@ -1275,6 +1325,24 @@
     <li>Quando hai finito di disegnare, clicca <strong>🖱️ Seleziona</strong> per tornare a lavorare con le forme.</li>
     <li>Il <strong>colore corrente</strong> mostrato nell'Inspector è condiviso tra penna e acquerello: cambiandolo da uno cambia anche per l'altro.</li>
   </ul></div></div>
+
+  <h3>Perimetro di contenimento (⬡)</h3>
+  <p>Quando colori le <strong>fughe</strong> a mano libera o dipingi ad acquerello dentro un mosaico, è facile sbordare oltre l'area del lavoro. Il <strong>Perimetro di contenimento</strong> risolve il problema: definisci una volta un'area chiusa e da quel momento <strong>penna e acquerello colorano solo dentro</strong> di essa; ciò che esce viene tagliato via, esattamente come fa il bordo del foglio.</p>
+
+  <h3>Come si disegna il perimetro</h3>
+  <p>Il pulsante è l'esagono <strong>⬡</strong> nella Left Toolbar. È uno strumento unico che combina due modi di tracciare, anche mescolandoli nello stesso perimetro:</p>
+  <ul>
+    <li><strong>Tap</strong> (click singolo) → aggiunge un <strong>vertice</strong>: perfetto per appoggiarsi agli spigoli esterni delle tessere di bordo.</li>
+    <li><strong>Trascina</strong> → traccia <strong>a mano libera</strong>, come il pennello selezione.</li>
+    <li><kbd>Invio</kbd>, <strong>doppio-click</strong> o <strong>tap vicino al primo vertice</strong> → <strong>chiude</strong> il perimetro.</li>
+    <li><kbd>Backspace</kbd> → rimuove l'<strong>ultimo punto</strong> messo.</li>
+    <li><kbd>Esc</kbd> → <strong>annulla</strong> la sessione in corso (non cancella un perimetro già confermato).</li>
+  </ul>
+  <p>Servono almeno <strong>3 punti</strong> per chiudere. Una volta confermato, vedi il contorno del perimetro come guida tratteggiata mentre lavori a mano libera.</p>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Per <strong>cancellare</strong> un perimetro già impostato, fai <strong>click destro</strong> sul pulsante ⬡ (stessa logica del pennello selezione). Il taglio applicato ai tratti disegnati mentre il perimetro era attivo <strong>resta comunque</strong>: rimuovere il perimetro non scuce i tratti già contenuti.</div></div>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>Il perimetro viene <strong>salvato nel progetto</strong>: lo ritrovi riaprendo il file. Il taglio è cotto sui singoli tratti, quindi sopravvive anche a salva/riapri e alla rimozione del perimetro.</div></div>
 </section>
 
 <!-- ── ACQUERELLO ── -->
@@ -2180,7 +2248,7 @@
 <!-- ════════════════════════════════ FOOTER ════════════════════════════════ -->
 <footer>
   <strong>Mosaica Workspace Pro</strong> · Guida Utente · By Pico Mosaici<br>
-  <span style="margin-top:6px;display:block;">Aggiornata alla versione · V 06.2026</span>
+  <span style="margin-top:6px;display:block;">Aggiornata alla versione · V 07.2026</span>
   <span style="margin-top:6px;display:block;">© 2026 Pico Mosaici® di Pietro Coraggio | Venafro (IS) | Tutti i diritti riservati</span>
 </footer>
 

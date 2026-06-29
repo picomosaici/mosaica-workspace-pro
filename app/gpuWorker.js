@@ -139,7 +139,24 @@ function performStamp(params) {
 }
 
 // ==================== MESSAGE HANDLER ====================
-self.onmessage = async function (e) {
+// ── SERIALIZZAZIONE DEI MESSAGGI ─────────────────────────────────────────────
+// L'handler e' async perche' "strokeStart" deve attendere createImageBitmap()
+// per preparare lo stampBitmap e il bounding-box. Senza una coda, quando
+// "strokeStart" cede il controllo sull'await il browser puo' gia' eseguire
+// l'handler del messaggio successivo: per un CLICK SECCO (timbro singolo) i
+// messaggi "strokeChunk" e "strokeEnd" arrivano subito dopo "strokeStart" e
+// venivano elaborati PRIMA che stampBitmap/strokeBBox fossero pronti →
+// performStamp() usciva senza disegnare e il ritaglio finale era vuoto: il
+// timbro singolo "non appariva". Tracciando un tratto, invece, i chunk
+// arrivano piu' tardi (dopo l'await) e il problema non si vedeva.
+//
+// La coda _msgChain garantisce che ogni messaggio (incluso l'await interno)
+// venga COMPLETATO prima che parta il successivo, mantenendo l'ordine reale
+// strokeStart → strokeChunk → strokeEnd. Il .catch evita che un errore in un
+// handler blocchi tutta la catena.
+let _msgChain = Promise.resolve();
+
+async function handleWorkerMessage(e) {
   const { type, strokeId, width, height, stampData, stamps } = e.data;
 
   switch (type) {
@@ -238,6 +255,16 @@ self.onmessage = async function (e) {
       break;
     }
   }
+}
+
+self.onmessage = function (e) {
+  // Accoda l'elaborazione: ogni messaggio completa (await incluso) prima del
+  // successivo, preservando l'ordine strokeStart → strokeChunk → strokeEnd.
+  _msgChain = _msgChain
+    .then(() => handleWorkerMessage(e))
+    .catch((err) => {
+      console.error("[gpuWorker] Errore nell'handler messaggio:", err);
+    });
 };
 
 console.log("[gpuWorker] ✅ BOUNDING-BOX CROP attivo — bitmap minimi per ogni tratto");

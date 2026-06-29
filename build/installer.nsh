@@ -20,7 +20,7 @@
 ; ===================================================================
 
 ; --- Versione di display (formato MM.YYYY, da aggiornare ad ogni release) ---
-!define DISPLAY_VERSION "06.2026"
+!define DISPLAY_VERSION "07.2026"
 
 ; ──────────────────────────────────────────────────────────────────
 ;  PRE-DEFINIZIONE LCID LINGUE

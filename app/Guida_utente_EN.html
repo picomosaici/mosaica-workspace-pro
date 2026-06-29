@@ -849,11 +849,12 @@
   <p>Click a shape to select it. <strong>Blue control handles</strong> will appear at the edges and corners for resizing, and the <strong>↻</strong> symbol for rotation. Drag the shape to move it.</p>
 
   <h3>Multi-Selection</h3>
-  <p>You have three ways:</p>
+  <p>You have four ways:</p>
   <ul>
     <li><strong>Drag</strong> on an empty area of the sheet → classic selection box.</li>
-    <li><strong>Shift + click</strong> on multiple shapes → adds or removes shapes from the current selection.</li>
-    <li><strong>Lasso</strong> (see dedicated section) → trace a freehand polygon to select irregularly arranged shapes.</li>
+    <li><strong>Ctrl + click</strong> (⌘ on Mac) on multiple shapes → adds or removes shapes <strong>one at a time</strong>: clicking a shape already in the selection removes it.</li>
+    <li><strong>Lasso</strong> (see dedicated section) → trace a freehand polygon to enclose an area of shapes.</li>
+    <li><strong>Brush selection</strong> (see dedicated section) → paint over the tiles to gather them along a line or an edge.</li>
   </ul>
 
   <h3>Measurements in Millimeters</h3>
@@ -1126,6 +1127,18 @@
   <h3>Applying a Texture</h3>
   <p>With an object selected, click directly on one of the previews in the <strong>Texture Panel</strong> on the far left. The texture is repeated (repeat) to fill the shape.</p>
 
+  <h3>The radial menu with multiple shapes selected</h3>
+  <p>The radial menu also works in <strong>multi-selection</strong>: when several shapes are active at once, the actions apply to <strong>all of them together</strong>. There are four ways to select multiple shapes — dragged box, <kbd>Ctrl</kbd>+click one by one, Lasso, or Brush selection (see the next section).</p>
+  <ul>
+    <li><strong>Color, Paste color and Texture</strong> → apply to <strong>all</strong> selected shapes in one go: very handy for coloring whole groups of tiles.</li>
+    <li><strong>🔒 Lock / Unlock</strong> → acts on the whole selection. If even <em>one</em> shape is locked, the button shows <strong>🔓 Unlock</strong> (orange) to free them all.</li>
+    <li><strong>🗑️ Delete</strong> → removes all selected shapes (reversible with <kbd>Ctrl</kbd>+<kbd>Z</kbd>).</li>
+    <li><strong>⎇ Group</strong> → <strong>enables</strong> with two or more shapes selected and merges them into a single group. <strong>⎆ Ungroup</strong> enables instead when you have a group selected, and returns it to single shapes.</li>
+    <li><strong>◔ Slice circle</strong> only shows when the selection is a single circle or ellipse, so it <strong>does not appear</strong> in multi-selection.</li>
+  </ul>
+  <p>In multi-selection the Status Bar shows <strong>"N objects"</strong> instead of the single shape's measurements, and the Inspector's <strong>Dimensions</strong> block hides (single measurements would not make sense for several shapes). The menu anchors next to the <strong>last shape added</strong> to the selection.</p>
+
+
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
     <li>If the radial menu covers the object you are modifying, use the <strong>slider that appears below the W/H measurements</strong> to reduce its radius; a double-click on the slider restores automatic sizing.</li>
     <li>With multiple objects selected the <strong>⎇ Group</strong> and <strong>⎆ Ungroup</strong> buttons appear: group to move complex sets as a single shape.</li>
@@ -1218,6 +1231,43 @@
     <li><strong>Locked</strong> shapes (🔒), the user background, and the paper texture are <strong>always ignored</strong>: lock tiles already in place before a large lasso to avoid moving them accidentally.</li>
     <li>During the lasso the <strong>cursor becomes a crosshair</strong> and Fabric's native rectangular selection is temporarily suspended, so the two selection methods do not confuse each other.</li>
   </ul></div></div>
+
+  <h3>Brush selection (paint to select)</h3>
+  <p>Next to the Lasso, the Left Toolbar has the <strong>🖌️ Brush selection</strong>: instead of closing an area like the Lasso, here you <strong>"paint" directly over the tiles</strong> and every tile that ends up under the brush stripe gets selected. It is the most natural way to gather rows of tiles along a line, a curved edge or a grout joint, without having to close a polygon.</p>
+
+  <h3>How to use it</h3>
+  <ol class="step-list">
+    <li>
+      <div>
+        <div class="step-title">Activate Brush selection</div>
+        <div class="step-body">Click the <strong>🖌️</strong> icon in the Left Toolbar. If pen, eraser or watercolor were active they are turned off automatically. The cursor shows a <strong>preview circle</strong> as wide as the tip.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Hold the left button and paint over the tiles</div>
+        <div class="step-body">The line <strong>follows the pointer</strong> exactly like the freehand pen. Every tile touched by the stripe is <strong>highlighted in real time</strong>. You can make <strong>several passes</strong>: strokes <strong>add up</strong> while the tool stays active.</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <div class="step-title">Confirm the selection</div>
+        <div class="step-body">Press <kbd>Enter</kbd> or <strong>click the brush icon again</strong>: the highlight becomes a <strong>real multi-selection</strong> and you return to Select mode. <kbd>Esc</kbd> cancels everything without selecting anything.</div>
+      </div>
+    </li>
+  </ol>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>To <strong>remove</strong> tiles from a selection in progress, hold <kbd>Ctrl</kbd> (⌘ on Mac) while you paint: in that stroke the brush <strong>deselects</strong> instead of selecting. Handy for trimming the edges without starting over.</div></div>
+
+  <h3>Tip size</h3>
+  <p>The width of the stripe decides how many tiles you catch per pass. <strong>Right-click</strong> the icon to open a small popover with the <strong>Tip</strong> slider, measured in <strong>real millimeters on the sheet</strong> (range 2–60 mm, default 12 mm). The value is <strong>persistent</strong>: it comes back as it was when you reopen. The <em>Default (12 mm)</em> button restores the recommended size.</p>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Lasso or Brush?</strong><ul>
+    <li><strong>Brush</strong> → when the tiles you need lie <strong>along a line or an edge</strong> (a row, a curve, the outline of a figure): you sweep over them and collect them.</li>
+    <li><strong>Lasso</strong> → when you need to <strong>enclose a full area</strong> of tiles: close the polygon and take everything inside.</li>
+    <li><strong>Locked</strong> shapes (🔒), the background and the paper texture are <strong>always ignored</strong> by the brush too.</li>
+    <li>While the brush is active the shapes do not move: you can <strong>zoom and pan</strong> freely between passes.</li>
+  </ul></div></div>
 </section>
 
 <!-- ── FREEHAND DRAWING ── -->
@@ -1276,6 +1326,24 @@
     <li>When you are done drawing, click <strong>🖱️ Select</strong> to return to working with shapes.</li>
     <li>The <strong>current color</strong> shown in the Inspector is shared between pen and watercolor: changing it in one also changes it for the other.</li>
   </ul></div></div>
+
+  <h3>Containment perimeter (⬡)</h3>
+  <p>When you color the <strong>grout</strong> freehand or paint with watercolor inside a mosaic, it is easy to spill over the work area. The <strong>Containment perimeter</strong> solves this: you define a closed area once, and from then on <strong>pen and watercolor color only inside</strong> it; whatever goes outside is clipped away, exactly like the sheet border does.</p>
+
+  <h3>Drawing the perimeter</h3>
+  <p>The button is the hexagon <strong>⬡</strong> in the Left Toolbar. It is a single tool that combines two ways of tracing, which you can even mix within the same perimeter:</p>
+  <ul>
+    <li><strong>Tap</strong> (single click) → adds a <strong>vertex</strong>: perfect for snapping onto the outer corners of border tiles.</li>
+    <li><strong>Drag</strong> → traces <strong>freehand</strong>, like the brush selection.</li>
+    <li><kbd>Enter</kbd>, <strong>double-click</strong> or a <strong>tap near the first vertex</strong> → <strong>closes</strong> the perimeter.</li>
+    <li><kbd>Backspace</kbd> → removes the <strong>last point</strong> added.</li>
+    <li><kbd>Esc</kbd> → <strong>cancels</strong> the current session (it does not delete an already-confirmed perimeter).</li>
+  </ul>
+  <p>At least <strong>3 points</strong> are needed to close. Once confirmed, you see the perimeter outline as a dashed guide while you work freehand.</p>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>To <strong>remove</strong> a perimeter you already set, <strong>right-click</strong> the ⬡ button (same logic as the brush selection). The clipping applied to strokes drawn while the perimeter was active <strong>still remains</strong>: removing the perimeter does not un-clip the strokes already contained.</div></div>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>The perimeter is <strong>saved with the project</strong>: you get it back when you reopen the file. The clip is baked onto each stroke, so it survives save/reopen and even the removal of the perimeter.</div></div>
 </section>
 
 <!-- ── WATERCOLOR ── -->

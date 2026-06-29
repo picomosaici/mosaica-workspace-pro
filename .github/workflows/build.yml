@@ -61,19 +61,21 @@ jobs:
           body: |
             ## 🎨 Mosaica Workspace Pro ${{ github.ref_name }}
 
-            Aggiornamento di rifinitura — il pan diventa più fluido e gli slider di geometria più maneggevoli.
+            Aggiornamento di Luglio 2026 — due nuovi strumenti di selezione e disegno, più un menu radiale che ora lavora su più forme insieme.
+
+            ### ✨ Cosa c'è di nuovo
+
+            - 🖌️ **Pennello selezione** — seleziona le tessere dipingendoci sopra a mano libera, come con un pennello; le passate si sommano e tenendo premuto **CTRL** (⌘ su Mac) deselezioni invece di aggiungere. Diametro della punta regolabile in mm reali (tasto destro sull'icona)
+            - ⬡ **Perimetro di contenimento** — traccia un poligono chiuso entro cui far valere pennello e acquerello: ideale per restare dentro le fughe. Si salva con il progetto e resta valido anche dopo averlo rimosso
 
             ### 🛠️ Miglioramenti
 
-            - 🖱️ **Pan più fluido** (Alt + trascina): i movimenti vengono raccolti e applicati una volta per frame, niente più ricalcoli in eccesso sui monitor ad alta frequenza — resta morbido anche con tavole molto cariche
-            - 🎯 **Alt + trascina = pan "puro"**: la selezione attiva resta intatta e nessuna forma viene agganciata o spostata per sbaglio
-            - 📐 **Slider del trapezio più maneggevoli**: il massimo si ri-arma a ogni rilascio (valore corrente + 10 mm), così ingrandisci a piccoli passi senza tetto fisso e senza che il cursore "salti indietro"
-            - ↩️ **Storico più pulito**: una sola voce Annulla/Ripristina a fine regolazione, non più una per ogni micro-spostamento dello slider
-            - 🎛️ **Slider menu radiale**: regolazione 0…+30%, doppio click per azzerare
+            - 🎯 **Menu radiale in selezione multipla** — seleziona più forme con **CTRL + click** e applica colore, texture, blocco o eliminazione a tutte insieme, oltre a raggruppa / separa
+            - 📖 **Guida utente aggiornata** (IT + EN) con i nuovi strumenti e la correzione della selezione multipla
 
             ### 📥 Installazione
 
-            1. Scarica il file `MosaicaWorkspacePro-Setup-06.2026.exe` qui sotto
+            1. Scarica il file `MosaicaWorkspacePro-Setup-07.2026.exe` qui sotto
             2. Eseguilo (se Windows mostra *"Editore sconosciuto"*, clicca **Ulteriori informazioni → Esegui comunque**)
             3. Segui l'installer — puoi scegliere la lingua all'avvio
 
@@ -81,7 +83,5 @@ jobs:
 
             ### 📝 Note tecniche
 
-            - Versione interna: `6.2026.2`
+            - Versione interna: `7.2026.0`
             - Electron 41 · Fabric.js 5.1.0 → 5.3.0 (minima 5.1.0, massima testata 5.3.0)
-            - Pan con batching su requestAnimationFrame (un applyTransform per frame; render forme rientrate throttle ~90 ms; render finale a fine gesto)
-            - 589 chiavi i18n simmetriche IT + EN

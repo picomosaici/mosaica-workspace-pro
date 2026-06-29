@@ -24,6 +24,15 @@ let paperTextureDataURL = null;
 let paperTextureObject = null;
 let paperTextureLoading = null;
 
+// ── FASE 3: stato carta (salvato per progetto dentro il blocco "sheet") ──
+// paperTextureEnabled: la carta è accesa? (default true = comportamento storico).
+//   Quando è false la carta non viene mostrata, ma lo stato resta ricordato.
+// paperCustomDataURL: se valorizzato, è la carta PERSONALIZZATA caricata
+//   dall'utente (già ridimensionata lato renderer). Se null si usa la carta
+//   predefinita carta.png letta da userData via paperTextureAPI.
+let paperTextureEnabled = true;
+let paperCustomDataURL = null;
+
 // ====================== ensurePaperTexture (con supporto rotazione) ======================
 async function ensurePaperTexture(rotationDeg = 0) {
   // ── Guard: se c'è un'immagine di sfondo utente, NON aggiungere la carta ──
@@ -32,6 +41,18 @@ async function ensurePaperTexture(rotationDeg = 0) {
   // lo "schiarimento" combinato con l'immagine di sfondo.
   const hasUserBg = typeof window.hasUserBackgroundImage === "function" ? window.hasUserBackgroundImage() : false;
   if (hasUserBg) {
+    if (paperTextureObject && canvas?.getObjects?.().includes(paperTextureObject)) {
+      canvas.remove(paperTextureObject);
+      canvas.requestRenderAll();
+    }
+    return null;
+  }
+
+  // ── FASE 3 — Guard "carta spenta" ──
+  // Se l'utente ha spento la carta dal pannello sfondo, non deve comparire.
+  // Manteniamo comunque il riferimento (paperTextureObject) per poterla
+  // riaccendere senza ricaricarla da disco.
+  if (!paperTextureEnabled) {
     if (paperTextureObject && canvas?.getObjects?.().includes(paperTextureObject)) {
       canvas.remove(paperTextureObject);
       canvas.requestRenderAll();
@@ -57,7 +78,9 @@ async function ensurePaperTexture(rotationDeg = 0) {
 
   paperTextureLoading = new Promise(async (resolve, reject) => {
     try {
-      const dataURL = await window.paperTextureAPI?.getDataURL();
+      // FASE 3 — sorgente: carta personalizzata (se caricata) oppure la carta
+      // predefinita carta.png letta da userData. La custom arriva già ridimensionata.
+      const dataURL = paperCustomDataURL || (await window.paperTextureAPI?.getDataURL());
       paperTextureDataURL = dataURL;
 
       if (!dataURL) {
@@ -90,8 +113,17 @@ async function ensurePaperTexture(rotationDeg = 0) {
           opacity: 0.22,
           __isBackground: true
         });
-        fabricImg.scaleToWidth(canvas.getWidth());
-        fabricImg.scaleToHeight(canvas.getHeight());
+        // La carta deve riempire ESATTAMENTE il foglio. Prima si chiamavano in
+        // sequenza scaleToWidth() e poi scaleToHeight(): la seconda annullava la
+        // prima (scaling uniforme), quindi in orizzontale la carta veniva scalata
+        // solo sull'altezza e lasciava scoperti i lati. Ora impostiamo scaleX e
+        // scaleY in modo indipendente: copertura piena in entrambi gli orientamenti.
+        const _imgW = fabricImg.width || canvas.getWidth();
+        const _imgH = fabricImg.height || canvas.getHeight();
+        fabricImg.set({
+          scaleX: canvas.getWidth() / _imgW,
+          scaleY: canvas.getHeight() / _imgH
+        });
         paperTextureObject = fabricImg;
         canvas.add(fabricImg);
         canvas.sendToBack(fabricImg);
@@ -225,6 +257,83 @@ function restorePaperTexture() {
   paperTextureObject.set({ selectable: false, evented: false });
   paperTextureObject.setCoords();
   canvas.requestRenderAll();
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  FASE 3 — Controlli carta (on/off, personalizzata, predefinita)
+//  Lo stato vive qui (paperTextureEnabled / paperCustomDataURL) e viene
+//  salvato per progetto dentro il blocco "sheet" da renderer.js/autoSave.js.
+// ════════════════════════════════════════════════════════════════════
+
+// Forza il prossimo ensurePaperTexture a RICARICARE la sorgente da capo
+// (necessario quando si cambia la carta: predefinita ⇄ personalizzata).
+// Rimuove anche l'oggetto corrente dal canvas, se presente.
+function _forcePaperReload() {
+  if (paperTextureObject && canvas && canvas.getObjects().includes(paperTextureObject)) {
+    canvas.remove(paperTextureObject);
+  }
+  paperTextureObject = null;
+  paperTextureLoading = null;
+}
+
+// Accende/spegne la carta. Da false → la nasconde; da true → la (ri)mostra,
+// rispettando comunque la priorità dello sfondo immagine utente.
+function setPaperTextureEnabled(on) {
+  paperTextureEnabled = !!on;
+  if (!canvas) return;
+  if (paperTextureEnabled) {
+    ensurePaperTexture(paperTextureRotationDeg)
+      .then(() => keepPaperTextureBehindEverything())
+      .catch(() => {});
+  } else {
+    hidePaperTexture();
+  }
+}
+
+// Imposta una carta PERSONALIZZATA (dataURL già ridimensionato dal renderer).
+// Accendere implicitamente la carta è il comportamento atteso: l'utente che
+// carica un'immagine vuole vederla.
+function setCustomPaperTexture(dataURL) {
+  if (!dataURL) return;
+  paperCustomDataURL = dataURL;
+  paperTextureEnabled = true;
+  _forcePaperReload();
+  ensurePaperTexture(paperTextureRotationDeg)
+    .then(() => keepPaperTextureBehindEverything())
+    .catch((err) => console.warn("[PaperTexture] custom set error", err));
+}
+
+// Torna alla carta PREDEFINITA (carta.png). Non tocca l'on/off: se era accesa
+// resta accesa con la carta di default, se era spenta resta spenta.
+function resetPaperTextureToDefault() {
+  paperCustomDataURL = null;
+  _forcePaperReload();
+  if (paperTextureEnabled) {
+    ensurePaperTexture(paperTextureRotationDeg)
+      .then(() => keepPaperTextureBehindEverything())
+      .catch((err) => console.warn("[PaperTexture] reset error", err));
+  }
+}
+
+// Stato carta per il salvataggio (renderer.js saveProjectBtn + autoSave.js).
+function getPaperTextureState() {
+  return {
+    enabled: paperTextureEnabled,
+    customDataURL: paperCustomDataURL || null
+  };
+}
+
+// Applica lo stato carta al CARICAMENTO progetto. Imposta solo le variabili,
+// SENZA render: la carta verrà (ri)creata da applyProjectData al punto giusto.
+// Retrocompatibile: progetti vecchi senza questi campi → accesa, predefinita.
+function applyPaperTextureState(state) {
+  const s = state || {};
+  paperTextureEnabled = s.enabled === undefined || s.enabled === null ? true : !!s.enabled;
+  paperCustomDataURL = s.customDataURL || null;
+  // L'oggetto vecchio è già stato azzerato da applyProjectData prima del load;
+  // forziamo comunque un reload pulito per sicurezza (idempotente).
+  paperTextureObject = null;
+  paperTextureLoading = null;
 }
 
 // ==================== RIORDINO LIVELLI CANVAS ====================
@@ -620,6 +729,12 @@ function toggleFreehandMode() {
     // la texture NON viene rimossa
     keepPaperTextureBehindEverything();
 
+    // P5: uscendo dal disegno a mano libera (penna/acquerello/gomma) il cerchio
+    // di riferimento dimensione tratto deve sparire dal canvas.
+    if (typeof window.clearFreehandStrokeCircle === "function") {
+      window.clearFreehandStrokeCircle();
+    }
+
     flashToast("Disegno terminato — linee fissate sullo sfondo");
   }
 }
@@ -844,6 +959,12 @@ function initFreehandDrawing() {
 
     opt.path.__isFreehand = true;
     opt.path.__addedAt = Date.now();
+
+    // Perimetro di contenimento: applica il clipPath al tratto appena creato
+    // (penna/gomma). L'acquerello e' coperto da freehandTools via object:added.
+    if (typeof window.applyFreehandClipToObject === "function") {
+      window.applyFreehandClipToObject(opt.path);
+    }
 
     // Applica opacità modulata da pressione (Wacom) — solo se penna era attiva
     if (typeof window.wacomGetOpacityFactor === "function" && window.wacomIsConnected) {
@@ -1136,6 +1257,12 @@ window.ensurePaperTexture = ensurePaperTexture;
 window.keepPaperTextureBehindEverything = keepPaperTextureBehindEverything;
 window.hidePaperTexture = hidePaperTexture;
 window.restorePaperTexture = restorePaperTexture;
+// FASE 3 — controlli carta
+window.setPaperTextureEnabled = setPaperTextureEnabled;
+window.setCustomPaperTexture = setCustomPaperTexture;
+window.resetPaperTextureToDefault = resetPaperTextureToDefault;
+window.getPaperTextureState = getPaperTextureState;
+window.applyPaperTextureState = applyPaperTextureState;
 window.loadFreehandSettings = loadFreehandSettings;
 window.saveFreehandSettings = saveFreehandSettings;
 window.reorderCanvasLayers = reorderCanvasLayers;

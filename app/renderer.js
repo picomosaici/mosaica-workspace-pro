@@ -330,21 +330,69 @@ function _idealQualityScale(viewScale) {
   return 8;                       // zoom 650%–800%
 }
 
+// ── 🛟 TETTO DI SICUREZZA GPU SUL BACKSTORE ─────────────────────────────────
+// Questa è la causa vera del crash con schermata bianca a zoom alto
+// ("GPU process exited unexpectedly: exit_code=34").
+//
+// In Mosaica lo zoom è una CSS transform sul #paper: il viewportTransform di
+// Fabric resta SEMPRE l'identità. Di conseguenza Fabric alloca il backstore per
+// TUTTO il foglio A4 alla scala qualità corrente, ANCHE se a zoom alto a schermo
+// se ne vede solo un angolino. A scala 8 il backstore arriva a ~6400×9040
+// (~228 MB) — e ce ne sono DUE (lower + upper canvas) → oltre 450 MB di superfici
+// GPU. Su molte schede (specie integrate) questo supera il limite/timeout del
+// driver (TDR/OOM) e il processo GPU muore: la finestra diventa bianca.
+//
+// Soluzione mirata: la scala qualità non sale mai oltre un budget di megapixel
+// del backstore. A zoom molto alti l'immagine può risultare un filo meno nitida
+// (upscaling CSS di un fattore piccolo, impercettibile mentre si lavora), ma il
+// processo GPU non viene più spinto al collasso. Il foglio è comunque renderizzato
+// a piena qualità all'export (toCanvasElement è un percorso separato).
+//
+// TUNABLE: alza MAX_BACKSTORE_MEGAPIXELS se la tua GPU regge di più (ogni unità in
+// più aumenta la nitidezza a zoom alto ma anche la VRAM usata, ~4 MB/Mpx ×2 canvas).
+//   24 Mpx  → scala max ~5 su A4 (~89 MB/superficie)  [default, sicuro]
+//   32 Mpx  → scala max ~6 su A4 (~128 MB/superficie)
+//   45 Mpx  → scala max ~7 su A4 (~175 MB/superficie)
+const MAX_BACKSTORE_MEGAPIXELS = 24;
+
+function _maxQualityForBudget() {
+  // Dimensioni LOGICHE (CSS) attuali del foglio. Se il canvas non è ancora
+  // pronto usiamo l'A4 base, così la prima scala è comunque sensata.
+  const cw = (canvas && canvas.getWidth && canvas.getWidth()) || mm2px(A4_MM_W) || 794;
+  const ch = (canvas && canvas.getHeight && canvas.getHeight()) || mm2px(A4_MM_H) || 1123;
+  const basePx = Math.max(1, cw * ch);
+  const budgetPx = MAX_BACKSTORE_MEGAPIXELS * 1e6;
+  // Backstore = (cw·Q)·(ch·Q) = basePx·Q² ≤ budgetPx  →  Q ≤ √(budgetPx / basePx)
+  let q = Math.floor(Math.sqrt(budgetPx / basePx));
+  if (q < MIN_QUALITY_SCALE) q = MIN_QUALITY_SCALE;
+  if (q > MAX_QUALITY_SCALE) q = MAX_QUALITY_SCALE;
+  return q;
+}
+
 function computeQualityScale(viewScale) {
   const ideal = _idealQualityScale(viewScale);
   const cur = currentQualityScale;
-  if (ideal === cur) return cur;
 
-  // La soglia tra la fascia k e la k+1 è a (k - 0.5); la fascia "cur" copre
-  // l'intervallo ( cur-1.5 , cur-0.5 ]. Cambiamo fascia SOLO se abbiamo superato
-  // la soglia di almeno QUALITY_HYSTERESIS, altrimenti restiamo dove siamo.
-  if (ideal > cur) {
+  let result;
+  if (ideal === cur) {
+    result = cur;
+  } else if (ideal > cur) {
+    // La soglia tra la fascia k e la k+1 è a (k - 0.5); la fascia "cur" copre
+    // l'intervallo ( cur-1.5 , cur-0.5 ]. Cambiamo fascia SOLO se abbiamo superato
+    // la soglia di almeno QUALITY_HYSTERESIS, altrimenti restiamo dove siamo.
     const upBoundary = (cur - 0.5) + QUALITY_HYSTERESIS;
-    return viewScale > upBoundary ? ideal : cur;
+    result = viewScale > upBoundary ? ideal : cur;
   } else {
     const downBoundary = (cur - 1.5) - QUALITY_HYSTERESIS;
-    return viewScale < downBoundary ? ideal : cur;
+    result = viewScale < downBoundary ? ideal : cur;
   }
+
+  // Tetto di sicurezza GPU: SEMPRE applicato come ultimo passo, anche se
+  // l'isteresi vorrebbe restare più in alto. Se per qualunque motivo la scala
+  // corrente fosse sopra il budget (es. foglio ingrandito dalla calibrazione),
+  // questo la riporta sotto al prossimo refresh, liberando VRAM.
+  const cap = _maxQualityForBudget();
+  return Math.min(result, cap);
 }
 
 // Inganna Fabric: usa la nostra scala invece del devicePixelRatio dello schermo.
@@ -450,7 +498,7 @@ const radial = document.getElementById("radialMenu");
 const colorPopup = document.getElementById("colorPopup");
 const colorInput = document.getElementById("colorInput");
 const openColorBtn = document.getElementById("openColorBtn");
-const smallColorButtons = Array.from(document.querySelectorAll(".smallColor"));
+const quickColorsContainer = document.getElementById("quickColors");
 const textureFile = document.getElementById("textureFile");
 const overlay = document.getElementById("measureOverlay");
 const mW = overlay?.querySelector(".measure-w");
@@ -1633,11 +1681,15 @@ function getUndoJSON() {
     "__shape",
     "data",
     "__isFreehand",
-    "__isWatercolor",
+    "__isWatercolor", "__clipPoly",
     "__watercolorParams",
     "__addedAt",
     "__shapeType",
-    "customId"
+    "customId",
+    "__textureId",
+    "__textureSpanMM",
+    "__textureColorize",
+    "__textureTint"
   ]);
 }
 
@@ -1664,11 +1716,15 @@ function pushState() {
         "data",
         "__isFreehand",
         "__isBackground",
-        "__isWatercolor",
+        "__isWatercolor", "__clipPoly",
         "__watercolorParams",
         "__addedAt",
         "__shapeType",
-        "customId"
+        "customId",
+        "__textureId",
+        "__textureSpanMM",
+        "__textureColorize",
+        "__textureTint"
       ])
     );
 
@@ -1697,11 +1753,15 @@ async function applySnapshot(jsonStr, pushCurrentToRedo = true) {
           "data",
           "__isFreehand",
           "__isBackground",
-          "__isWatercolor",
+          "__isWatercolor", "__clipPoly",
           "__watercolorParams",
           "__addedAt",
           "__shapeType",
-          "customId"
+          "customId",
+          "__textureId",
+          "__textureSpanMM",
+          "__textureColorize",
+          "__textureTint"
         ])
       );
       redoStack.push(curr);
@@ -1792,6 +1852,22 @@ async function applySnapshot(jsonStr, pushCurrentToRedo = true) {
             window.keepPaperTextureBehindEverything();
           }
         }
+      }
+
+      // Ricostruisce i fill texture dai metadati (le snapshot NON contengono
+      // piu' l'immagine, solo __textureId): le immagini stanno nel registro in
+      // memoria, quindi e' sincrono e immediato.
+      if (typeof rebuildTextureFill === "function") {
+        canvas.getObjects().forEach((o) => {
+          if (o && (o.__textureId || (o.fill && o.fill.__texId))) rebuildTextureFill(o);
+        });
+      }
+
+      // Riapplica il perimetro di contenimento ai tratti freehand: loadFromJSON
+      // ricrea gli oggetti senza clipPath (excludeFromExport lo tiene fuori dal
+      // JSON), quindi va riagganciato qui.
+      if (typeof window.applyFreehandClipToAll === "function") {
+        window.applyFreehandClipToAll();
       }
 
       canvas.requestRenderAll();
@@ -2808,6 +2884,7 @@ function updateMeasureOverlay() {
     // Aggiorna comunque status bar + pannello inspector (li resetta a "nessuna")
     if (typeof window.updateStatusSelection === "function") window.updateStatusSelection();
     if (typeof updateShapeDimensionsPanel === "function") updateShapeDimensionsPanel();
+    if (typeof updateTextureGrainPanel === "function") updateTextureGrainPanel();
     return;
   }
 
@@ -2871,6 +2948,7 @@ function updateMeasureOverlay() {
   // soprattutto quando l'overlay è fuori schermo (zoom alto, forma in basso).
   if (typeof window.updateStatusSelection === "function") window.updateStatusSelection();
   if (typeof updateShapeDimensionsPanel === "function") updateShapeDimensionsPanel();
+  if (typeof updateTextureGrainPanel === "function") updateTextureGrainPanel();
 }
 
 // ═════════════════════════════════════════════════════════════════════════
@@ -3077,10 +3155,14 @@ if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
     initInlineMeasureEditing();
     initInspectorDimensionInputs();
+    initTextureGrainSlider();
+    initTextureAllPanel();
   });
 } else {
   initInlineMeasureEditing();
   initInspectorDimensionInputs();
+  initTextureGrainSlider();
+  initTextureAllPanel();
 }
 
 // ============== TOOLTIP RADIALE ==============
@@ -3450,6 +3532,18 @@ canvas.on("selection:cleared", (e) => {
   }
   if (overlay) overlay.style.display = "none";
   if (colorPopup) colorPopup.style.display = "none";
+
+  // ── INSPECTOR: nascondi i blocchi legati alla forma selezionata ───────
+  // overlay.style.display="none" qui sopra nasconde solo gli indicatori L/A
+  // SUL canvas; i blocchi "Dimensioni" e "Texture" DENTRO l'inspector erano
+  // gestiti solo da updateMeasureOverlay(), che non scatta su selection:cleared.
+  // Senza questo reset restavano visibili dopo la deselezione e, poiche' i
+  // toggle penna/gomma/acquerello deselezionano via discardActiveObject()
+  // (-> selection:cleared), si mischiavano con la sezione dello strumento.
+  // A questo punto getActiveObject() e' null, quindi le due funzioni nascondono
+  // i rispettivi blocchi. Compatibile Fabric 5.1.0 -> 5.3.0 (nessuna API Fabric).
+  if (typeof updateShapeDimensionsPanel === "function") updateShapeDimensionsPanel();
+  if (typeof updateTextureGrainPanel === "function") updateTextureGrainPanel();
 
   if (selectedObj) {
     delete selectedObj.__isMultiSelection;
@@ -4047,32 +4141,24 @@ if (radial) {
               return;
             }
 
-            fabric.Image.fromURL(
-              result.dataURL,
-              function (img) {
-                const pattern = new fabric.Pattern({
-                  source: img.getElement ? img.getElement() : img,
-                  repeat: "repeat"
-                });
-
-                try {
-                  if (isGroup && selectedObj._objects) {
-                    selectedObj._objects.forEach((obj) => {
-                      if (obj.set) obj.set("fill", pattern);
-                    });
-                  } else {
-                    selectedObj.set("fill", pattern);
-                  }
-                  selectedObj.setCoords();
-                  canvas.renderAll();
-                  flashToast(__t("toast.texture.applied", { filename: result.filename || "" }, "Texture applicata: " + (result.filename || "")));
-                } catch (err) {
-                  console.warn(err);
-                  flashToast(__t("toast.texture.applyError", null, "Impossibile applicare texture"));
+            fabric.Image.fromURL(result.dataURL, function (img) {
+              const srcEl = img.getElement ? img.getElement() : img;
+              try {
+                // Un pattern dedicato per ogni oggetto → grana indipendente.
+                if (isGroup && selectedObj._objects) {
+                  selectedObj._objects.forEach((obj) => applyTextureToObject(obj, srcEl, result.dataURL));
+                } else {
+                  applyTextureToObject(selectedObj, srcEl, result.dataURL);
                 }
-              },
-              { crossOrigin: "anonymous" }
-            );
+                selectedObj.setCoords();
+                canvas.renderAll();
+                if (typeof updateTextureGrainPanel === "function") updateTextureGrainPanel();
+                flashToast(__t("toast.texture.applied", { filename: result.filename || "" }, "Texture applicata: " + (result.filename || "")));
+              } catch (err) {
+                console.warn(err);
+                flashToast(__t("toast.texture.applyError", null, "Impossibile applicare texture"));
+              }
+            });
           })
           .catch((err) => {
             console.error("textureAPI error", err);
@@ -4225,49 +4311,186 @@ function toHex(colorStr) {
 }
 
 if (colorInput) {
-  colorInput.addEventListener("input", (e) => {
+  // Coalescing: durante il drag la ruota spara molti eventi "input" al secondo;
+  // li accorpiamo a UN solo ridisegno per frame (requestAnimationFrame). Niente
+  // pushState/toast nel live → la singola tessera (e le multi-selezioni) non
+  // laggano e l'undo non si riempie di stati intermedi. Il commit (un solo
+  // pushState + un solo toast) avviene sul "change", a fine interazione.
+  let _colorRetintRAF = 0;
+
+  function _applyWheelColor() {
+    _colorRetintRAF = 0;
     if (!selectedObj) return;
-    const color = e.target.value;
+    const color = colorInput.value;
     try {
-      // Multi-selezione o gruppo: applica il fill a TUTTI i figli, perché Fabric
-      // non propaga 'fill' dal wrapper agli oggetti contenuti (come fa già pasteColor).
-      if (
-        (selectedObj.type === "activeSelection" || selectedObj.type === "group") &&
-        Array.isArray(selectedObj._objects)
-      ) {
-        selectedObj._objects.forEach((obj) => {
-          if (obj && typeof obj.set === "function") {
-            obj.set("fill", color);
-            if (typeof obj.setCoords === "function") obj.setCoords();
+      // Singolo, multi-selezione o gruppo: stesso percorso (Fabric non propaga
+      // 'fill' dal wrapper ai figli, quindi iteriamo sempre la lista).
+      const targets =
+        (selectedObj.type === "activeSelection" || selectedObj.type === "group") && Array.isArray(selectedObj._objects)
+          ? selectedObj._objects
+          : [selectedObj];
+
+      targets.forEach((obj) => {
+        if (!obj || typeof obj.set !== "function") return;
+        // Tessera con texture in modalità "colora dalla ruota": TINGE la texture
+        // (preserva grana e pori) invece di sostituirla con un colore piatto. Il
+        // blocco tinto è in cache → in multi la stessa tinta si costruisce 1 volta.
+        if (obj.__textureColorize && (obj.__textureId || (obj.fill && obj.fill.__texId))) {
+          const id = obj.__textureId || obj.fill.__texId;
+          const span = clampSpanMM(obj.__textureSpanMM || (obj.fill && obj.fill.__spanMM) || TEXTURE_SPAN_MM_DEFAULT);
+          const entry = getRegisteredTexture(id);
+          const neutral = entry && entry.img;
+          if (neutral) {
+            obj.set("fill", buildTexturePattern(id, neutral, span, { colorize: true, tint: color }));
+            obj.__textureTint = color;
+            obj.dirty = true;
           }
-        });
-      } else {
-        selectedObj.set("fill", color);
-      }
+        } else {
+          obj.set("fill", color);
+        }
+        if (typeof obj.setCoords === "function") obj.setCoords();
+      });
+
       selectedObj.setCoords();
       canvas.renderAll();
-      flashToast(__t("toast.color.applied", null, "Colore applicato"));
       updateMeasureOverlay();
-      pushState();
     } catch (err) {
       console.warn(err);
-      flashToast(__t("toast.color.applyError", null, "Errore applicazione colore"));
     }
+  }
+
+  // input → anteprima live coalizzata (max un update per frame), nessun commit.
+  colorInput.addEventListener("input", () => {
+    if (!selectedObj) return;
+    if (!_colorRetintRAF) _colorRetintRAF = requestAnimationFrame(_applyWheelColor);
+  });
+
+  // change → fine interazione: applica subito l'ultimo colore (annullando un RAF
+  // eventualmente pendente) e fa UN solo pushState + UN solo toast.
+  colorInput.addEventListener("change", () => {
+    if (_colorRetintRAF) {
+      cancelAnimationFrame(_colorRetintRAF);
+      _colorRetintRAF = 0;
+    }
+    if (!selectedObj) return;
+    _applyWheelColor();
+    flashToast(__t("toast.color.applied", null, "Colore applicato"));
+    if (typeof pushState === "function" && !isApplyingSnapshot) pushState();
   });
 }
 
 if (openColorBtn) openColorBtn.addEventListener("click", () => colorInput?.click());
 
-smallColorButtons.forEach((btn) =>
-  btn.addEventListener("click", (ev) => {
-    const c = ev.currentTarget.dataset.color;
-    if (!c) return;
-    if (colorInput) {
-      colorInput.value = c;
-      colorInput.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-  })
-);
+// ════════════════════════════════════════════════════════════════════
+//  COLORI RAPIDI (pastiglie tonde del popup colore)
+//  >>> PER AGGIUNGERE/TOGLIERE COLORI: modifica SOLO questo array. <
+//  Accetta qualsiasi formato CSS valido: hex (#rrggbb o #rgb),
+//  rgb()/rgba(), hsl()/hsla(), oppure il nome ("tomato"). Vengono
+//  convertiti da soli in hex e il bordo scuro coordinato si genera in
+//  automatico — tu aggiungi solo la stringa del colore.
+//  Aggiungi quante righe vuoi: oltre 2 righe compare la scrollbar.
+// ════════════════════════════════════════════════════════════════════
+const QUICK_COLORS = [
+  "#d2ae6d", // Beige classico
+  "#fff0e0", // Beige chiaro
+  "#fbe7bd", // Beige medio
+  "#f7af6d", // Beige intermedio
+  "#ffedab", // Beige medio 2
+  "#fefdbe",
+  "#994a2e",
+  "#8d3b1f",
+  "#723722", // Marrone classico
+  "#53331b", // Marrone 
+  "#03508d", // Blu medio
+  "#323e6e", // Blu scuro
+  "#5e217d", // Blu scurissimo
+  "#0164d4", // Blu Italia
+  "#3cbbd4", // Azzurro
+  "#0599e6", // Azzurro medio
+  "#fa944c", // Arancione classico
+  "#f2763b", // Arancione scuro
+  "#d86303", // Arancione nemo
+  "#e58c07", // Arancione pinguini 
+  "#fdee72", // Giallo
+  "#fccf01", // Giallo classico
+  "#f6b003", // Giallo pinguini
+  "#f3c137", // Giallo ape
+  "#2d754a", // Verde classico
+  "#98d263", // Verde acido
+  "#1b3612", // Verde oliva
+  "#030806", // Verde scurissimo
+  "#b22b3b", // Rosso 
+  "#96192e", // Rosso corallo 
+  "#c2213c", // Rosso cuore
+  "#a11b2c", // Rosso coccinella
+  "#c4c4c6", // Grigio balena
+  "#c9c9c9", // Grigio chiaro
+  "#b776a2", // Lilla
+  "#da7a8b", // Rosa classico
+  "#5e217d", // Viola
+  "#ff0000",
+  "#00a000",
+  "#0078ff",
+  "#ff8c00",
+  "#a000ff",
+  "#8b5a2b",
+  "#00ffff",
+  "#ff00ff",
+  "#ffff00",
+  // Esempi negli altri formati (puoi scriverli liberamente cosi'):
+  // "rgb(46, 204, 113)",
+  // "hsl(210, 90%, 55%)",
+  // "tomato",
+];
+
+// Scurisce un hex #rrggbb del fattore indicato (0..1) per il bordino coordinato.
+function _qcDarken(hex, factor) {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return "rgba(0,0,0,0.45)";
+  const n = parseInt(m[1], 16);
+  const r = Math.round(((n >> 16) & 255) * (1 - factor));
+  const g = Math.round(((n >> 8) & 255) * (1 - factor));
+  const b = Math.round((n & 255) * (1 - factor));
+  return "#" + [r, g, b].map((x) => ("0" + x.toString(16)).slice(-2)).join("");
+}
+
+// Genera i pallini tondi dentro #quickColors a partire da QUICK_COLORS.
+function buildQuickColors() {
+  if (!quickColorsContainer) return;
+  quickColorsContainer.innerHTML = "";
+  const frag = document.createDocumentFragment();
+  QUICK_COLORS.forEach((raw) => {
+    const hex = toHex(raw); // qualsiasi formato → #rrggbb (per <input type=color>)
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "smallColor";
+    btn.dataset.color = hex;
+    btn.title = String(raw); // tooltip col valore originale come lo hai scritto
+    btn.setAttribute("aria-label", String(raw));
+    btn.style.background = hex;
+    btn.style.borderColor = _qcDarken(hex, 0.45);
+    frag.appendChild(btn);
+  });
+  quickColorsContainer.appendChild(frag);
+}
+
+buildQuickColors();
+
+// UN solo listener (delega sul contenitore): funziona anche per i colori
+// che aggiungerai a QUICK_COLORS, senza dover ri-registrare nulla.
+if (quickColorsContainer) {
+  quickColorsContainer.addEventListener("click", (ev) => {
+    const btn = ev.target.closest(".smallColor");
+    if (!btn || !quickColorsContainer.contains(btn)) return;
+    const c = btn.dataset.color;
+    if (!c || !colorInput) return;
+    colorInput.value = c;
+    // input → anteprima; change → commit (pushState/toast). Senza il 'change'
+    // la pastiglia non finirebbe piu' nell'undo, ora che il commit e' li'.
+    colorInput.dispatchEvent(new Event("input", { bubbles: true }));
+    colorInput.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+}
 
 document.addEventListener("mousedown", (e) => {
   if (colorPopup && colorPopup.style.display === "block") {
@@ -4286,71 +4509,1144 @@ window.addEventListener("mousemove", () => {
 
 // Aggiornamento LIVE durante drag/scaling/rotazione — già gestito nel blocco canonico sopra
 
+// ============== TEXTURE: SISTEMA TESSERE (registro + grana + ricolora) ======
+// Riscrittura completa del sistema texture del CANVAS PRINCIPALE. Obiettivi:
+//  - RAM bassa e stabile. Ogni immagine-texture vive UNA sola volta in memoria
+//    in un REGISTRO condiviso (ridimensionata a un tetto massimo); le tessere
+//    puntano al registro con un id corto. Niente piu' blocco 2x2 specchiato
+//    (pesava 4x) ne' dataURL per-tessera negli snapshot.
+//  - Niente SPECCHIATURA: l'immagine si usa COSI' COM'E', affiancata (repeat).
+//  - Lo slider "Grana" decide quanti mm occupa l'immagine sulla tessera (zoom
+//    della texture) via patternTransform: drag fluido, nessuna ricostruzione.
+//  - "Colora dalla ruota": VERA ricolorazione dei pixel (modello HSL). Mantiene
+//    la struttura (luci/ombre/venature/grana = luminanza) e sostituisce tinta e
+//    saturazione col colore scelto. Bianco => marmo bianco; rosso => marmo
+//    rosso. Niente piu' "grigino" da multiply.
+//  - Salvataggio/Undo leggerissimi: il Pattern NON serializza piu' la sorgente
+//    (override toObject -> emette un colore segnaposto). Le immagini si salvano
+//    UNA volta sola nel registro del file; le tessere salvano solo l'id+metadati.
+// Tutto su Canvas2D puro -> valido da Fabric 5.1.0 a 5.3.0.
+
+const TEXTURE_SPAN_MM_DEFAULT = 14; // mm "occupati" dall'immagine sulla tessera
+const TEXTURE_SPAN_MM_MIN = 4;
+const TEXTURE_SPAN_MM_MAX = 60;
+// Tetto di risoluzione della sorgente in memoria: ogni texture viene ridotta a
+// questo lato massimo UNA volta sola. E' la leva principale del "peso" texture:
+// abbassa RAM e velocizza il render senza impatto visibile (sulla tessera si
+// vede comunque solo una piccola porzione). Tunabile.
+const TEXTURE_MAX_SRC_PX = 512;
+
+function clampSpanMM(v) {
+  v = parseFloat(v);
+  if (!Number.isFinite(v)) v = TEXTURE_SPAN_MM_DEFAULT;
+  return Math.min(TEXTURE_SPAN_MM_MAX, Math.max(TEXTURE_SPAN_MM_MIN, v));
+}
+
+// ---- REGISTRO TEXTURE (dedup + RAM) ----------------------------------------
+// id -> { dataURL, img } dove img e' la sorgente NEUTRA gia' ridimensionata
+// (canvas o <img>) condivisa da TUTTE le tessere che usano quella texture.
+const _texRegistry = new Map();
+
+// FNV-1a a 32 bit -> id corto e stabile per la stessa immagine (stesso dataURL
+// = stesso id, quindi una texture usata da 500 tessere e' UN solo id).
+function _texHash(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+  }
+  return "tx" + h.toString(36);
+}
+
+// Riduce una sorgente al lato massimo TEXTURE_MAX_SRC_PX (una sola volta). Se e'
+// gia' piccola la restituisce intatta.
+function _downscaleSource(srcEl) {
+  const w = srcEl.naturalWidth || srcEl.width || 1;
+  const h = srcEl.naturalHeight || srcEl.height || 1;
+  const max = Math.max(w, h);
+  if (max <= TEXTURE_MAX_SRC_PX) return srcEl;
+  const k = TEXTURE_MAX_SRC_PX / max;
+  const c = document.createElement("canvas");
+  c.width = Math.max(1, Math.round(w * k));
+  c.height = Math.max(1, Math.round(h * k));
+  const cx = c.getContext("2d");
+  cx.imageSmoothingEnabled = true;
+  cx.imageSmoothingQuality = "high";
+  cx.drawImage(srcEl, 0, 0, c.width, c.height);
+  return c;
+}
+
+// Registra (o ritrova) una texture dal suo dataURL. Ritorna l'id condiviso.
+function registerTexture(dataURL, imgEl) {
+  if (!dataURL) return null;
+  const id = _texHash(dataURL);
+  let entry = _texRegistry.get(id);
+  if (!entry) {
+    entry = { dataURL: dataURL, img: imgEl ? _downscaleSource(imgEl) : null };
+    _texRegistry.set(id, entry);
+  } else if (!entry.img && imgEl) {
+    entry.img = _downscaleSource(imgEl);
+  }
+  return id;
+}
+
+function getRegisteredTexture(id) {
+  return id ? _texRegistry.get(id) || null : null;
+}
+
+// Garantisce che l'immagine di un id sia caricata (post-load potrebbe essere
+// solo dataURL). Chiama cb(img|null).
+function ensureRegisteredImage(id, cb) {
+  const e = getRegisteredTexture(id);
+  if (!e) {
+    cb && cb(null);
+    return;
+  }
+  if (e.img) {
+    cb && cb(e.img);
+    return;
+  }
+  fabric.util.loadImage(e.dataURL, function (img) {
+    if (img) e.img = _downscaleSource(img);
+    cb && cb(e.img || null);
+  });
+}
+
+// Semina il registro dai dati salvati nel file: { id: dataURL }.
+function seedTextureRegistry(map) {
+  if (!map || typeof map !== "object") return;
+  Object.keys(map).forEach((id) => {
+    if (!_texRegistry.has(id)) _texRegistry.set(id, { dataURL: map[id], img: null });
+  });
+}
+
+// Raccoglie il registro delle texture EFFETTIVAMENTE usate dagli oggetti dati,
+// per salvarlo UNA sola volta nel file. Ritorna { id: dataURL }. Chiamata sia da
+// renderer (salvataggio manuale) sia da autoSave.
+function collectTextureRegistry(objects) {
+  const out = {};
+  (objects || []).forEach((o) => {
+    const id = o && (o.__textureId || (o.fill && o.fill.__texId));
+    if (id && _texRegistry.has(id)) out[id] = _texRegistry.get(id).dataURL;
+  });
+  return out;
+}
+
+// ---- RICOLORAZIONE VERA (HSL) ----------------------------------------------
+// Mantiene la luminanza per-pixel (struttura: grana, venature, ombre) e applica
+// tinta (H) e saturazione (S) del colore scelto. Per-pixel su immagine PICCOLA
+// (<= TEXTURE_MAX_SRC_PX): pochi ms, fatto UNA volta per (texture,tinta) e messo
+// in cache. Bianco (S=0) -> grayscale -> marmo bianco con tutta la struttura.
+function _hexToRgb(hex) {
+  let s = String(hex || "#808080").replace("#", "");
+  if (s.length === 3) s = s[0] + s[0] + s[1] + s[1] + s[2] + s[2];
+  const n = parseInt(s, 16);
+  if (!Number.isFinite(n)) return { r: 128, g: 128, b: 128 };
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+function _rgbToHsl(r, g, b) {
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  const mx = Math.max(r, g, b);
+  const mn = Math.min(r, g, b);
+  let h = 0;
+  let s = 0;
+  const l = (mx + mn) / 2;
+  const d = mx - mn;
+  if (d > 0) {
+    s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
+    if (mx === r) h = (g - b) / d + (g < b ? 6 : 0);
+    else if (mx === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h /= 6;
+  }
+  return { h: h, s: s, l: l };
+}
+
+function _hue2rgb(p, q, t) {
+  if (t < 0) t += 1;
+  if (t > 1) t -= 1;
+  if (t < 1 / 6) return p + (q - p) * 6 * t;
+  if (t < 1 / 2) return q;
+  if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+  return p;
+}
+
+// Guadagno tunabile (0..1): quanto "rilievo" della texture (venature, pori,
+// grana) resta visibile attorno al tono scelto. 1 = rilievo pieno, 0 = colore
+// piatto. 0.85 = struttura ben presente ma non aggressiva.
+const _TEX_RECOLOR_RELIEF = 0.85;
+
+// ═════════════════════════════════════════════════════════════════════════
+// OPACITA' TESSERA — una tessera NON deve mai far trasparire cio' che le sta
+// sotto (carta di sfondo, immagine, acquerello, penna): la trasparenza
+// falserebbe il suo colore. Alcune texture hanno pixel non opachi: EVA
+// (alpha ~244-252), eventuali PNG da file con canale alpha. Qui rileviamo
+// l'alpha e appiattiamo la sorgente del pattern su un FONDO PIENO opaco, cosi'
+// il pattern finale e' sempre opaco. Le texture gia' opache passano invariate
+// (nessun costo, nessun cambiamento d'aspetto). Tutto Canvas2D puro: nessuna
+// API Fabric -> valido da Fabric 5.1.0 a 5.3.0.
+// ═════════════════════════════════════════════════════════════════════════
+
+// true se la sorgente ha anche un solo pixel con alpha < 255. Cachato per id
+// (la scansione completa dei pixel si fa una sola volta per texture).
+const _texHasAlphaCache = new Map();
+function _sourceHasAlpha(srcEl, id) {
+  if (id != null && _texHasAlphaCache.has(id)) return _texHasAlphaCache.get(id);
+  let has = false;
+  try {
+    const w = srcEl.naturalWidth || srcEl.width || 1;
+    const h = srcEl.naturalHeight || srcEl.height || 1;
+    const c = document.createElement("canvas");
+    c.width = w;
+    c.height = h;
+    const cx = c.getContext("2d", { willReadFrequently: true });
+    cx.drawImage(srcEl, 0, 0, w, h);
+    const d = cx.getImageData(0, 0, w, h).data;
+    for (let i = 3; i < d.length; i += 4) {
+      if (d[i] < 255) {
+        has = true;
+        break;
+      }
+    }
+  } catch (e) {
+    has = false; // cross-origin: pixel non leggibili -> la trattiamo come opaca
+  }
+  if (id != null) _texHasAlphaCache.set(id, has);
+  return has;
+}
+
+// Colore medio (pesato per alpha) della sorgente, come "#rrggbb". E' il fondo
+// neutro usato per le texture con alpha quando la ruota colore e' OFF:
+// appiattisce sul colore PROPRIO della texture, senza introdurre tinte
+// estranee (es. EVA neutra -> grigio della gomma). Cachato per id.
+const _texAvgColorCache = new Map();
+function _averageTextureColor(srcEl, id) {
+  if (id != null && _texAvgColorCache.has(id)) return _texAvgColorCache.get(id);
+  let hex = "#b8b8b8";
+  try {
+    const w = srcEl.naturalWidth || srcEl.width || 1;
+    const h = srcEl.naturalHeight || srcEl.height || 1;
+    const c = document.createElement("canvas");
+    c.width = w;
+    c.height = h;
+    const cx = c.getContext("2d", { willReadFrequently: true });
+    cx.drawImage(srcEl, 0, 0, w, h);
+    const d = cx.getImageData(0, 0, w, h).data;
+    let r = 0;
+    let g = 0;
+    let b = 0;
+    let wsum = 0;
+    for (let i = 0; i < d.length; i += 4) {
+      const a = d[i + 3] / 255;
+      if (a <= 0) continue;
+      r += d[i] * a;
+      g += d[i + 1] * a;
+      b += d[i + 2] * a;
+      wsum += a;
+    }
+    if (wsum > 0) {
+      const to2 = (v) => Math.max(0, Math.min(255, Math.round(v / wsum))).toString(16).padStart(2, "0");
+      hex = "#" + to2(r) + to2(g) + to2(b);
+    }
+  } catch (e) {}
+  if (id != null) _texAvgColorCache.set(id, hex);
+  return hex;
+}
+
+// Appiattisce srcEl su un fondo pieno opaco bgHex -> nuova canvas opaca.
+function _flattenOpaque(srcEl, bgHex) {
+  const w = srcEl.naturalWidth || srcEl.width || 1;
+  const h = srcEl.naturalHeight || srcEl.height || 1;
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  const cx = c.getContext("2d");
+  cx.fillStyle = bgHex || "#b8b8b8";
+  cx.fillRect(0, 0, w, h);
+  cx.drawImage(srcEl, 0, 0, w, h);
+  return c;
+}
+
+// Sorgente NEUTRA resa opaca (texture con alpha, ruota colore OFF). Le texture
+// gia' opache passano invariate. Cachata per id. Quando la ruota e' ON ci pensa
+// invece _recolorSource ad appiattire sulla tinta scelta.
+const _texNeutralOpaqueCache = new Map();
+function _neutralOpaqueSource(id, neutralImg) {
+  if (!_sourceHasAlpha(neutralImg, id)) return neutralImg;
+  if (id != null && _texNeutralOpaqueCache.has(id)) return _texNeutralOpaqueCache.get(id);
+  const flat = _flattenOpaque(neutralImg, _averageTextureColor(neutralImg, id));
+  if (id != null) _texNeutralOpaqueCache.set(id, flat);
+  return flat;
+}
+
+// Restituisce un canvas ricolorato. Modello: la texture fornisce la STRUTTURA
+// (rilievo = scostamento della luminanza dal proprio valor medio); il colore
+// scelto fornisce tinta (H), saturazione (S) e soprattutto TONO BASE (L). Cosi'
+// la ruota controlla davvero il materiale:
+//   bianco         -> marmo chiaro con venature tenui  (NON grigio scuro)
+//   blu            -> marmo blu con rilievo
+//   azzurro chiaro -> marmo azzurro chiaro (la luminosita' del colore conta!)
+//   nero           -> pietra scura con rilievo
+// Differenza chiave col vecchio metodo: prima si teneva la L del PIXEL e si
+// buttava via la L del colore -> il bianco (S=0) diventava la scala di grigi
+// della sorgente, cioe' grigio/scuro su un blu. Ora il tono base e' quello del
+// colore. Se cross-origin (getImageData fallisce) restituisce il disegno intatto.
+function _recolorSource(srcEl, tintHex) {
+  const w = srcEl.naturalWidth || srcEl.width || 1;
+  const h = srcEl.naturalHeight || srcEl.height || 1;
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  const cx = c.getContext("2d", { willReadFrequently: true });
+  cx.drawImage(srcEl, 0, 0, w, h);
+  let img;
+  try {
+    img = cx.getImageData(0, 0, w, h);
+  } catch (e) {
+    return c; // cross-origin: niente ricolorazione, ma nessun crash
+  }
+  const d = img.data;
+
+  // Colore scelto -> HSL: H,S = colore; Lt = tono base del materiale.
+  const trgb = _hexToRgb(tintHex);
+  const thsl = _rgbToHsl(trgb.r, trgb.g, trgb.b);
+  const H = thsl.h;
+  const S = thsl.s;
+  const Lt = thsl.l;
+
+  // 1a passata: luminanza media (solo pixel non trasparenti), per centrare il
+  // rilievo. Sui JPEG opachi e' semplicemente la media dell'intera immagine;
+  // sui PNG con alpha (texture/venature procedurali) ignora lo sfondo vuoto.
+  let sum = 0;
+  let n = 0;
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i + 3] < 8) continue;
+    sum += (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) / 255;
+    n++;
+  }
+  const meanL = n ? sum / n : 0.5;
+
+  // 2a passata: L finale = tono base del colore + rilievo della texture.
+  let hasAlpha = false;
+  for (let i = 0; i < d.length; i += 4) {
+    const L = (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) / 255;
+    let Lf = Lt + (L - meanL) * _TEX_RECOLOR_RELIEF;
+    if (Lf < 0) Lf = 0;
+    else if (Lf > 1) Lf = 1;
+    let r;
+    let g;
+    let b;
+    if (S === 0) {
+      r = g = b = Lf;
+    } else {
+      const q = Lf < 0.5 ? Lf * (1 + S) : Lf + S - Lf * S;
+      const p = 2 * Lf - q;
+      r = _hue2rgb(p, q, H + 1 / 3);
+      g = _hue2rgb(p, q, H);
+      b = _hue2rgb(p, q, H - 1 / 3);
+    }
+    d[i] = Math.round(r * 255);
+    d[i + 1] = Math.round(g * 255);
+    d[i + 2] = Math.round(b * 255);
+    if (d[i + 3] < 255) hasAlpha = true; // canale alpha (d[i+3]) lasciato qui invariato
+  }
+  cx.putImageData(img, 0, 0);
+
+  // La tessera deve restare OPACA: dove la texture e' trasparente facciamo
+  // vedere la TINTA piena, non lo sfondo del foglio. Appiattiamo la
+  // ricolorazione su un fondo = colore scelto. Se la texture e' gia' opaca
+  // (caso piu' comune) restituiamo il canvas com'e', senza lavoro extra.
+  if (!hasAlpha) return c;
+  const out = document.createElement("canvas");
+  out.width = w;
+  out.height = h;
+  const ox = out.getContext("2d");
+  ox.fillStyle = tintHex;
+  ox.fillRect(0, 0, w, h);
+  ox.drawImage(c, 0, 0);
+  return out;
+}
+
+// Cache delle sorgenti ricolorate, chiave: id|tinta. Cosi' la STESSA tinta su
+// centinaia di tessere si calcola UNA volta sola. Bounded con scarto LRU.
+const _TEX_RECOLOR_CACHE_MAX = 48;
+const _texRecolorCache = new Map();
+
+function _getColorizedSource(id, neutralImg, colorize, tint) {
+  if (!colorize || !tint || !neutralImg) return neutralImg;
+  const key = id + "|" + String(tint).toLowerCase();
+  let canv = _texRecolorCache.get(key);
+  if (canv) {
+    _texRecolorCache.delete(key);
+    _texRecolorCache.set(key, canv); // tocco -> piu' recente (LRU)
+    return canv;
+  }
+  canv = _recolorSource(neutralImg, tint);
+  _texRecolorCache.set(key, canv);
+  if (_texRecolorCache.size > _TEX_RECOLOR_CACHE_MAX) {
+    _texRecolorCache.delete(_texRecolorCache.keys().next().value);
+  }
+  return canv;
+}
+
+// ---- PATTERN ---------------------------------------------------------------
+// Override di toObject sul Pattern: NON serializza la sorgente (canvas/img, che
+// pesa MB). Emette un colore pieno SEGNAPOSTO; alla riapertura/undo
+// rebuildTextureFill rimette la texture vera dal registro. E' questo che azzera
+// l'esplosione di RAM in salvataggi/autosave/undo.
+function _patternToColorStub() {
+  return this.__tint || "#cfcfd0";
+}
+
+// Costruisce il fabric.Pattern. id = chiave registro; neutralImg = sorgente
+// neutra ridimensionata; spanMM = grana; opts = { colorize, tint }.
+function buildTexturePattern(id, neutralImg, spanMM, opts) {
+  spanMM = clampSpanMM(spanMM);
+  opts = opts || {};
+  const colorize = !!opts.colorize;
+  const tint = opts.tint || null;
+  let src = _getColorizedSource(id, neutralImg, colorize, tint) || neutralImg;
+  // Tessera sempre opaca: se la ruota colore e' OFF ma la texture ha alpha,
+  // appiattiamo sul suo colore medio (quando e' ON ci pensa _recolorSource ad
+  // appiattire sulla tinta). Cosi' lo sfondo non traspare mai dalla tessera.
+  if (!colorize) src = _neutralOpaqueSource(id, src);
+  const sw = (src && (src.naturalWidth || src.width)) || 1;
+  const scale = mm2px(spanMM) / sw;
+  const pattern = new fabric.Pattern({
+    source: src,
+    repeat: "repeat",
+    patternTransform: [scale, 0, 0, scale, 0, 0]
+  });
+  // Metadati leggeri (NON serializzati come sorgente): id registro, grana e
+  // stato colorazione. Servono a salvataggio, slider grana e ruota colore.
+  pattern.__texId = id;
+  pattern.__spanMM = spanMM;
+  pattern.__colorize = colorize;
+  pattern.__tint = colorize ? tint : null;
+  pattern.toObject = _patternToColorStub; // <- chiave anti-RAM
+  return pattern;
+}
+
+// Applica una texture a un SINGOLO oggetto. Registra l'immagine (dedup) e crea
+// un pattern dedicato (grana indipendente per oggetto). Firma invariata rispetto
+// al vecchio sistema: (obj, srcEl, dataURL[, spanMM, colorize, tint]).
+function applyTextureToObject(obj, srcEl, dataURL, spanMM, colorize, tint) {
+  if (!obj || typeof obj.set !== "function") return false;
+  spanMM = clampSpanMM(spanMM != null ? spanMM : obj.__textureSpanMM || TEXTURE_SPAN_MM_DEFAULT);
+  // Eredita lo stato "colora dalla ruota" se non specificato.
+  if (colorize == null) colorize = !!obj.__textureColorize;
+  if (tint == null) {
+    const wheel = document.getElementById("colorInput");
+    tint = obj.__textureTint || (wheel && wheel.value) || "#78a0ff";
+  }
+  const id = registerTexture(dataURL, srcEl);
+  const entry = getRegisteredTexture(id);
+  const neutral = (entry && entry.img) || srcEl;
+  // Memorizza il colore pieno originale (solo la prima volta) così "togli
+  // texture" può ripristinarlo invece di lasciare la tessera senza colore.
+  if (typeof obj.fill === "string" && obj.__preTextureFill == null) obj.__preTextureFill = obj.fill;
+  obj.set("fill", buildTexturePattern(id, neutral, spanMM, { colorize: !!colorize, tint: tint }));
+  obj.__textureId = id;
+  obj.__textureSpanMM = spanMM;
+  obj.__textureColorize = !!colorize;
+  obj.__textureTint = colorize ? tint : obj.__textureTint || null;
+  obj.__textureDataURL = null; // legacy: non piu' usato per-tessera
+  obj.dirty = true;
+  return true;
+}
+
+// Ricostruisce il fill texture di un oggetto dai suoi metadati (__textureId +
+// grana + colorize/tint). Usata dopo loadFromJSON (apertura progetto e undo/redo)
+// perche' il Pattern non serializza piu' la sorgente. Backward-compatible coi
+// vecchi file (solo __textureDataURL per-tessera, nessun id).
+function rebuildTextureFill(obj, done) {
+  if (!obj) {
+    done && done(false);
+    return;
+  }
+  let id = obj.__textureId || (obj.fill && obj.fill.__texId) || null;
+  const spanMM = clampSpanMM(obj.__textureSpanMM || (obj.fill && obj.fill.__spanMM) || TEXTURE_SPAN_MM_DEFAULT);
+  const colorize = !!obj.__textureColorize;
+  const tint = obj.__textureTint || null;
+  // Vecchi file: dataURL per-tessera, nessun id -> registralo ora.
+  if (!id && obj.__textureDataURL) id = registerTexture(obj.__textureDataURL, null);
+  if (!id) {
+    done && done(false);
+    return;
+  }
+  ensureRegisteredImage(id, function (img) {
+    if (!img) {
+      done && done(false);
+      return;
+    }
+    obj.set("fill", buildTexturePattern(id, img, spanMM, { colorize: colorize, tint: tint }));
+    obj.__textureId = id;
+    obj.__textureSpanMM = spanMM;
+    obj.__textureColorize = colorize;
+    obj.__textureTint = colorize ? tint : obj.__textureTint || null;
+    obj.__textureDataURL = null;
+    obj.dirty = true;
+    done && done(true);
+  });
+}
+
+// Ripristina sul CLONE la texture che clone()/toObject() ha perso.
+// PERCHE': il fabric.Pattern delle texture ha toObject() sovrascritto (emette
+// solo un colore segnaposto, anti-RAM). Quindi qualsiasi obj.clone() -> il clone
+// nasce con fill = quel colore, NON la texture. Tutti gli export che clonano gli
+// oggetti per ricomporli su un canvas temporaneo (PDF modi "solo forme", SVG
+// "riempito") perdono cosi' la texture. Qui rimettiamo sul clone un Pattern che
+// riusa la STESSA sorgente VIVA dell'originale (gia' ridimensionata e, se la
+// ruota era attiva, gia' ricolorata) e lo STESSO patternTransform -> resa
+// pixel-fedele a cio' che si vede a schermo. Sincrono, niente caricamenti.
+// NON tocca l'oggetto reale: agisce solo sul clone. Esposto su window per
+// svgExport.js. Valido Fabric 5.1.0 -> 5.3.0 (fabric.Pattern, toLive immutato).
+function restoreTextureOnClone(orig, clone) {
+  if (!orig || !clone) return false;
+  const live = orig.fill;
+  // Solo se l'originale ha DAVVERO una texture (Pattern), non un colore pieno.
+  if (!live || typeof live !== "object" || !(live.__texId || live.source)) return false;
+
+  let src = live.source || null;
+  // Fallback dal registro se la sorgente viva mancasse (caso raro).
+  if (!src && live.__texId) {
+    const e = getRegisteredTexture(live.__texId);
+    src = e && e.img;
+  }
+  if (!src) return false;
+
+  // Dimensioni della sorgente ricolorata viva (canvas o img).
+  const sw = (src.naturalWidth || src.width) || 1;
+  const sh = (src.naturalHeight || src.height) || 1;
+
+  // --- GRANA: la scala del tassello vive nel patternTransform a schermo ----
+  // Fabric 5.x IGNORA patternTransform in Pattern.toSVG (lo legge solo in
+  // import da SVG) e disegna il tassello a grandezza PIENA della sorgente ->
+  // nell'SVG la grana appariva "al massimo zoom". Per riportare nell'export
+  // la stessa grana del canvas in TUTTI i formati (SVG e raster), invece di
+  // passare la scala via patternTransform la "cuociamo" in una sorgente gia'
+  // ridimensionata alla dimensione reale del tassello e usiamo trasformazione
+  // identita'. Per il raster il risultato resta identico a prima (stessa
+  // dimensione di tassello), per l'SVG diventa finalmente corretto.
+  let sx = 1, sy = 1;
+  if (Array.isArray(live.patternTransform) && live.patternTransform.length >= 4) {
+    sx = live.patternTransform[0] || 1;
+    sy = live.patternTransform[3] || 1;
+  } else if (live.__spanMM != null && typeof mm2px === "function") {
+    const sp = typeof clampSpanMM === "function" ? clampSpanMM(live.__spanMM) : live.__spanMM;
+    sx = sy = mm2px(sp) / sw;
+  }
+
+  // Lato del tassello in pixel canvas = identico a come appare in Mosaica.
+  const tileW = Math.max(1, Math.round(sw * Math.abs(sx)));
+  const tileH = Math.max(1, Math.round(sh * Math.abs(sy)));
+
+  let bakedSrc = src;
+  // Cuociamo solo se la scala cambia davvero (a 1:1 si riusa la sorgente).
+  if (tileW !== sw || tileH !== sh) {
+    try {
+      const cnv = document.createElement("canvas");
+      cnv.width = tileW;
+      cnv.height = tileH;
+      const cx = cnv.getContext("2d");
+      cx.imageSmoothingEnabled = true;
+      if ("imageSmoothingQuality" in cx) cx.imageSmoothingQuality = "high";
+      cx.drawImage(src, 0, 0, sw, sh, 0, 0, tileW, tileH);
+      bakedSrc = cnv;
+    } catch (e) {
+      bakedSrc = src; // fallback: meglio grana imperfetta che nessuna texture
+    }
+  }
+
+  // NIENTE patternTransform: la scala e' gia' nella sorgente cotta.
+  const patt = new fabric.Pattern({ source: bakedSrc, repeat: live.repeat || "repeat" });
+
+  // Metadati leggeri (coerenza con il resto del sistema; non influenzano il
+  // render perche' src e' gia' pronta). NB: NON sovrascriviamo toObject sul
+  // clone: il canvas temporaneo viene buttato subito dopo l'export.
+  patt.__texId = live.__texId || orig.__textureId || null;
+  patt.__spanMM = live.__spanMM || orig.__textureSpanMM || null;
+  patt.__colorize = !!live.__colorize;
+  patt.__tint = live.__tint || null;
+
+  clone.set("fill", patt);
+  clone.__textureId = patt.__texId;
+  clone.__textureSpanMM = patt.__spanMM;
+  clone.__textureColorize = patt.__colorize;
+  clone.__textureTint = patt.__tint;
+  clone.dirty = true;
+  return true;
+}
+window.restoreTextureOnClone = restoreTextureOnClone;
+
+// Ricostruzione texture IN BLOCCO dopo loadFromJSON (apertura progetto da file).
+// PERCHE' SERVE: in apertura le immagini del registro sono solo SEMINATE
+// (dataURL, img=null). Il vecchio codice chiamava rebuildTextureFill() per OGNI
+// tessera dentro un forEach -> (a) ogni tessera lanciava un proprio loadImage
+// asincrono, anche tessere che condividono la STESSA texture (nessun dedup degli
+// id mentre il primo load e' ancora in volo), e (b) ogni callback faceva un
+// canvas.renderAll() COMPLETO -> N render su N tessere = blocco di decine di
+// secondi su mosaici grandi. Questa versione:
+//   1. raggruppa le tessere per id texture,
+//   2. carica l'immagine di OGNI id UNA sola volta,
+//   3. costruisce i pattern per tutte le sue tessere (sorgente ricolorata in
+//      cache per (id,tinta)),
+//   4. fa UN SOLO render finale.
+// onProgress(frac 0..1) e' opzionale (barra di caricamento). done(applied) idem.
+function rebuildAllTextureFills(objects, onProgress, done) {
+  const textured = (objects || []).filter(
+    (o) => o && (o.__textureId || (o.fill && o.fill.__texId) || o.__textureDataURL)
+  );
+  if (!textured.length) {
+    if (onProgress) try { onProgress(1); } catch (e) {}
+    if (done) done(0);
+    return;
+  }
+
+  // Raggruppa per id texture (immagine condivisa). Vecchi file con solo
+  // __textureDataURL per-tessera -> li registriamo ora e ottengono un id.
+  const byId = new Map();
+  textured.forEach((o) => {
+    let id = o.__textureId || (o.fill && o.fill.__texId) || null;
+    if (!id && o.__textureDataURL) id = registerTexture(o.__textureDataURL, null);
+    if (!id) return;
+    o.__textureId = id;
+    if (!byId.has(id)) byId.set(id, []);
+    byId.get(id).push(o);
+  });
+
+  const ids = Array.from(byId.keys());
+  const total = ids.length;
+  if (!total) {
+    if (onProgress) try { onProgress(1); } catch (e) {}
+    if (done) done(0);
+    return;
+  }
+
+  let completed = 0;
+  let applied = 0;
+
+  ids.forEach((id) => {
+    ensureRegisteredImage(id, function (img) {
+      const list = byId.get(id) || [];
+      if (img) {
+        list.forEach((o) => {
+          const spanMM = clampSpanMM(
+            o.__textureSpanMM || (o.fill && o.fill.__spanMM) || TEXTURE_SPAN_MM_DEFAULT
+          );
+          const colorize = !!o.__textureColorize;
+          const tint = o.__textureTint || null;
+          o.set("fill", buildTexturePattern(id, img, spanMM, { colorize: colorize, tint: tint }));
+          o.__textureSpanMM = spanMM;
+          o.__textureColorize = colorize;
+          o.__textureTint = colorize ? tint : o.__textureTint || null;
+          o.__textureDataURL = null;
+          o.dirty = true;
+          applied++;
+        });
+      }
+      completed++;
+      if (onProgress) {
+        try { onProgress(completed / total); } catch (e) {}
+      }
+      if (completed === total) {
+        canvas.requestRenderAll(); // UN SOLO render, a fine ciclo
+        if (done) done(applied);
+      }
+    });
+  });
+}
+
+// Oggetti selezionati che hanno una texture. Gestisce singolo, multi-selezione
+// (activeSelection) e gruppi -> grana/colorazione agiscono su TUTTE le tessere.
+function _selectedTexturedObjects() {
+  const a = canvas.getActiveObject();
+  if (!a) return [];
+  const list =
+    (a.type === "activeSelection" || a.type === "group") && Array.isArray(a._objects) ? a._objects : [a];
+  return list.filter((o) => o && (o.__textureId || (o.fill && o.fill.source && o.fill.toLive)));
+}
+
+// Attiva/disattiva la ricolorazione dalla ruota per tutte le tessere selezionate
+// con texture. ON -> ricolora HSL col colore corrente; OFF -> colori originali.
+function setTextureColorizeForActive(enabled) {
+  const targets = _selectedTexturedObjects();
+  let changed = 0;
+  const wheel = document.getElementById("colorInput");
+  targets.forEach((obj) => {
+    const id = obj.__textureId || (obj.fill && obj.fill.__texId);
+    if (!id) return;
+    const span = clampSpanMM(obj.__textureSpanMM || (obj.fill && obj.fill.__spanMM) || TEXTURE_SPAN_MM_DEFAULT);
+    const tint = obj.__textureTint || (wheel && wheel.value) || "#78a0ff";
+    const apply = function (img) {
+      if (!img) return;
+      obj.set("fill", buildTexturePattern(id, img, span, { colorize: !!enabled, tint: tint }));
+      obj.__textureColorize = !!enabled;
+      obj.__textureTint = enabled ? tint : obj.__textureTint || null;
+      obj.dirty = true;
+      canvas.requestRenderAll();
+    };
+    const entry = getRegisteredTexture(id);
+    if (entry && entry.img) apply(entry.img);
+    else ensureRegisteredImage(id, apply);
+    changed++;
+  });
+  if (changed) {
+    canvas.requestRenderAll();
+    if (typeof pushState === "function" && !isApplyingSnapshot) pushState();
+  }
+  return changed;
+}
+
+// Slider grana: aggiorna SOLO la scala del pattern (patternTransform) degli
+// oggetti selezionati con texture -> niente ricostruzione, drag fluido.
+function setTextureGrainForActive(spanMM) {
+  spanMM = clampSpanMM(spanMM);
+  const targets = _selectedTexturedObjects();
+  let changed = 0;
+  targets.forEach((obj) => {
+    const p = obj.fill;
+    obj.__textureSpanMM = spanMM;
+    if (!p || !p.source) return;
+    const sw = p.source.naturalWidth || p.source.width || 1;
+    const s = mm2px(spanMM) / sw;
+    p.patternTransform = [s, 0, 0, s, 0, 0];
+    p.__spanMM = spanMM;
+    obj.dirty = true;
+    changed++;
+  });
+  if (changed) canvas.requestRenderAll();
+  return changed;
+}
+
+// Mostra/aggiorna il blocco "Texture" nell'inspector. Resta visibile anche in
+// MULTI-selezione: appare se almeno una tessera selezionata ha una texture.
+function updateTextureGrainPanel() {
+  const block = document.getElementById("inspectorTextureBlock");
+  const slider = document.getElementById("textureGrainSlider");
+  const valEl = document.getElementById("textureGrainValue");
+  const colorChk = document.getElementById("textureColorizeChk");
+  if (!block) return;
+
+  const textured = _selectedTexturedObjects();
+  if (textured.length === 0) {
+    block.style.display = "none";
+    return;
+  }
+
+  block.style.display = "block";
+  const ref = textured[0];
+  const span = clampSpanMM(ref.__textureSpanMM || (ref.fill && ref.fill.__spanMM) || TEXTURE_SPAN_MM_DEFAULT);
+  if (slider && document.activeElement !== slider) slider.value = String(span);
+  if (valEl) valEl.textContent = span.toFixed(1) + " mm";
+  if (colorChk) colorChk.checked = !!ref.__textureColorize;
+}
+
+// ============== TEXTURE: APPLICA A TUTTE LE TESSERE (selettore globale) ======
+// "Tutte le tessere" del canvas principale = tutte le forme che NON sono
+// penna/acquerello (isWatercolorOrFreehand) e NON sono sfondo (__isBackground):
+// stesso identico criterio usato negli export. NON tocca Palladiana né 3D
+// (builder separati col proprio canvas). Tutto Canvas2D + fabric.Pattern →
+// valido da Fabric 5.1.0 a 5.3.0.
+
+// Lista texture per il selettore globale (popolata da loadTexturePanel: stesse
+// procedurali + da file della griglia). Ogni voce: { label, dataURL, canvas }.
+let _textureAllList = [];
+
+function _allTexturableTiles() {
+  if (typeof canvas === "undefined" || !canvas || !canvas.getObjects) return [];
+  return canvas.getObjects().filter((o) => o && !isWatercolorOrFreehand(o) && !o.__isBackground);
+}
+
+function _texturedTiles(list) {
+  return (list || _allTexturableTiles()).filter((o) => o.__textureId || (o.fill && o.fill.__texId));
+}
+
+// Applica UNA texture a TUTTE le tessere in un colpo, con grana/colorize presi
+// dal popover globale. srcEl è il canvas/<img> già pronto (procedurale) oppure
+// null (da file: caricato dal dataURL come fa la griglia).
+function applyTextureToAllTiles(dataURL, srcEl, opts) {
+  opts = opts || {};
+  const tiles = _allTexturableTiles();
+  if (!tiles.length) {
+    flashToast(__t("toast.textureAll.noTiles", null, "❌ Nessuna tessera sul canvas"));
+    return 0;
+  }
+  const grainSlider = document.getElementById("textureAllGrainSlider");
+  const colorChk = document.getElementById("textureAllColorizeChk");
+  const wheel = document.getElementById("colorInput");
+  const span = clampSpanMM(
+    opts.spanMM != null ? opts.spanMM : grainSlider ? grainSlider.value : TEXTURE_SPAN_MM_DEFAULT
+  );
+  const colorize = opts.colorize != null ? !!opts.colorize : !!(colorChk && colorChk.checked);
+  const tint = opts.tint || (wheel && wheel.value) || "#78a0ff";
+
+  const run = (imgEl) => {
+    if (!imgEl) return;
+    let applied = 0;
+    tiles.forEach((o) => {
+      if (applyTextureToObject(o, imgEl, dataURL, span, colorize, tint)) applied++;
+    });
+    canvas.renderAll();
+    if (typeof updateTextureGrainPanel === "function") updateTextureGrainPanel();
+    if (typeof pushState === "function" && !isApplyingSnapshot) pushState();
+    flashToast(__t("toast.textureAll.applied", { count: applied }, `✅ Texture applicata a tutte le ${applied} tessere`));
+  };
+
+  if (srcEl) run(srcEl);
+  else fabric.util.loadImage(dataURL, run);
+  return tiles.length;
+}
+
+// Grana per TUTTE le tessere con texture: aggiorna solo il patternTransform.
+function setTextureGrainForAll(spanMM) {
+  spanMM = clampSpanMM(spanMM);
+  const tiles = _texturedTiles();
+  let changed = 0;
+  tiles.forEach((obj) => {
+    const p = obj.fill;
+    obj.__textureSpanMM = spanMM;
+    if (!p || !p.source) return;
+    const sw = p.source.naturalWidth || p.source.width || 1;
+    const s = mm2px(spanMM) / sw;
+    p.patternTransform = [s, 0, 0, s, 0, 0];
+    p.__spanMM = spanMM;
+    obj.dirty = true;
+    changed++;
+  });
+  if (changed) canvas.requestRenderAll();
+  return changed;
+}
+
+// Colora-dalla-ruota per TUTTE le tessere con texture.
+function setTextureColorizeForAll(enabled) {
+  const tiles = _texturedTiles();
+  const wheel = document.getElementById("colorInput");
+  let changed = 0;
+  tiles.forEach((obj) => {
+    const id = obj.__textureId || (obj.fill && obj.fill.__texId);
+    if (!id) return;
+    const span = clampSpanMM(obj.__textureSpanMM || (obj.fill && obj.fill.__spanMM) || TEXTURE_SPAN_MM_DEFAULT);
+    const tint = obj.__textureTint || (wheel && wheel.value) || "#78a0ff";
+    const apply = (img) => {
+      if (!img) return;
+      obj.set("fill", buildTexturePattern(id, img, span, { colorize: !!enabled, tint: tint }));
+      obj.__textureColorize = !!enabled;
+      obj.__textureTint = enabled ? tint : obj.__textureTint || null;
+      obj.dirty = true;
+      canvas.requestRenderAll();
+    };
+    const entry = getRegisteredTexture(id);
+    if (entry && entry.img) apply(entry.img);
+    else ensureRegisteredImage(id, apply);
+    changed++;
+  });
+  if (changed) {
+    canvas.requestRenderAll();
+    if (typeof pushState === "function" && !isApplyingSnapshot) pushState();
+  }
+  return changed;
+}
+
+// Toglie la texture da TUTTE le tessere ripristinando il colore pieno
+// originale (se memorizzato), altrimenti la tinta usata o il colore della ruota.
+function removeTextureFromAllTiles() {
+  const tiles = _texturedTiles();
+  if (!tiles.length) {
+    flashToast(__t("toast.textureAll.none", null, "Nessuna tessera con texture"));
+    return 0;
+  }
+  const wheel = document.getElementById("colorInput");
+  let removed = 0;
+  tiles.forEach((o) => {
+    const restore =
+      (typeof o.__preTextureFill === "string" && o.__preTextureFill) ||
+      o.__textureTint ||
+      (wheel && wheel.value) ||
+      "#cccccc";
+    o.set("fill", restore);
+    o.__textureId = null;
+    o.__textureSpanMM = null;
+    o.__textureColorize = false;
+    o.__textureTint = null;
+    o.__textureDataURL = null;
+    delete o.__preTextureFill;
+    o.dirty = true;
+    removed++;
+  });
+  canvas.renderAll();
+  if (typeof updateTextureGrainPanel === "function") updateTextureGrainPanel();
+  if (typeof pushState === "function" && !isApplyingSnapshot) pushState();
+  flashToast(__t("toast.textureAll.removed", { count: removed }, `🧽 Texture rimossa da ${removed} tessere`));
+  return removed;
+}
+
+// (Ri)popola il <select> del popover globale con le texture disponibili.
+function _rebuildTextureAllSelect() {
+  const sel = document.getElementById("textureAllSelect");
+  if (!sel) return;
+  const placeholder = __t("texturePanel.all.selectPlaceholder", null, "— scegli una texture —");
+  let html = `<option value="">${placeholder}</option>`;
+  _textureAllList.forEach((t, i) => {
+    const label = (t.label || "Texture " + (i + 1)).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    html += `<option value="${i}">${label}</option>`;
+  });
+  sel.innerHTML = html;
+}
+
+// Allinea grana/colorize del popover globale alle tessere già texturizzate.
+function _syncTextureAllControls() {
+  const grainSlider = document.getElementById("textureAllGrainSlider");
+  const grainVal = document.getElementById("textureAllGrainValue");
+  const colorChk = document.getElementById("textureAllColorizeChk");
+  const textured = _texturedTiles();
+  if (textured.length) {
+    const ref = textured[0];
+    const span = clampSpanMM(ref.__textureSpanMM || (ref.fill && ref.fill.__spanMM) || TEXTURE_SPAN_MM_DEFAULT);
+    if (grainSlider && document.activeElement !== grainSlider) grainSlider.value = String(span);
+    if (grainVal) grainVal.textContent = span.toFixed(1) + " mm";
+    if (colorChk) colorChk.checked = !!ref.__textureColorize;
+  }
+}
+
+function _positionTextureAllPopover() {
+  const pop = document.getElementById("textureAllPopover");
+  const btn = document.getElementById("textureAllBtn");
+  if (!pop || !btn) return;
+  const r = btn.getBoundingClientRect();
+  pop.style.left = Math.round(r.right + 8) + "px";
+  pop.style.top = Math.round(r.top) + "px";
+  pop.style.visibility = "hidden";
+  pop.style.display = "block";
+  const pr = pop.getBoundingClientRect();
+  if (pr.right > window.innerWidth - 8) pop.style.left = Math.max(8, r.left - pr.width - 8) + "px";
+  if (pr.bottom > window.innerHeight - 8) pop.style.top = Math.max(8, window.innerHeight - pr.height - 8) + "px";
+  pop.style.visibility = "visible";
+}
+
+function _openTextureAllPopover() {
+  const pop = document.getElementById("textureAllPopover");
+  const btn = document.getElementById("textureAllBtn");
+  if (!pop) return;
+  _rebuildTextureAllSelect();
+  _syncTextureAllControls();
+  _positionTextureAllPopover();
+  pop.setAttribute("aria-hidden", "false");
+  if (btn) btn.classList.add("active");
+}
+
+function _closeTextureAllPopover() {
+  const pop = document.getElementById("textureAllPopover");
+  const btn = document.getElementById("textureAllBtn");
+  if (pop) {
+    pop.style.display = "none";
+    pop.setAttribute("aria-hidden", "true");
+  }
+  if (btn) btn.classList.remove("active");
+}
+
+let _textureAllPanelInited = false;
+function initTextureAllPanel() {
+  if (_textureAllPanelInited) return;
+  const btn = document.getElementById("textureAllBtn");
+  const pop = document.getElementById("textureAllPopover");
+  if (!btn || !pop) return;
+  _textureAllPanelInited = true;
+
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (pop.getAttribute("aria-hidden") === "false") _closeTextureAllPopover();
+    else _openTextureAllPopover();
+  });
+
+  const sel = pop.querySelector("#textureAllSelect");
+  const grainSlider = pop.querySelector("#textureAllGrainSlider");
+  const grainVal = pop.querySelector("#textureAllGrainValue");
+  const colorChk = pop.querySelector("#textureAllColorizeChk");
+  const removeBtn = pop.querySelector("#textureAllRemoveBtn");
+  const closeBtn = pop.querySelector("#textureAllClose");
+
+  if (sel) {
+    sel.addEventListener("change", () => {
+      const i = parseInt(sel.value, 10);
+      if (!Number.isInteger(i) || i < 0 || i >= _textureAllList.length) return;
+      const t = _textureAllList[i];
+      applyTextureToAllTiles(t.dataURL, t.canvas || null);
+    });
+  }
+  if (grainSlider) {
+    grainSlider.addEventListener("input", () => {
+      const span = clampSpanMM(grainSlider.value);
+      if (grainVal) grainVal.textContent = span.toFixed(1) + " mm";
+      setTextureGrainForAll(span);
+    });
+    grainSlider.addEventListener("change", () => {
+      if (typeof pushState === "function" && !isApplyingSnapshot) pushState();
+    });
+    ["mousedown", "pointerdown"].forEach((ev) => grainSlider.addEventListener(ev, (e) => e.stopPropagation()));
+  }
+  if (colorChk) colorChk.addEventListener("change", () => setTextureColorizeForAll(colorChk.checked));
+  if (removeBtn) removeBtn.addEventListener("click", () => removeTextureFromAllTiles());
+  if (closeBtn) closeBtn.addEventListener("click", _closeTextureAllPopover);
+
+  document.addEventListener("mousedown", (e) => {
+    if (pop.getAttribute("aria-hidden") === "true") return;
+    if (pop.contains(e.target)) return;
+    if (e.target === btn || btn.contains(e.target)) return;
+    _closeTextureAllPopover();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && pop.getAttribute("aria-hidden") === "false") _closeTextureAllPopover();
+  });
+}
+window.applyTextureToAllTiles = applyTextureToAllTiles;
+window.setTextureGrainForAll = setTextureGrainForAll;
+window.setTextureColorizeForAll = setTextureColorizeForAll;
+window.removeTextureFromAllTiles = removeTextureFromAllTiles;
+window.initTextureAllPanel = initTextureAllPanel;
+
+function initTextureGrainSlider() {
+  const slider = document.getElementById("textureGrainSlider");
+  const valEl = document.getElementById("textureGrainValue");
+  const colorChk = document.getElementById("textureColorizeChk");
+
+  if (slider) {
+    slider.addEventListener("input", () => {
+      const span = clampSpanMM(slider.value);
+      if (valEl) valEl.textContent = span.toFixed(1) + " mm";
+      setTextureGrainForActive(span);
+    });
+    slider.addEventListener("change", () => {
+      if (typeof pushState === "function" && !isApplyingSnapshot) pushState();
+    });
+    ["mousedown", "pointerdown"].forEach((ev) => slider.addEventListener(ev, (e) => e.stopPropagation()));
+  }
+
+  if (colorChk) {
+    colorChk.addEventListener("change", () => {
+      setTextureColorizeForActive(colorChk.checked);
+    });
+    ["mousedown", "pointerdown"].forEach((ev) => colorChk.addEventListener(ev, (e) => e.stopPropagation()));
+  }
+}
+
 // ============== TEXTURE PANEL ==============
+// Aggiunge UNA miniatura alla griglia. imgSource: canvas/img gia' pronto
+// (texture procedurali) oppure null (texture da file: carico dal dataURL al
+// click). Stesso identico percorso di applicazione per entrambe:
+// applyTextureToObject + multi-selezione + pushState + toast.
+function _addTextureThumb(grid, dataURL, imgSource, displayName) {
+  const img = document.createElement("img");
+  img.className = "textureThumb";
+  img.title = displayName || "";
+  img.src = dataURL;
+  img.addEventListener("click", () => {
+    const selectedObjects = canvas.getActiveObjects(); // multi-selezione + gruppi
+    if (selectedObjects.length === 0) {
+      flashToast(__t("toast.texture.selectFirst", null, "❌ Seleziona almeno un oggetto prima"));
+      return;
+    }
+    const applyAll = (imgEl) => {
+      if (!imgEl) return;
+      let applied = 0;
+      selectedObjects.forEach((obj) => {
+        if (applyTextureToObject(obj, imgEl, dataURL)) applied++;
+      });
+      canvas.renderAll();
+      if (typeof updateTextureGrainPanel === "function") updateTextureGrainPanel();
+      pushState(); // storico (Undo)
+      flashToast(__t("toast.texture.appliedMany", { count: applied, filename: displayName || "" }, `✅ Texture applicata a ${applied} oggetto/i (${displayName || ""})`));
+    };
+    // procedurale: canvas gia' pronto; da file: carico l'immagine dal dataURL.
+    if (imgSource) applyAll(imgSource);
+    else fabric.util.loadImage(dataURL, applyAll);
+  });
+  grid.appendChild(img);
+}
+
+// Token di generazione: protegge il pannello texture dalle chiamate concorrenti.
+// loadTexturePanel viene invocata all'avvio da DUE punti (IIFE init del canvas +
+// task "textures" della barra di caricamento). Essendo async, le due esecuzioni
+// si intrecciavano sull'await di listTextures() duplicando le anteprime da file.
+// Ogni chiamata prende un numero progressivo: dopo ogni await chi non e' piu' la
+// chiamata piu' recente si ritira senza toccare la griglia. Vince l'ultima.
+let _texturePanelGen = 0;
+
 async function loadTexturePanel() {
+  const myGen = ++_texturePanelGen;
+
   const grid = document.getElementById("textureGrid");
   if (!grid) return;
   grid.innerHTML =
     "<div style='grid-column:1/-1;color:#cfcfd0;padding:6px;font-size:13px'>Caricamento texture...</div>";
 
+  const lang =
+    window.i18n && typeof window.i18n.getLanguage === "function" ? window.i18n.getLanguage() : "it";
+
+  // 1) TEXTURE PROCEDURALI (generate da codice) — sempre disponibili, in cima.
+  let cleared = false;
+  const collectedAllTex = [];
+  try {
+    if (window.proceduralTextures && typeof window.proceduralTextures.list === "function") {
+      grid.innerHTML = "";
+      cleared = true;
+      window.proceduralTextures.list(lang).forEach((p) => {
+        _addTextureThumb(grid, p.dataURL, p.canvas, p.label);
+        collectedAllTex.push({ label: p.label, dataURL: p.dataURL, canvas: p.canvas || null });
+      });
+    }
+  } catch (e) {
+    console.warn("Texture procedurali non disponibili:", e);
+  }
+  // Selettore "tutte le tessere": rendi disponibili subito almeno le procedurali.
+  if (myGen === _texturePanelGen) {
+    _textureAllList = collectedAllTex.slice();
+    if (typeof _rebuildTextureAllSelect === "function") _rebuildTextureAllSelect();
+  }
+
+  // 2) TEXTURE DA FILE (app/textures/).
   if (!window.textureAPI?.listTextures) {
-    grid.innerHTML =
-      "<div style='grid-column:1/-1;color:#cfcfd0;padding:6px;font-size:13px'>Texture API non disponibile</div>";
+    if (!cleared)
+      grid.innerHTML =
+        "<div style='grid-column:1/-1;color:#cfcfd0;padding:6px;font-size:13px'>Texture API non disponibile</div>";
     return;
   }
 
   try {
     const list = await window.textureAPI.listTextures();
-    grid.innerHTML = "";
-    if (!Array.isArray(list) || list.length === 0) {
+    // Se nel frattempo e' partita una chiamata piu' recente, mi ritiro: sara'
+    // lei a popolare la griglia (evita la duplicazione delle anteprime da file).
+    if (myGen !== _texturePanelGen) return;
+    if (!cleared) grid.innerHTML = "";
+    if (Array.isArray(list) && list.length > 0) {
+      // Separatore sottile tra procedurali e file, solo se ci sono entrambe.
+      if (cleared) {
+        const sep = document.createElement("div");
+        sep.style.cssText =
+          "grid-column:1/-1;height:1px;background:rgba(255,255,255,0.12);margin:4px 2px;";
+        grid.appendChild(sep);
+      }
+      list.forEach((item) => {
+        _addTextureThumb(grid, item.dataURL, null, item.filename || "");
+        collectedAllTex.push({ label: item.filename || "", dataURL: item.dataURL, canvas: null });
+      });
+      // Aggiorna il selettore globale con procedurali + texture da file.
+      _textureAllList = collectedAllTex.slice();
+      if (typeof _rebuildTextureAllSelect === "function") _rebuildTextureAllSelect();
+    } else if (!cleared) {
       grid.innerHTML =
         "<div style='grid-column:1/-1;color:#cfcfd0;padding:6px;font-size:13px'>Nessuna texture in app/textures/</div>";
-      return;
     }
-
-    list.forEach((item) => {
-      const img = document.createElement("img");
-      img.className = "textureThumb";
-      img.title = item.filename || "";
-      img.src = item.dataURL;
-      // === TEXTURE ANTEPRIME → SUPPORTA SELEZIONE MULTIPLA (fix) ===
-      img.addEventListener("click", () => {
-        const selectedObjects = canvas.getActiveObjects(); // ← CAMBIATO: supporta multi-selezione + gruppi
-
-        if (selectedObjects.length === 0) {
-          flashToast(__t("toast.texture.selectFirst", null, "❌ Seleziona almeno un oggetto prima"));
-          return;
-        }
-
-        fabric.util.loadImage(
-          item.dataURL,
-          function (imgEl) {
-            const pattern = new fabric.Pattern({
-              source: imgEl,
-              repeat: "repeat"
-            });
-
-            let applied = 0;
-            selectedObjects.forEach((obj) => {
-              if (obj && typeof obj.set === "function") {
-                obj.set("fill", pattern);
-                applied++;
-              }
-            });
-
-            canvas.renderAll();
-            pushState(); // salva nello storico (Undo funziona)
-            flashToast(__t("toast.texture.appliedMany", { count: applied, filename: item.filename || "" }, `✅ Texture applicata a ${applied} oggetto/i (${item.filename || ""})`));
-          },
-          { crossOrigin: "anonymous" }
-        );
-      });
-      grid.appendChild(img);
-    });
   } catch (err) {
+    // Anche in caso di errore non scrivo nulla se sono una chiamata sorpassata.
+    if (myGen !== _texturePanelGen) return;
     console.error("Errore caricamento textures", err);
-    grid.innerHTML =
-      "<div style='grid-column:1/-1;color:#ff9d9d;padding:6px;font-size:13px'>Errore caricamento textures</div>";
+    if (!cleared)
+      grid.innerHTML =
+        "<div style='grid-column:1/-1;color:#ff9d9d;padding:6px;font-size:13px'>Errore caricamento textures</div>";
   }
 }
 
@@ -4372,6 +5668,24 @@ function setPaperSizeFromMM() {
   canvas.setHeight(h_px);
   canvas.calcOffset();
   canvas.renderAll();
+}
+
+// Imposta l'orientamento del foglio (verticale/orizzontale) SENZA ruotare i
+// contenuti. Usata SOLO al caricamento progetto: le forme arrivano gia' con le
+// coordinate dell'orientamento salvato, quindi qui basta riportare il foglio
+// alla dimensione corretta prima di enlivenare gli oggetti. Diverso da
+// rotateCanvasContent(), che invece ruota anche le forme.
+function setCanvasOrientationMM(wMM, hMM, paperRotDeg) {
+  if (typeof wMM === "number" && wMM > 0 && typeof hMM === "number" && hMM > 0) {
+    A4_MM_W = wMM;
+    A4_MM_H = hMM;
+  } else {
+    // Fallback: progetto vecchio senza dato orientamento -> verticale A4 (come prima).
+    A4_MM_W = 210;
+    A4_MM_H = 297;
+  }
+  paperTextureRotationDeg = (((Number(paperRotDeg) || 0) % 360) + 360) % 360;
+  setPaperSizeFromMM();
 }
 
 // Async + Promise-returning: i caller (openProjectBtn, tryAutoOpen) possono
@@ -4422,6 +5736,40 @@ function applyProjectData(data, filename, filePath = null) {
     isRestoringProject = true;
     canvas.clear();
 
+    // ── RIPRISTINO ORIENTAMENTO FOGLIO (prima di enlivenare le forme) ──
+    // Le coordinate delle forme nel file sono relative all'orientamento con cui
+    // il progetto e' stato salvato. Riportiamo il foglio a quell'orientamento
+    // ORA, cosi' le tessere caricate cadono al posto giusto e nulla finisce
+    // fuori dal foglio. I progetti vecchi (senza data.sheet) tornano verticali.
+    const _sheet = data && data.sheet ? data.sheet : null;
+    setCanvasOrientationMM(
+      _sheet ? _sheet.wMM : 210,
+      _sheet ? _sheet.hMM : 297,
+      _sheet ? _sheet.paperRotDeg : 0
+    );
+
+    // ── FASE 3 — Ripristino stato carta (accesa/spenta + personalizzata) ──
+    // Va applicato PRIMA della ricreazione della carta (più in basso), così
+    // ensurePaperTexture usa subito enabled + custom corretti. I progetti vecchi
+    // (senza questi campi) tornano: carta accesa e predefinita, nessuna regressione.
+    if (typeof window.applyPaperTextureState === "function") {
+      window.applyPaperTextureState({
+        enabled: _sheet ? _sheet.paperEnabled : true,
+        customDataURL: _sheet ? _sheet.paperCustom : null
+      });
+    }
+    if (typeof window.updatePaperUI === "function") window.updatePaperUI();
+
+    // ── Reset texture carta della sessione precedente ──
+    // canvas.clear() l'ha gia' tolta dal canvas, ma il riferimento globale punta
+    // ancora all'oggetto vecchio (scala/rotazione del progetto precedente). Lo
+    // azzeriamo: verra' ricreato piu' sotto con dimensioni/rotazione corrette.
+    if (typeof paperTextureObject !== "undefined" && paperTextureObject) {
+      if (canvas.contains(paperTextureObject)) canvas.remove(paperTextureObject);
+      paperTextureObject = null;
+    }
+    if (typeof paperTextureLoading !== "undefined") paperTextureLoading = null;
+
     console.log("[applyProjectData] → loadFromJSON inizia");
     canvas.loadFromJSON(data.canvas || data, async () => {
       console.log(
@@ -4430,6 +5778,15 @@ function applyProjectData(data, filename, filePath = null) {
         "oggetti caricati"
       );
       try {
+        // Barra di caricamento: oggetti enlivenati (inizio elaborazione).
+        if (typeof window.__loaderSubProgress === "function") {
+          try { window.__loaderSubProgress(0.15, "Forme"); } catch (e) {}
+        }
+
+        // 0. Semina il registro texture col dizionario del file ({id:dataURL}).
+        //    Le tessere referenziano gli id; le immagini esistono UNA volta sola.
+        if (data && data.textures) seedTextureRegistry(data.textures);
+
         // 1. Ricostruzione forme speciali
         canvas.getObjects().forEach((o) => {
           // Triangoli
@@ -4462,7 +5819,14 @@ function applyProjectData(data, filename, filePath = null) {
           if (o.__shape && o.__shape.type === "trapezoid") {
             try {
               const model = TrapezoidModel.fromJSON(o.__shape, mm2px);
-              const pts = model.computePointsFit(o.getBoundingRect(true).height);
+              // Le misure salvate in __shape (mm -> px) SONO la dimensione reale
+              // del trapezio: ricostruiamo i punti senza vincolarli all'altezza
+              // del bounding box. Per una forma ruotata getBoundingRect(true)
+              // restituisce l'altezza dell'AABB ruotato (non l'altezza propria
+              // del trapezio), che spesso e' piu' piccola -> computePointsFit lo
+              // rimpiccioliva ad ogni apertura (tessere "minuscole"). Per le
+              // forme dritte il risultato e' identico a prima: nessuna regressione.
+              const pts = model.computePoints();
               if (o.type === "polygon") {
                 o.points = pts;
                 o.__shapeType = "trapezoid";
@@ -4508,23 +5872,74 @@ function applyProjectData(data, filename, filePath = null) {
                 __shape: o.__shape,
                 customId: o.customId || generateUID()
               });
+              // ── FIX: il settore viene RICREATO da zero, quindi va riportata a
+              // mano TUTTA la roba che non sta nel costruttore, altrimenti si
+              // perde. Prima si perdeva la TEXTURE: copiavamo solo "fill" (il
+              // colore base, ecco perche' tornava "il colore giusto ma senza
+              // texture"), ma non gli id/metadati che rebuildAllTextureFills usa
+              // poco piu' sotto per riattaccare il pattern. Li copiamo qui:
+              newSector.__textureId = o.__textureId || null;
+              newSector.__textureSpanMM = o.__textureSpanMM;
+              newSector.__textureColorize = !!o.__textureColorize;
+              newSector.__textureTint = o.__textureTint || null;
+              newSector.__textureDataURL = o.__textureDataURL || null; // compat vecchi file
+              if (o.__preTextureFill != null) newSector.__preTextureFill = o.__preTextureFill;
+
+              // Riporta anche selezionabilita'/lock salvati (un settore bloccato
+              // deve restare bloccato dopo la riapertura).
+              ["selectable", "evented", "hasControls", "hasBorders",
+               "lockMovementX", "lockMovementY", "lockScalingX",
+               "lockScalingY", "lockRotation"].forEach((k) => {
+                if (o[k] !== undefined) newSector[k] = o[k];
+              });
+
               canvas.remove(o);
               canvas.add(newSector);
+              // Maniglie coerenti coi settori + coords aggiornate (evita che il
+              // riquadro di selezione appaia sfasato finche' non si interagisce).
+              if (typeof applyHandlePreset === "function") applyHandlePreset(newSector);
+              if (typeof updateHandlesSpacing === "function") updateHandlesSpacing(newSector);
+              newSector.setCoords();
             } catch (err) {
               console.warn("Errore ricostruzione settore", err);
             }
           }
 
-          // Texture Pattern
-          if (o.__textureDataURL) {
-            fabric.util.loadImage(o.__textureDataURL, function (imgEl) {
-              o.set("fill", new fabric.Pattern({ source: imgEl, repeat: "repeat" }));
-              canvas.renderAll();
-            });
+          // Texture Pattern: la ricostruzione NON si fa piu' qui dentro al
+          // forEach (causava N loadImage + N renderAll = blocco di decine di
+          // secondi in apertura). Si fa IN BLOCCO subito dopo, con
+          // rebuildAllTextureFills: una immagine per id, un solo render finale.
+        });
+
+        // 1-bis. Ricostruzione texture IN BLOCCO (dopo che le forme speciali
+        // — settori inclusi — sono state ricreate, quindi sul set di oggetti
+        // definitivo). Awaitiamo: cosi' la snapshot iniziale dell'undo cattura
+        // i pattern gia' pronti e il render e' coerente. La barra avanza dal
+        // 45% al 90% del task "Progetto" man mano che gli id si completano.
+        if (typeof window.__loaderSubProgress === "function") {
+          try { window.__loaderSubProgress(0.45, "Texture"); } catch (e) {}
+        }
+        await new Promise((resolveTex) => {
+          try {
+            rebuildAllTextureFills(
+              canvas.getObjects(),
+              function (frac) {
+                if (typeof window.__loaderSubProgress === "function") {
+                  try { window.__loaderSubProgress(0.45 + Math.max(0, Math.min(1, frac)) * 0.45, "Texture"); } catch (e) {}
+                }
+              },
+              function () { resolveTex(); }
+            );
+          } catch (e) {
+            console.warn("[applyProjectData] rebuildAllTextureFills error", e);
+            resolveTex();
           }
         });
 
         // 2. Ripristino sfondo (await: ci serve per ordine corretto)
+        if (typeof window.__loaderSubProgress === "function") {
+          try { window.__loaderSubProgress(0.92, "Sfondo"); } catch (e) {}
+        }
         if (data.backgroundMeta && data.backgroundMeta.dataURL) {
           console.log("[applyProjectData] → setCanvasBackgroundFromDataURL");
           await setCanvasBackgroundFromDataURL(data.backgroundMeta.dataURL, data.backgroundMeta.filename, {
@@ -4536,9 +5951,17 @@ function applyProjectData(data, filename, filePath = null) {
           backgroundMeta = null;
           backgroundImageObject = null;
           updateBgPreviewUI();
-          // Senza sfondo: riporta la texture carta in vista
-          if (typeof window.restorePaperTexture === "function") {
-            window.restorePaperTexture();
+          // Senza sfondo: ricrea la texture carta con la rotazione del progetto.
+          // Usiamo ensurePaperTexture (non restorePaperTexture) perche' l'oggetto
+          // e' stato azzerato all'inizio: va rigenerato da zero alle dimensioni e
+          // rotazione corrette del foglio appena ripristinato.
+          if (typeof window.ensurePaperTexture === "function") {
+            try {
+              await window.ensurePaperTexture(paperTextureRotationDeg);
+              if (typeof window.keepPaperTextureBehindEverything === "function") {
+                window.keepPaperTextureBehindEverything();
+              }
+            } catch (_) {}
           }
         }
 
@@ -4561,6 +5984,17 @@ function applyProjectData(data, filename, filePath = null) {
           if (typeof loadFreehandSettings === "function") loadFreehandSettings();
         }
 
+        // 4-bis. Perimetro di contenimento del disegno a mano libera.
+        if (typeof window.setFreehandClipPolygon === "function") {
+          window.setFreehandClipPolygon(
+            Array.isArray(data.freehandClipPolygon) ? data.freehandClipPolygon : null,
+            { silent: true }
+          );
+        }
+        if (typeof window.applyFreehandClipToAll === "function") {
+          window.applyFreehandClipToAll();
+        }
+
         // 5. CHIUSURA FASE DI RESTORE — dopo questa riga gli eventi del canvas
         //    tornano a popolare lo stack undo/redo normalmente.
         isRestoringProject = false;
@@ -4568,6 +6002,11 @@ function applyProjectData(data, filename, filePath = null) {
         // 6. Stato iniziale dell'undo: snapshot del progetto appena caricato.
         pushState();
         enableHistoryButtons();
+
+        // Barra di caricamento: task "Progetto" completato.
+        if (typeof window.__loaderSubProgress === "function") {
+          try { window.__loaderSubProgress(1, "Progetto"); } catch (e) {}
+        }
 
         flashToast(__t("toast.project.loaded", { filename: filename || "" }, "Progetto caricato: " + (filename || "")));
         console.log("[applyProjectData] ✓ completato regolarmente");
@@ -4649,18 +6088,16 @@ if (saveProjectBtn) {
           if (typeof o.__shape.offset_mm !== "number") o.__shape.offset_mm = 0;
         }
       });
+      // Texture: NON si baka piu' alcun dataURL per-tessera (era il killer della
+      // RAM). Si sincronizzano solo i metadati leggeri dal pattern; le immagini
+      // vengono scritte UNA volta sola nel registro (projectData.textures).
       canvas.getObjects().forEach((o) => {
-        if (o.fill && o.fill.source) {
-          // È un Pattern — salva il dataURL nella proprietà custom
-          try {
-            const tempCanvas = document.createElement("canvas");
-            tempCanvas.width = o.fill.source.width || 100;
-            tempCanvas.height = o.fill.source.height || 100;
-            tempCanvas.getContext("2d").drawImage(o.fill.source, 0, 0);
-            o.__textureDataURL = tempCanvas.toDataURL("image/png");
-          } catch (e) {
-            /* cross-origin: skip */
-          }
+        if (o.fill && o.fill.__texId) {
+          o.__textureId = o.fill.__texId;
+          o.__textureSpanMM = o.fill.__spanMM || o.__textureSpanMM || TEXTURE_SPAN_MM_DEFAULT;
+          if (typeof o.fill.__colorize === "boolean") o.__textureColorize = o.fill.__colorize;
+          if (o.fill.__colorize && o.fill.__tint) o.__textureTint = o.fill.__tint;
+          o.__textureDataURL = null; // legacy ripulito
         }
       });
 
@@ -4689,12 +6126,15 @@ if (saveProjectBtn) {
           "data",
           "__isFreehand",
           "__isBackground",
-          "__isWatercolor",
+          "__isWatercolor", "__clipPoly",
           "__watercolorParams",
           "__addedAt",
           "__shapeType",
           "customId",
-          "__textureDataURL",
+          "__textureId",
+          "__textureSpanMM",
+          "__textureColorize",
+          "__textureTint",
           "selectable",
           "evented",
           "hasControls",
@@ -4706,8 +6146,30 @@ if (saveProjectBtn) {
           "lockRotation",
           "hoverCursor"
         ]),
+        // Le immagini delle texture vengono salvate UNA volta sola qui (per id),
+        // non piu' duplicate dentro ogni tessera: questo elimina l'esplosione di RAM.
+        textures: collectTextureRegistry(canvas.getObjects()),
         freehandSettings: freehandPersistentSettings,
-        backgroundMeta: backgroundData
+        backgroundMeta: backgroundData,
+        // Orientamento del foglio + rotazione texture carta. Senza questo blocco
+        // il progetto riapriva sempre verticale e le tessere finivano fuori posto.
+        // Oggetto estensibile: la Fase 3 (carta on/off + personalizzata) aggiungera'
+        // qui i suoi campi senza ritoccare salvataggio/caricamento.
+        sheet: (() => {
+          // FASE 3 — stato carta per progetto: accesa/spenta + carta personalizzata
+          // (dataURL già ridimensionato; null = carta predefinita).
+          const _ps = typeof window.getPaperTextureState === "function" ? window.getPaperTextureState() : {};
+          return {
+            wMM: A4_MM_W,
+            hMM: A4_MM_H,
+            paperRotDeg: paperTextureRotationDeg,
+            paperEnabled: _ps.enabled === undefined ? true : !!_ps.enabled,
+            paperCustom: _ps.customDataURL || null
+          };
+        })(),
+        // Perimetro di contenimento del disegno a mano libera (coord. logiche).
+        freehandClipPolygon:
+          typeof window.getFreehandClipPolygon === "function" ? window.getFreehandClipPolygon() : null
       };
 
       const json = JSON.stringify(projectData);
@@ -5007,6 +6469,127 @@ if (bgFitCoverBtn) bgFitCoverBtn.addEventListener("click", () => setBackgroundFi
 if (bgRotateLeft) bgRotateLeft.addEventListener("click", () => rotateBackground(-90));
 if (bgRotateRight) bgRotateRight.addEventListener("click", () => rotateBackground(+90));
 
+// ══════════════════════════════════════════════════════════════════════
+//  FASE 3 — UI controlli texture carta (on/off, personalizzata, default)
+// ══════════════════════════════════════════════════════════════════════
+
+// Lato lungo massimo della carta personalizzata salvata nel progetto. La carta
+// è solo uno sfondo a opacità 22%: 1024px bastano e larga. Tunabile.
+const PAPER_CUSTOM_MAX_PX = 1024;
+
+const paperEnabledChk = document.getElementById("paperEnabledChk");
+const paperPickBtn = document.getElementById("paperPickBtn");
+const paperResetBtn = document.getElementById("paperResetBtn");
+const paperFileInput = document.getElementById("paperFileInput");
+
+// Allinea lo stato visivo dei controlli carta a quello reale (usata all'avvio,
+// al caricamento progetto e al nuovo progetto). Spegne il toggle solo se la
+// carta è davvero disabilitata.
+function updatePaperUI() {
+  if (!paperEnabledChk) return;
+  let enabled = true;
+  try {
+    if (typeof window.getPaperTextureState === "function") {
+      const st = window.getPaperTextureState();
+      enabled = st && st.enabled !== undefined ? !!st.enabled : true;
+    }
+  } catch (_) {}
+  paperEnabledChk.checked = enabled;
+}
+
+// Ridimensiona un'immagine (dataURL) entro maxPx sul lato lungo, mantenendo le
+// proporzioni. Restituisce un dataURL PNG. Se l'immagine è già piccola la
+// ri-codifica comunque a PNG (formato uniforme per il salvataggio).
+function _downscalePaperImage(dataURL, maxPx) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const w = img.naturalWidth || img.width;
+        const h = img.naturalHeight || img.height;
+        if (!w || !h) {
+          reject(new Error("dimensioni immagine non valide"));
+          return;
+        }
+        const scale = Math.min(1, maxPx / Math.max(w, h));
+        const outW = Math.max(1, Math.round(w * scale));
+        const outH = Math.max(1, Math.round(h * scale));
+        const c = document.createElement("canvas");
+        c.width = outW;
+        c.height = outH;
+        const cx = c.getContext("2d");
+        cx.imageSmoothingEnabled = true;
+        cx.imageSmoothingQuality = "high";
+        cx.drawImage(img, 0, 0, outW, outH);
+        resolve(c.toDataURL("image/png"));
+      } catch (err) {
+        reject(err);
+      }
+    };
+    img.onerror = () => reject(new Error("caricamento immagine carta fallito"));
+    img.src = dataURL;
+  });
+}
+
+// Toggle accendi/spegni carta
+if (paperEnabledChk) {
+  paperEnabledChk.addEventListener("change", () => {
+    if (typeof window.setPaperTextureEnabled === "function") {
+      window.setPaperTextureEnabled(paperEnabledChk.checked);
+    }
+    if (typeof scheduleAutoSave === "function") scheduleAutoSave();
+  });
+}
+
+// Carica carta personalizzata (apre il file picker)
+if (paperPickBtn && paperFileInput) {
+  paperPickBtn.addEventListener("click", () => {
+    paperFileInput.value = ""; // permette di ricaricare lo stesso file
+    paperFileInput.click();
+  });
+}
+
+if (paperFileInput) {
+  paperFileInput.addEventListener("change", (ev) => {
+    const f = ev.target.files && ev.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = async function (e) {
+      try {
+        const resized = await _downscalePaperImage(e.target.result, PAPER_CUSTOM_MAX_PX);
+        if (typeof window.setCustomPaperTexture === "function") {
+          window.setCustomPaperTexture(resized);
+        }
+        if (paperEnabledChk) paperEnabledChk.checked = true; // caricare = accendere
+        flashToast(__t("toast.paper.loaded", null, "🖼 Carta personalizzata caricata"));
+        if (typeof scheduleAutoSave === "function") scheduleAutoSave();
+      } catch (err) {
+        console.error("[PaperTexture] custom load error", err);
+        flashToast(__t("toast.paper.tooLarge", null, "⚠️ Immagine troppo grande o non valida"));
+      }
+      ev.target.value = "";
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+// Torna alla carta predefinita
+if (paperResetBtn) {
+  paperResetBtn.addEventListener("click", () => {
+    if (typeof window.resetPaperTextureToDefault === "function") {
+      window.resetPaperTextureToDefault();
+    }
+    flashToast(__t("toast.paper.reset", null, "↺ Carta predefinita ripristinata"));
+    if (typeof scheduleAutoSave === "function") scheduleAutoSave();
+  });
+}
+
+// Stato iniziale dei controlli all'avvio
+updatePaperUI();
+// Esposta su window: viene richiamata da applyProjectData e executeNewProject,
+// che vivono in scope diversi nel file.
+window.updatePaperUI = updatePaperUI;
+
 // ============== EXPORT PDF (con modale di scelta) ==============
 async function handleExportPdfA4() {
   if (!canvas) return flashToast(__t("toast.canvas.notReady", null, "Canvas non pronto"));
@@ -5181,7 +6764,20 @@ async function renderConfiguredCanvas(mode, CW, CH, multiplier) {
     const shapes = canvas.getObjects().filter((obj) => !isWatercolorOrFreehand(obj) && !obj.__isBackground);
 
     if (shapes.length > 0) {
-      const shapeClones = await Promise.all(shapes.map((p) => new Promise((r) => p.clone((cl) => r(cl)))));
+      const shapeClones = await Promise.all(
+        shapes.map(
+          (p) =>
+            new Promise((r) =>
+              p.clone((cl) => {
+                // clone() serializza via toObject() -> il Pattern texture emette
+                // solo un colore segnaposto e il clone perde la texture. La
+                // rimettiamo riusando la sorgente viva dell'originale.
+                restoreTextureOnClone(p, cl);
+                r(cl);
+              })
+            )
+        )
+      );
       shapeClones.forEach((cl) => tempFabric.add(cl));
     }
 
@@ -5919,6 +7515,24 @@ setTimeout(() => {
   }
 }, 160);
 
+// Inizializza il PENNELLO selezione (modulo separato lassoBrushSelection.js)
+setTimeout(() => {
+  if (typeof window.initLassoBrushSelection === "function") {
+    window.initLassoBrushSelection();
+    console.log("[renderer] initLassoBrushSelection eseguito correttamente");
+  }
+}, 170);
+
+// Inizializza gli AIUTI DISEGNO A MANO LIBERA (cerchio dimensione tratto +
+// perimetro di contenimento — modulo freehandTools.js). Dopo Wacom, lazo e
+// freehand cosi' trova brush, flag e poligono eventualmente gia' caricato.
+setTimeout(() => {
+  if (typeof window.initFreehandTools === "function") {
+    window.initFreehandTools();
+    console.log("[renderer] initFreehandTools eseguito correttamente");
+  }
+}, 180);
+
 // ======================= CALIB PANEL – SINGOLO LISTENER (— visibile) =======================
 let calibCollapsed = false;
 
@@ -6054,6 +7668,14 @@ try {
         backgroundImageObject = null;
       }
       updateBgPreviewUI(); // ← sblocca pulsante carica immagine
+
+      // FASE 3 — il nuovo progetto riparte con la carta PREDEFINITA ACCESA:
+      // azzera eventuale carta personalizzata o spegnimento ereditati dal
+      // progetto precedente, poi aggiorna i controlli del pannello.
+      if (typeof window.applyPaperTextureState === "function") {
+        window.applyPaperTextureState({ enabled: true, customDataURL: null });
+      }
+      if (typeof window.updatePaperUI === "function") window.updatePaperUI();
 
       // Ripristina la texture carta che potrebbe essere stata nascosta
       // da uno sfondo del progetto precedente.
@@ -6254,26 +7876,50 @@ try {
   let doneWeight = 0;
   let startTime = Date.now();
 
-  function setProgress(percent, etaMs) {
+  // Stato del task corrente, per il SOTTO-PROGRESSO: i task lunghi (apertura
+  // progetto) riportano il loro avanzamento interno via window.__loaderSubProgress
+  // cosi' la barra si muove DURANTE il task e non resta ferma fino alla fine.
+  let curBase = 0; // peso completato PRIMA del task corrente
+  let curWeight = 0; // peso del task corrente
+  let loaderActive = false;
+  let lastShownPct = 0;
+
+  // Barra + ETA SINCERO. L'ETA si stima dal ritmo REALE misurato dall'inizio
+  // del caricamento (tempo trascorso / percentuale gia' fatta), non dal solo
+  // primo task banale: cosi' il numero ha senso e si auto-corregge mentre la
+  // barra avanza. La barra non torna mai indietro (niente sfarfallii).
+  function setProgress(percent) {
+    percent = Math.max(0, Math.min(100, Number(percent) || 0));
+    if (percent < lastShownPct) percent = lastShownPct;
+    lastShownPct = percent;
     fillEl.style.width = `${percent}%`;
     pctEl.textContent = `${Math.round(percent)}%`;
+    const elapsed = Date.now() - startTime;
+    let etaMs = null;
+    if (percent > 3 && percent < 99.5 && elapsed > 250) {
+      etaMs = Math.round((elapsed * (100 - percent)) / percent);
+    }
     etaEl.textContent = etaMs ? `ETA: ${Math.max(0, Math.round(etaMs / 1000))}s` : "⌛ —";
   }
 
-  function estimateRemaining(start, completedWeight) {
-    const elapsed = Date.now() - start;
-    if (completedWeight <= 0) return null;
-    const rate = elapsed / completedWeight; // ms per weight
-    const remainWeight = Math.max(0, totalWeight - completedWeight);
-    return Math.round(rate * remainWeight);
-  }
+  // Esposto ai task lunghi (es. apertura progetto in applyProjectData): frac e'
+  // l'avanzamento 0..1 DENTRO il task corrente. No-op se il loader non e' attivo
+  // (es. progetto aperto dal pulsante a app gia' avviata).
+  window.__loaderSubProgress = function (frac, _label) {
+    if (!loaderActive || !curWeight) return;
+    frac = Math.max(0, Math.min(1, Number(frac) || 0));
+    setProgress(((curBase + frac * curWeight) / totalWeight) * 100);
+  };
 
   async function runTasksSequential() {
-    // Timeout di sicurezza per singolo task: se non risolve entro questi ms,
-    // il loader prosegue lo stesso. Evita il "blocco al 25%" se per qualche
-    // motivo un task interno (es. tryAutoOpen su progetto problematico,
-    // loadFromJSON che non chiama la callback) resta in pending.
-    const TASK_TIMEOUT_MS = 8000;
+    // Timeout di sicurezza PER task: se non risolve entro questi ms il loader
+    // prosegue lo stesso (evita blocchi se una callback non viene mai chiamata).
+    // L'apertura progetto puo' richiedere piu' tempo su mosaici grandi: le diamo
+    // molta piu' aria (60s) cosi' la barra non "schizza" a 100% lasciando il
+    // caricamento a meta'; gli altri task restano corti.
+    function taskTimeout(t) {
+      return t && t.key === "autoopen" ? 60000 : 8000;
+    }
 
     function withTimeout(promise, ms, key) {
       return new Promise((resolve) => {
@@ -6302,32 +7948,37 @@ try {
       });
     }
 
+    loaderActive = true;
     for (let t of tasks) {
       const tStart = Date.now();
+      curBase = doneWeight;
+      curWeight = t.weight || 0;
       console.log(`[loader] ▶ task "${t.key}" inizia`);
       try {
-        await withTimeout(t.fn(), TASK_TIMEOUT_MS, t.key);
+        await withTimeout(t.fn(), taskTimeout(t), t.key);
         console.log(`[loader] ✓ task "${t.key}" finito in ${Date.now() - tStart}ms`);
       } catch (e) {
         console.warn("[loader] startup task failed", t.key, e);
       }
       const tEnd = Date.now();
       doneWeight += t.weight || 0;
-      const pct = (doneWeight / totalWeight) * 100;
-      const eta = estimateRemaining(startTime, doneWeight);
       try {
-        setProgress(pct, eta);
+        // Allinea la barra al peso cumulato del task (i task che non riportano
+        // sotto-progresso avanzano comunque qui).
+        setProgress((doneWeight / totalWeight) * 100);
       } catch (e) {
         console.warn("[loader] setProgress error", e);
       }
       const took = tEnd - tStart;
       if (took < 140) await new Promise((r) => setTimeout(r, 140 - took));
     }
+    loaderActive = false;
   }
 
   window.runAppInitLoader = async function () {
     startTime = Date.now();
-    setProgress(2, null);
+    lastShownPct = 0;
+    setProgress(2);
     await runTasksSequential();
     // Piccola pausa finale
     await new Promise((r) => setTimeout(r, 200));

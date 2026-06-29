@@ -7,6 +7,14 @@ const PDFDocument = require("pdfkit");
 const { loadCalibration, saveCalibration } = require("./storage/calibrationStore");
 const security = require("./security");
 
+// ── 🎮 PREFERENZA GPU (portatili a doppia scheda / NVIDIA Optimus) ───────────
+// Su questi PC Chromium di default usa la GPU integrata (debole, poca VRAM). Qui
+// chiediamo di usare la GPU ad alte prestazioni (la dedicata, es. NVIDIA 840M con
+// 2 GB): il backstore agli zoom alti ci sta comodo e il processo GPU non crasha
+// più per esaurimento/timeout. Va chiamato PRIMA che l'app sia pronta. Se non c'è
+// nessuna GPU dedicata, Chromium ignora la richiesta e resta sull'integrata.
+app.commandLine.appendSwitch("force_high_performance_gpu");
+
 let mainWindow;
 let isRestarting = false;
 let autosaveCloseInProgress = false; // protezione anti-rientro nel close handler
@@ -14,6 +22,133 @@ let autosaveCloseInProgress = false; // protezione anti-rientro nel close handle
 // rimuove definitivamente il menu nativo
 Menu.setApplicationMenu(null);
 
+// ── Recupero da crash del renderer ──────────────────────────────────────────
+// Tempo minimo tra due reload automatici dopo un crash del processo di
+// rendering: se i crash arrivano "a raffica" subito dopo un reload, smettiamo
+// di ricaricare per non finire in un loop infinito di schermate bianche.
+const CRASH_RELOAD_MIN_GAP_MS = 12000; // TUNABLE
+let _lastCrashReloadAt = 0;
+
+// ── 📋 LOG DI SESSIONE (vale sia da "npm start" sia da app installata) ────────
+// In versione INSTALLATA non c'è nessun terminale: console.log non si vede da
+// nessuna parte. Per questo scriviamo SEMPRE su file. Ogni avvio crea UN file di
+// log nella cartella logs col nome che contiene data/ora e CHI ha avviato l'app:
+//   • "dev"       = lanciata con "npm start" (sviluppo)
+//   • "installed" = eseguibile installato (uso reale)
+// Teniamo i MAX_LOG_FILES più recenti (i più vecchi vengono cancellati). Sia il
+// NOME del file sia l'intestazione DENTRO il log riportano il produttore.
+const MAX_LOG_FILES = 10; // TUNABLE: quanti log di sessione conservare
+const LOG_PRODUCER = app.isPackaged ? "installed" : "dev";
+let _sessionLogPath = null;
+
+function _2d(n) { return String(n).padStart(2, "0"); }
+
+function buildSessionLogName(date) {
+  const y = date.getFullYear();
+  const mo = _2d(date.getMonth() + 1);
+  const d = _2d(date.getDate());
+  const h = _2d(date.getHours());
+  const mi = _2d(date.getMinutes());
+  const s = _2d(date.getSeconds());
+  // Niente ":" nel nome (illegale su Windows). Il produttore è nel nome file.
+  return `mosaica_${y}-${mo}-${d}_${h}-${mi}-${s}_${LOG_PRODUCER}.log`;
+}
+
+// Riconosce SOLO i nostri file di log (per la rotazione non tocchiamo altro).
+const LOG_FILE_RE = /^mosaica_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}_(dev|installed)\.log$/;
+
+function getSessionLogPath() {
+  if (_sessionLogPath) return _sessionLogPath;
+  _sessionLogPath = path.join(getUserDataSubdir("logs"), buildSessionLogName(new Date()));
+  return _sessionLogPath;
+}
+
+// Scrive una riga sul log di sessione corrente (best-effort: un log mancato non
+// deve mai bloccare l'app).
+function appendLog(line) {
+  try {
+    const s = line.endsWith("\n") ? line : line + "\n";
+    fs.appendFileSync(getSessionLogPath(), s, "utf8");
+  } catch (_) {}
+}
+
+// Mantiene solo i MAX_LOG_FILES log più recenti (per data di modifica).
+function pruneSessionLogs() {
+  try {
+    const dir = getUserDataSubdir("logs");
+    const files = fs
+      .readdirSync(dir)
+      .filter((f) => LOG_FILE_RE.test(f))
+      .map((f) => {
+        try {
+          return { name: f, path: path.join(dir, f), mtime: fs.statSync(path.join(dir, f)).mtimeMs };
+        } catch {
+          return null;
+        }
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.mtime - a.mtime); // più recenti per primi
+    for (const f of files.slice(MAX_LOG_FILES)) {
+      try { fs.unlinkSync(f.path); } catch (_) {}
+    }
+  } catch (_) {}
+}
+
+// Intestazione di sessione: scritta una volta all'avvio (dopo app.whenReady).
+function writeSessionLogHeader() {
+  let version = "?";
+  try { version = app.getVersion(); } catch (_) {}
+  appendLog("==================================================");
+  appendLog(`AVVIO MOSAICA`);
+  appendLog(`  data      : ${new Date().toISOString()}`);
+  appendLog(`  prodotto da: ${LOG_PRODUCER}   (dev = npm start, installed = eseguibile installato)`);
+  appendLog(`  versione  : ${version}`);
+  appendLog(`  platform  : ${process.platform} ${process.arch}`);
+  appendLog("==================================================");
+}
+
+// ── 🛟 RECUPERO DA CRASH DEL PROCESSO GPU ────────────────────────────────────
+// Il crash con schermata bianca a zoom alto ("GPU process exited unexpectedly:
+// exit_code=34") NON è un crash del renderer: è il PROCESSO GPU di Chromium che
+// muore (di solito TDR/OOM per il backstore enorme agli zoom alti). Per questo
+// "render-process-gone" non scattava e il file di log restava vuoto: stavamo
+// ascoltando il processo sbagliato.
+//
+// Qui intercettiamo la morte di QUALSIASI processo figlio (incluso quello GPU):
+//   1) la registriamo sul log di sessione in
+//      %APPDATA%\mosaica-workspace-pro\logs\ (vale anche per l'app installata);
+//   2) se a morire è la GPU e la finestra è ancora viva ma "bianca", la
+//      ricarichiamo UNA volta (stesso anti-loop del renderer): al ricarico
+//      tryAutoOpen ripristina il progetto dal file su disco, che ora è scritto
+//      in modo atomico + backup, quindi sempre integro.
+// Registrato a livello di app (una volta sola) così è attivo per tutta la sessione.
+app.on("child-process-gone", (_e, details) => {
+  try {
+    const type = (details && details.type) || "unknown";
+    const reason = (details && details.reason) || "unknown";
+    const code = details && details.exitCode;
+    const line = `${new Date().toISOString()}  child-process-gone  type=${type}  reason=${reason}  exitCode=${code}`;
+    appendLog(line);
+    console.error("[crash] processo figlio perso:", type, reason, code);
+  } catch (_) {}
+
+  // Solo per la GPU tentiamo il recupero della finestra; gli altri figli
+  // (utility, network, ecc.) li logghiamo soltanto: Chromium li ricrea da solo.
+  const isGpu = details && details.type === "GPU";
+  if (!isGpu) return;
+  if (autosaveCloseInProgress || isRestarting) return; // stiamo già chiudendo
+
+  const now = Date.now();
+  if (now - _lastCrashReloadAt < CRASH_RELOAD_MIN_GAP_MS) {
+    // Crash GPU subito dopo un reload → non ricaricare ancora (anti-loop).
+    console.error("[crash][gpu] crash ripetuto troppo presto: niente reload automatico");
+    return;
+  }
+  _lastCrashReloadAt = now;
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    try { mainWindow.reload(); } catch (_) {}
+  }
+});
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -29,10 +164,7 @@ function createWindow() {
       webSecurity: false
     }
   });
-  
-  mainWindow.loadFile(path.join(__dirname, "index.html"));
-  mainWindow.setFullScreen(true);
-  
+
   // ── 🛡️ CYBER-SECURITY: aggancia CSP, permission handler, navigation guard
   // PRIMA di loadFile, così la prima richiesta del renderer ha già le protezioni.
   try {
@@ -42,8 +174,47 @@ function createWindow() {
     console.error("[security] init falliti:", e);
   }
 
+  // Carichiamo la pagina UNA SOLA volta. (Prima loadFile veniva chiamata DUE
+  // volte: la pagina partiva e veniva subito ricaricata → lampo bianco
+  // all'avvio. Era proprio quella la "schermata bianca all'avvio".)
   mainWindow.loadFile(path.join(__dirname, "index.html"));
   mainWindow.setFullScreen(true);
+
+  // ── 🛟 RECUPERO DA CRASH DEL RENDERER (GPU / out-of-memory) ────────────────
+  // Senza questo, quando il processo di rendering muore la finestra resta
+  // bianca per sempre. Qui: (1) logghiamo il MOTIVO del crash su file, così
+  // possiamo capire COSA lo causa (texture-a-tutte? pennello-lazo?), e (2)
+  // ricarichiamo la pagina UNA volta: al riavvio tryAutoOpen ripristina il
+  // progetto dal file su disco, che ora è scritto in modo atomico + backup
+  // (vedi atomicWriteFile più sotto) quindi è sempre integro.
+  mainWindow.webContents.on("render-process-gone", (_e, details) => {
+    try {
+      const reason = (details && details.reason) || "unknown";
+      const code = details && details.exitCode;
+      const line = `${new Date().toISOString()}  render-process-gone  reason=${reason}  exitCode=${code}`;
+      appendLog(line);
+      console.error("[crash] renderer perso:", reason, code);
+    } catch (_) {}
+
+    if (autosaveCloseInProgress || isRestarting) return; // stiamo già chiudendo
+
+    const now = Date.now();
+    if (now - _lastCrashReloadAt < CRASH_RELOAD_MIN_GAP_MS) {
+      // Crash subito dopo un reload → non ricaricare ancora (anti-loop).
+      console.error("[crash] crash ripetuto troppo presto: niente reload automatico");
+      return;
+    }
+    _lastCrashReloadAt = now;
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      try { mainWindow.reload(); } catch (_) {}
+    }
+  });
+
+  // Renderer "appeso" (loop lungo): lo registriamo soltanto, senza forzare nulla.
+  mainWindow.webContents.on("unresponsive", () => {
+    appendLog(`${new Date().toISOString()}  renderer UNRESPONSIVE`);
+    console.warn("[crash] renderer non risponde");
+  });
 
   // ── Notifica renderer su cambio stato fullscreen ──────────────────────────
   mainWindow.on("enter-full-screen", () => {
@@ -361,6 +532,52 @@ function buildSessionFileName(date) {
 const SESSION_FILE_RE =
   /^\d{1,2} (Gennaio|Febbraio|Marzo|Aprile|Maggio|Giugno|Luglio|Agosto|Settembre|Ottobre|Novembre|Dicembre) \d{4} - \d{2}[&:]\d{2}\.msp\.json$/;
 
+// ── SCRITTURA SICURA: atomica + backup rotanti ───────────────────────────────
+// Prima qui c'era un fs.writeFileSync diretto sul file del progetto. Due rischi
+// mortali:
+//   1) crash A METÀ scrittura → il file restava troncato (0 KB / JSON rotto) e
+//      il progetto era irrecuperabile;
+//   2) se per qualunque motivo arrivava un canvas vuoto, sovrascriveva il lavoro
+//      buono e basta, senza rete di salvataggio.
+// Adesso:
+//   • scriviamo su <file>.tmp e poi rinominiamo (rename è ATOMICO sullo stesso
+//     volume): o c'è il vecchio file integro, o c'è il nuovo integro. Mai a metà.
+//   • prima di sovrascrivere copiamo la versione buona in <file>.bak1, ruotando
+//     i backup precedenti (.bak1 → .bak2). Così anche se finisse salvato qualcosa
+//     di sbagliato, il lavoro è SEMPRE recuperabile rinominando il .bak1.
+const PROJECT_BACKUP_COUNT = 2; // quanti .bakN tenere accanto al progetto (TUNABLE)
+
+function atomicWriteFile(targetPath, content, makeBackups) {
+  const tmpPath = targetPath + ".tmp";
+
+  // 1) Scrivi sul temporaneo (se questo fallisce, il file originale è intatto).
+  fs.writeFileSync(tmpPath, content, "utf8");
+
+  // 2) Ruota i backup della versione ATTUALMENTE su disco (best-effort: un
+  //    backup mancato non deve mai bloccare il salvataggio vero).
+  if (makeBackups) {
+    try {
+      if (fs.existsSync(targetPath) && PROJECT_BACKUP_COUNT >= 1) {
+        // Elimina il più vecchio.
+        const oldest = targetPath + ".bak" + PROJECT_BACKUP_COUNT;
+        try { if (fs.existsSync(oldest)) fs.unlinkSync(oldest); } catch (_) {}
+        // Sposta .bak(i) → .bak(i+1) dal penultimo verso il basso.
+        for (let i = PROJECT_BACKUP_COUNT - 1; i >= 1; i--) {
+          const from = targetPath + ".bak" + i;
+          const to = targetPath + ".bak" + (i + 1);
+          try { if (fs.existsSync(from)) fs.renameSync(from, to); } catch (_) {}
+        }
+        // La versione buona attuale diventa .bak1 (copia: l'originale resta finché
+        // non facciamo il rename atomico al punto 3).
+        try { fs.copyFileSync(targetPath, targetPath + ".bak1"); } catch (_) {}
+      }
+    } catch (_) {}
+  }
+
+  // 3) Commit atomico: il temporaneo diventa il file vero.
+  fs.renameSync(tmpPath, targetPath);
+}
+
 ipcMain.handle("autosave:writeToPath", async (_, payload) => {
   if (!payload || !payload.path || typeof payload.content !== "string") {
     return { error: "Parametri mancanti" };
@@ -371,9 +588,11 @@ ipcMain.handle("autosave:writeToPath", async (_, payload) => {
       // Il supporto rimovibile (USB/SD) potrebbe essere stato scollegato.
       return { error: "Cartella non più disponibile: " + dir };
     }
-    fs.writeFileSync(payload.path, payload.content, "utf8");
+    atomicWriteFile(payload.path, payload.content, /* makeBackups */ true);
     return { path: payload.path, filename: path.basename(payload.path) };
   } catch (e) {
+    // Pulizia best-effort del temporaneo se il rename non è andato a buon fine.
+    try { fs.unlinkSync(payload.path + ".tmp"); } catch (_) {}
     return { error: e.message };
   }
 });
@@ -386,7 +605,9 @@ ipcMain.handle("autosave:writeSession", async (_, payload) => {
     const dir = getProjectsDir();
     const filename = buildSessionFileName(new Date(payload.sessionDateMs));
     const full = path.join(dir, filename);
-    fs.writeFileSync(full, payload.content, "utf8");
+    // I file di sessione hanno già la rotazione dei 10 più recenti come backup:
+    // qui basta la scrittura atomica (niente .bak per non moltiplicare i file).
+    atomicWriteFile(full, payload.content, /* makeBackups */ false);
     return { path: full, filename };
   } catch (e) {
     return { error: e.message };
@@ -992,6 +1213,23 @@ let activeDownloadRequest = null;     // riferimento alla net.request in corso
 let activeDownloadStream = null;      // write stream del file in corso
 let activeDownloadPath = null;        // path dell'installer parziale
 let pendingInstallerPath = null;      // installer da lanciare al quit
+let downloadCancelled = false;        // flag annullamento (interrompe i retry)
+
+// Attesa interrompibile (per il backoff tra un tentativo e l'altro):
+// si sblocca subito se l'utente annulla, senza aspettare l'intero ritardo.
+function _interruptibleWait(ms, shouldCancel) {
+  return new Promise((resolve) => {
+    const step = 200;
+    let elapsed = 0;
+    const id = setInterval(() => {
+      elapsed += step;
+      if (elapsed >= ms || (typeof shouldCancel === "function" && shouldCancel())) {
+        clearInterval(id);
+        resolve();
+      }
+    }, step);
+  });
+}
 
 function _getUpdatesDir() {
   const d = path.join(app.getPath("userData"), "updates");
@@ -1096,187 +1334,395 @@ ipcMain.handle("update:fetch-latest", (_e, owner, repo) => {
   });
 });
 
-ipcMain.handle("update:download-asset", (event, args) => {
-  return new Promise((resolve) => {
-    const { url, filename, expectedSize, expectedDigest } = args || {};
+ipcMain.handle("update:download-asset", async (event, args) => {
+  const { url, filename, expectedSize, expectedDigest } = args || {};
 
-    // ── Validazioni iniziali (allowlist URL + nome file)
-    if (!url || !security.isGithubUrl(url)) {
-      security.logSecurityEvent("error", "download_url_rejected", { url });
-      return resolve({ ok: false, error: "URL non consentito (deve essere su github.com)" });
-    }
-    if (!security.validateInstallerFilename(filename)) {
-      security.logSecurityEvent("error", "download_filename_rejected", { filename });
-      return resolve({ ok: false, error: "Nome file installer non valido" });
-    }
+  // ── Validazioni iniziali (allowlist URL + nome file)
+  if (!url || !security.isGithubUrl(url)) {
+    security.logSecurityEvent("error", "download_url_rejected", { url });
+    return { ok: false, error: "URL non consentito (deve essere su github.com)" };
+  }
+  if (!security.validateInstallerFilename(filename)) {
+    security.logSecurityEvent("error", "download_filename_rejected", { filename });
+    return { ok: false, error: "Nome file installer non valido" };
+  }
 
-    // ── Cleanup di vecchi .exe nella cartella updates (teniamo solo il nuovo)
-    const dir = _getUpdatesDir();
+  const dir = _getUpdatesDir();
+  const destPath = path.join(dir, filename);
+  const tmpPath = destPath + ".part";
+
+  // ── Cleanup: rimuoviamo i vecchi .exe e i .part di ALTRI file.
+  //    Il .part dello STESSO file lo lasciamo: serve per riprendere un
+  //    download interrotto (anche dopo un riavvio dell'app). L'integrità
+  //    finale è comunque garantita dalla verifica SHA-256 prima di installare.
+  try {
+    for (const f of fs.readdirSync(dir)) {
+      if (/\.exe$/i.test(f)) {
+        try { fs.unlinkSync(path.join(dir, f)); } catch (_) {}
+      } else if (/\.part$/i.test(f) && f !== (filename + ".part")) {
+        try { fs.unlinkSync(path.join(dir, f)); } catch (_) {}
+      }
+    }
+  } catch (_) {}
+
+  activeDownloadPath = tmpPath;
+  downloadCancelled = false;
+
+  // ── Parametri di robustezza
+  const MAX_ATTEMPTS = 8;            // tentativi totali (incluso il primo)
+  const STALL_TIMEOUT_MS = 30000;    // 30s senza dati => stallo => si riprende
+  const BASE_BACKOFF_MS = 1500;      // attesa iniziale fra un tentativo e l'altro
+  const MAX_BACKOFF_MS = 15000;      // tetto massimo dell'attesa
+
+  // total = dimensione totale attesa del file (se nota a priori)
+  let total = (typeof expectedSize === "number" && expectedSize > 0) ? expectedSize : 0;
+
+  // Dimensione attuale del .part su disco (= byte già scaricati e salvati).
+  function partSize() {
+    try { return fs.existsSync(tmpPath) ? fs.statSync(tmpPath).size : 0; } catch (_) { return 0; }
+  }
+
+  function sendProgress(downloaded, status, attempt) {
     try {
-      for (const f of fs.readdirSync(dir)) {
-        if (/\.(exe|part)$/i.test(f)) {
-          try { fs.unlinkSync(path.join(dir, f)); } catch (_) {}
-        }
-      }
+      event.sender.send("update:download-progress", {
+        downloaded,
+        total,
+        status: status || "downloading",
+        attempt: attempt || 1,
+        maxAttempts: MAX_ATTEMPTS
+      });
     } catch (_) {}
+  }
 
-    // ── Download su file .part: il rename ad .exe avviene SOLO dopo verifica integrità
-    const destPath = path.join(dir, filename);
-    const tmpPath = destPath + ".part";
-    activeDownloadPath = tmpPath;
+  // Un singolo tentativo di download/ripresa.
+  //  • risolve { done: true } quando lo stream è completato senza errori;
+  //  • rigetta con un Error che ha .retryable (true = si può ritentare/riprendere)
+  //    e .cancelled (true = annullato dall'utente).
+  function attemptDownload(attempt) {
+    return new Promise((resolve, reject) => {
+      let startByte = partSize();
 
-    const stream = fs.createWriteStream(tmpPath);
-    activeDownloadStream = stream;
-
-    const req = net.request({ method: "GET", url, redirect: "manual" });
-    req.setHeader("User-Agent", "Mosaica-Workspace-Pro-Updater");
-    req.setHeader("Accept", "application/octet-stream");
-    activeDownloadRequest = req;
-
-    // ── Redirect guard: ogni hop DEVE restare in dominio GitHub
-    let redirectAborted = false;
-    security.attachRedirectGuard(req, (badUrl) => {
-      redirectAborted = true;
-      try { stream.close(); } catch (_) {}
-      try { fs.unlinkSync(tmpPath); } catch (_) {}
-      activeDownloadRequest = null;
-      activeDownloadStream = null;
-      activeDownloadPath = null;
-      resolve({ ok: false, error: "Redirect bloccato verso host esterno: " + badUrl });
-    });
-
-    let total = (typeof expectedSize === "number" && expectedSize > 0) ? expectedSize : 0;
-    let downloaded = 0;
-
-    req.on("response", (response) => {
-      if (response.statusCode !== 200) {
-        try { stream.close(); } catch (_) {}
-        try { fs.unlinkSync(tmpPath); } catch (_) {}
-        activeDownloadRequest = null;
-        activeDownloadStream = null;
-        activeDownloadPath = null;
-        security.logSecurityEvent("warn", "download_http_error", { status: response.statusCode, url });
-        return resolve({ ok: false, error: `HTTP ${response.statusCode}` });
-      }
-      const cl = parseInt(response.headers["content-length"] || "0", 10);
-      if (cl > 0) total = cl;
-
-      // Hard cap: se il server dichiara una size oltre il limite, rifiutiamo subito
-      if (total > security.MAX_INSTALLER_SIZE_BYTES) {
-        try { stream.close(); } catch (_) {}
-        try { fs.unlinkSync(tmpPath); } catch (_) {}
-        activeDownloadRequest = null;
-        activeDownloadStream = null;
-        activeDownloadPath = null;
-        security.logSecurityEvent("error", "download_size_cap_exceeded", { total });
-        try { req.abort(); } catch (_) {}
-        return resolve({ ok: false, error: "Dimensione installer oltre il limite di sicurezza" });
+      // Se abbiamo già su disco tutti i byte attesi, saltiamo alla verifica.
+      if (total > 0 && startByte >= total) {
+        return resolve({ done: true });
       }
 
-      response.on("data", (chunk) => {
-        downloaded += chunk.length;
-        // Difesa runtime: se durante il download superiamo il cap, interrompi
-        if (downloaded > security.MAX_INSTALLER_SIZE_BYTES) {
-          security.logSecurityEvent("error", "download_size_cap_runtime", { downloaded });
+      // Apertura file: append se stiamo riprendendo, sovrascrittura se da zero.
+      const stream = fs.createWriteStream(tmpPath, { flags: startByte > 0 ? "a" : "w" });
+      activeDownloadStream = stream;
+
+      const req = net.request({ method: "GET", url, redirect: "manual" });
+      req.setHeader("User-Agent", "Mosaica-Workspace-Pro-Updater");
+      req.setHeader("Accept", "application/octet-stream");
+      // Ripresa: chiediamo solo i byte mancanti (HTTP Range).
+      if (startByte > 0) {
+        req.setHeader("Range", `bytes=${startByte}-`);
+      }
+      activeDownloadRequest = req;
+
+      let downloaded = startByte;
+      let settled = false;
+      let stallTimer = null;
+      let redirectAborted = false;
+
+      function clearTimers() {
+        if (stallTimer) { clearTimeout(stallTimer); stallTimer = null; }
+      }
+
+      // Rilevamento "connessione morta": se per STALL_TIMEOUT_MS non arriva
+      // nessun byte (né la prima risposta), abortiamo e segnaliamo retry.
+      function armStall() {
+        clearTimers();
+        stallTimer = setTimeout(() => {
+          if (settled) return;
+          settled = true;
+          security.logSecurityEvent("warn", "download_stalled", { attempt, downloaded });
           try { req.abort(); } catch (_) {}
-          return;
-        }
-        try { stream.write(chunk); } catch (_) {}
-        try {
-          event.sender.send("update:download-progress", { downloaded, total });
-        } catch (_) {}
+          try { stream.close(); } catch (_) {}
+          activeDownloadRequest = null;
+          activeDownloadStream = null;
+          const e = new Error("Connessione in stallo (nessun dato ricevuto)");
+          e.retryable = true;
+          reject(e);
+        }, STALL_TIMEOUT_MS);
+      }
+
+      // Redirect guard: ogni hop DEVE restare in dominio GitHub.
+      security.attachRedirectGuard(req, (badUrl) => {
+        if (settled) return;
+        settled = true;
+        clearTimers();
+        try { stream.close(); } catch (_) {}
+        try { fs.unlinkSync(tmpPath); } catch (_) {}
+        activeDownloadRequest = null;
+        activeDownloadStream = null;
+        activeDownloadPath = null;
+        const e = new Error("Redirect bloccato verso host esterno: " + badUrl);
+        e.retryable = false;   // problema di sicurezza: non si ritenta
+        reject(e);
       });
 
-      response.on("end", () => {
-        stream.end();
-        stream.on("finish", async () => {
-          // ── VERIFICA INTEGRITÀ prima di esporre il file
-          const verify = await security.verifyDownloadedAsset(tmpPath, {
-            digest: expectedDigest || null,
-            size: expectedSize || 0
-          });
+      req.on("response", (response) => {
+        const sc = response.statusCode;
 
-          if (!verify.ok) {
-            // File compromesso o corrotto: cancella e segnala
-            try { fs.unlinkSync(tmpPath); } catch (_) {}
-            activeDownloadRequest = null;
-            activeDownloadStream = null;
-            activeDownloadPath = null;
-            security.logSecurityEvent("error", "download_verify_failed", {
-              reason: verify.reason,
-              actualDigest: verify.actualDigest,
-              expectedDigest: verify.expectedDigest,
-              size: verify.size
-            });
-            return resolve({ ok: false, error: "Verifica integrità fallita: " + verify.reason });
-          }
+        // Il server ha ignorato il Range e rimanda tutto da capo (200 invece
+        // di 206): buttiamo il parziale e ripartiamo puliti al giro dopo.
+        if (sc === 200 && startByte > 0) {
+          settled = true;
+          clearTimers();
+          try { stream.close(); } catch (_) {}
+          try { fs.truncateSync(tmpPath, 0); } catch (_) {}
+          activeDownloadRequest = null;
+          activeDownloadStream = null;
+          const e = new Error("Il server non supporta la ripresa: riparto da zero");
+          e.retryable = true;
+          return reject(e);
+        }
 
-          // Verifica OK: rinomina .part → .exe (commit atomico)
-          try {
-            fs.renameSync(tmpPath, destPath);
-          } catch (e) {
-            try { fs.unlinkSync(tmpPath); } catch (_) {}
-            activeDownloadRequest = null;
-            activeDownloadStream = null;
-            activeDownloadPath = null;
-            security.logSecurityEvent("error", "download_rename_failed", { message: e.message });
-            return resolve({ ok: false, error: "Impossibile finalizzare il file: " + e.message });
-          }
+        // Solo 200 (full) o 206 (partial) sono validi.
+        if (sc !== 200 && sc !== 206) {
+          settled = true;
+          clearTimers();
+          try { stream.close(); } catch (_) {}
+          activeDownloadRequest = null;
+          activeDownloadStream = null;
+          security.logSecurityEvent("warn", "download_http_error", { status: sc, url });
+          const e = new Error(`HTTP ${sc}`);
+          // 5xx / 429 / 408 sono temporanei → si ritenta. 4xx no.
+          e.retryable = (sc >= 500 || sc === 429 || sc === 408);
+          return reject(e);
+        }
 
+        // Determiniamo la dimensione totale del file.
+        const hv = (name) => {
+          const v = response.headers[name];
+          return Array.isArray(v) ? v[0] : v;
+        };
+        if (sc === 206) {
+          // Content-Range: bytes <start>-<end>/<total>
+          const cr = hv("content-range");
+          const m = cr && /\/(\d+)\s*$/.exec(String(cr));
+          if (m) total = parseInt(m[1], 10);
+        } else {
+          const cl = parseInt(hv("content-length") || "0", 10);
+          if (cl > 0) total = cl;
+        }
+
+        // Hard cap di sicurezza sulla dimensione.
+        if (total > security.MAX_INSTALLER_SIZE_BYTES) {
+          settled = true;
+          clearTimers();
+          try { stream.close(); } catch (_) {}
+          try { fs.unlinkSync(tmpPath); } catch (_) {}
           activeDownloadRequest = null;
           activeDownloadStream = null;
           activeDownloadPath = null;
+          security.logSecurityEvent("error", "download_size_cap_exceeded", { total });
+          try { req.abort(); } catch (_) {}
+          const e = new Error("Dimensione installer oltre il limite di sicurezza");
+          e.retryable = false;
+          return reject(e);
+        }
 
-          security.logSecurityEvent("info", "download_verified", {
-            file: filename,
-            size: verify.size,
-            digest: verify.actualDigest,
-            digestProvidedByGithub: !!expectedDigest
-          });
+        sendProgress(downloaded, "downloading", attempt);
+        armStall();
 
-          resolve({
-            ok: true,
-            path: destPath,
-            size: verify.size,
-            verified: true,
-            digest: verify.actualDigest
+        response.on("data", (chunk) => {
+          if (settled) return;
+          if (downloadCancelled) {
+            try { req.abort(); } catch (_) {}
+            return;
+          }
+          downloaded += chunk.length;
+          // Difesa runtime: se superiamo il cap durante lo scaricamento, stop.
+          if (downloaded > security.MAX_INSTALLER_SIZE_BYTES) {
+            security.logSecurityEvent("error", "download_size_cap_runtime", { downloaded });
+            try { req.abort(); } catch (_) {}
+            return;
+          }
+          try { stream.write(chunk); } catch (_) {}
+          armStall();
+          sendProgress(downloaded, "downloading", attempt);
+        });
+
+        response.on("end", () => {
+          clearTimers();
+          if (settled) return;
+          settled = true;
+          stream.end();
+          stream.on("finish", () => {
+            activeDownloadRequest = null;
+            activeDownloadStream = null;
+            resolve({ done: true });
           });
+        });
+
+        response.on("error", (err) => {
+          clearTimers();
+          if (settled) return;
+          settled = true;
+          try { stream.close(); } catch (_) {}
+          activeDownloadRequest = null;
+          activeDownloadStream = null;
+          if (redirectAborted) return;
+          // Errore di rete a metà: TENIAMO il .part così si riprende dopo.
+          const e = new Error(err && err.message ? err.message : "Errore di rete");
+          e.retryable = true;
+          reject(e);
         });
       });
 
-      response.on("error", (err) => {
+      req.on("error", (err) => {
+        clearTimers();
+        if (settled) return;
+        settled = true;
         try { stream.close(); } catch (_) {}
+        activeDownloadRequest = null;
+        activeDownloadStream = null;
+        if (redirectAborted) return;
+        // Tipico quando la connessione cade o l'host non risponde:
+        // .part conservato, si riprenderà al prossimo tentativo.
+        const e = new Error(err && err.message ? err.message : "Errore di rete");
+        e.retryable = true;
+        reject(e);
+      });
+
+      req.on("abort", () => {
+        clearTimers();
+        if (settled) return;
+        settled = true;
+        try { stream.close(); } catch (_) {}
+        activeDownloadRequest = null;
+        activeDownloadStream = null;
+        if (redirectAborted) return;
+        if (downloadCancelled) {
+          const e = new Error("Download annullato dall'utente");
+          e.retryable = false;
+          e.cancelled = true;
+          return reject(e);
+        }
+        const e = new Error("Download interrotto");
+        e.retryable = true;
+        reject(e);
+      });
+
+      req.end();
+    });
+  }
+
+  // ── Loop dei tentativi con backoff crescente ──────────────
+  let lastErr = null;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    if (downloadCancelled) {
+      try { fs.unlinkSync(tmpPath); } catch (_) {}
+      activeDownloadPath = null;
+      return { ok: false, error: "Download annullato dall'utente", cancelled: true };
+    }
+
+    try {
+      await attemptDownload(attempt);
+      lastErr = null;
+      break; // stream completato → si passa alla verifica
+    } catch (e) {
+      lastErr = e;
+
+      // Annullamento esplicito: ripuliamo e usciamo.
+      if (e && e.cancelled) {
         try { fs.unlinkSync(tmpPath); } catch (_) {}
         activeDownloadRequest = null;
         activeDownloadStream = null;
         activeDownloadPath = null;
-        if (!redirectAborted) resolve({ ok: false, error: err.message });
+        return { ok: false, error: "Download annullato dall'utente", cancelled: true };
+      }
+
+      // Errore non ritentabile o tentativi esauriti → falliamo.
+      if (!e || !e.retryable || attempt >= MAX_ATTEMPTS) {
+        try { fs.unlinkSync(tmpPath); } catch (_) {}
+        activeDownloadRequest = null;
+        activeDownloadStream = null;
+        activeDownloadPath = null;
+        return { ok: false, error: (e && e.message) || "Download fallito" };
+      }
+
+      // Altrimenti: attesa con backoff e ripresa dal punto raggiunto.
+      const backoff = Math.min(MAX_BACKOFF_MS, Math.round(BASE_BACKOFF_MS * Math.pow(1.7, attempt - 1)));
+      security.logSecurityEvent("info", "download_retry", {
+        attempt, nextInMs: backoff, reason: (e && e.message) || "?"
       });
-    });
+      sendProgress(partSize(), "retrying", attempt);
+      await _interruptibleWait(backoff, () => downloadCancelled);
+      if (downloadCancelled) {
+        try { fs.unlinkSync(tmpPath); } catch (_) {}
+        activeDownloadPath = null;
+        return { ok: false, error: "Download annullato dall'utente", cancelled: true };
+      }
+      sendProgress(partSize(), "resuming", attempt + 1);
+    }
+  }
 
-    req.on("error", (err) => {
-      try { stream.close(); } catch (_) {}
-      try { fs.unlinkSync(tmpPath); } catch (_) {}
-      activeDownloadRequest = null;
-      activeDownloadStream = null;
-      activeDownloadPath = null;
-      if (!redirectAborted) resolve({ ok: false, error: err.message });
-    });
+  if (lastErr) {
+    try { fs.unlinkSync(tmpPath); } catch (_) {}
+    activeDownloadPath = null;
+    return { ok: false, error: lastErr.message || "Download fallito" };
+  }
 
-    req.on("abort", () => {
-      try { stream.close(); } catch (_) {}
-      try { fs.unlinkSync(tmpPath); } catch (_) {}
-      activeDownloadRequest = null;
-      activeDownloadStream = null;
-      activeDownloadPath = null;
-      if (!redirectAborted) resolve({ ok: false, error: "Download annullato dall'utente" });
-    });
-
-    req.end();
+  // ── VERIFICA INTEGRITÀ prima di esporre il file ───────────
+  const verify = await security.verifyDownloadedAsset(tmpPath, {
+    digest: expectedDigest || null,
+    size: expectedSize || 0
   });
+
+  if (!verify.ok) {
+    // File compromesso o corrotto: cancella e segnala.
+    try { fs.unlinkSync(tmpPath); } catch (_) {}
+    activeDownloadRequest = null;
+    activeDownloadStream = null;
+    activeDownloadPath = null;
+    security.logSecurityEvent("error", "download_verify_failed", {
+      reason: verify.reason,
+      actualDigest: verify.actualDigest,
+      expectedDigest: verify.expectedDigest,
+      size: verify.size
+    });
+    return { ok: false, error: "Verifica integrità fallita: " + verify.reason };
+  }
+
+  // Verifica OK: rinomina .part → .exe (commit atomico).
+  try {
+    fs.renameSync(tmpPath, destPath);
+  } catch (e) {
+    try { fs.unlinkSync(tmpPath); } catch (_) {}
+    activeDownloadRequest = null;
+    activeDownloadStream = null;
+    activeDownloadPath = null;
+    security.logSecurityEvent("error", "download_rename_failed", { message: e.message });
+    return { ok: false, error: "Impossibile finalizzare il file: " + e.message };
+  }
+
+  activeDownloadRequest = null;
+  activeDownloadStream = null;
+  activeDownloadPath = null;
+
+  security.logSecurityEvent("info", "download_verified", {
+    file: filename,
+    size: verify.size,
+    digest: verify.actualDigest,
+    digestProvidedByGithub: !!expectedDigest
+  });
+
+  return {
+    ok: true,
+    path: destPath,
+    size: verify.size,
+    verified: true,
+    digest: verify.actualDigest
+  };
 });
 
 ipcMain.handle("update:cancel-download", () => {
+  // Alziamo il flag PRIMA dell'abort: così il loop dei tentativi non riprende
+  // e l'eventuale attesa di backoff si interrompe subito.
+  downloadCancelled = true;
   try {
     if (activeDownloadRequest) activeDownloadRequest.abort();
   } catch (_) {}
@@ -1338,9 +1784,43 @@ app.on("before-quit", () => {
   }
 });
 
+// ── 🔎 LOG INFO GPU ALL'AVVIO ────────────────────────────────────────────────
+// Registra QUALE GPU sta usando il rendering. Lo scrive sul log di sessione (così
+// vale anche per l'app installata, dove non c'è terminale) e lo stampa anche a
+// console quando si lancia da "npm start". Best-effort.
+async function logGpuInfo() {
+  try {
+    const info = await app.getGPUInfo("complete");
+    const aux = (info && info.auxAttributes) || {};
+    const renderer = aux.glRenderer || "(sconosciuto)";
+    const vendor = aux.glVendor || "(sconosciuto)";
+    const version = aux.glVersion || "";
+    let device = "(nessuna scheda marcata 'active')";
+    if (info && Array.isArray(info.gpuDevice)) {
+      const a = info.gpuDevice.find((d) => d && d.active) || info.gpuDevice[0];
+      if (a) device = `vendorId=${a.vendorId} deviceId=${a.deviceId} active=${!!a.active}`;
+    }
+    console.log("==================== GPU IN USO ====================");
+    console.log("  " + renderer + "  (" + vendor + ")");
+    console.log("====================================================");
+    appendLog("---- GPU IN USO ----");
+    appendLog(`  GL renderer : ${renderer}`);
+    appendLog(`  GL vendor   : ${vendor}`);
+    appendLog(`  GL version  : ${version}`);
+    appendLog(`  GPU device  : ${device}`);
+  } catch (e) {
+    console.error("[gpu] impossibile leggere le info GPU:", e && e.message);
+    appendLog(`${new Date().toISOString()}  errore lettura GPU info: ${e && e.message}`);
+  }
+}
+
 // Esegui all’avvio
 app.whenReady().then(async () => {
+  // Apri il log di sessione PER PRIMO: così se l'avvio crasha, qualcosa resta.
+  writeSessionLogHeader();
+  pruneSessionLogs();
   createWindow();
+  logGpuInfo(); // best-effort, non blocca l'avvio
   await copyDefaultTextures();
 });
 

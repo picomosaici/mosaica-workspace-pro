@@ -47,7 +47,7 @@ function cloneFabricObject(obj) {
 
         resolve(clone);
       },
-      ["__shape", "__shapeType", "customId", "__isFreehand", "__isWatercolor", "__watercolorParams", "__addedAt"]
+      ["__shape", "__shapeType", "customId", "__isFreehand", "__isWatercolor", "__clipPoly", "__watercolorParams", "__addedAt"]
     );
   });
 }
