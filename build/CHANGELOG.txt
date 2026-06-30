@@ -1,4 +1,28 @@
 ------------------------------------------------------------
+Versione 07.2026.1  (Luglio 2026)
+------------------------------------------------------------
+
+CORREZIONI:
+  + Cerchio di riferimento del tratto (penna e pennello
+    acquerello): ora corrisponde 1:1 alla larghezza reale
+    del segno. Prima appariva piu' largo del tratto perche'
+    seguiva l'alone sfumato dell'acquerello e, passandoci
+    sopra senza disegnare, la pressione massima della penna.
+    Adesso in hover mostra la larghezza impostata sugli
+    slider; durante il tratto con Wacom segue dal vivo la
+    pressione, esattamente come il pennello vero
+
+MANUTENZIONE:
+  * Aggiornate alcune dipendenze degli strumenti di build
+    (correzioni di sicurezza, nessun impatto sull'uso dell'app)
+  * Rimossa una cartella di texture duplicata dal repository
+    (l'app continua a usare quelle in app/textures/)
+
+NOTE TECNICHE:
+  - Versione interna: 7.2026.1
+  - Electron e Fabric.js invariati rispetto a 07.2026
+  
+------------------------------------------------------------
 Versione 07.2026  (Luglio 2026)
 ------------------------------------------------------------
 

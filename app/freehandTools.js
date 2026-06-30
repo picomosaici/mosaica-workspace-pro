@@ -63,7 +63,16 @@
   // diametro dell'anello: margine = 2 * currentBleed * questo K. 1.55 = bordo
   // esterno dello shadowBlur reale del timbro. Alza se l'anello e' ancora piu'
   // stretto della macchia, abbassa se la supera.
-  const WATERCOLOR_RING_BLEED_K = 1.55;
+  // (acquerello) FRAZIONE dell'alone morbido (shadowBlur) da includere nel
+  // diametro dell'anello, per lato: margine = 2 * currentBleed * questo K.
+  //   0     → l'anello aderisce al NUCLEO solido del timbro = 1:1 con la
+  //           larghezza impostata sullo slider (default voluto da Mirko).
+  //   ~1.55 → l'anello arriva al bordo ESTERNO (debolissimo) dell'alone, cioe'
+  //           lo shadowBlur pieno del timbro (currentBleed*1.55).
+  // Tienilo basso: 1.55 faceva apparire l'anello molto piu' largo del segno
+  // perche' inseguiva la sfumatura trasparente, non la macchia vera. Alzalo di
+  // poco (es. 0.4-0.7) solo se vuoi che l'anello "respiri" un filo nell'alone.
+  const WATERCOLOR_RING_BLEED_K = 0;
 
   // --- Perimetro di contenimento ---
   const CLIP_VERTEX_DRAG_THRESHOLD_PX = 6;     // (px schermo) oltre = trascino (mano libera); sotto = tap (vertice)
@@ -183,6 +192,16 @@
   }
 
   // Diametro LOGICO del tratto da rappresentare col cerchio.
+  // Obiettivo: l'anello e' 1:1 col tratto REALE.
+  //   • In HOVER mostra la larghezza NOMINALE impostata sugli slider
+  //     (penna = currentLineWidth, acquerello = currentWatercolorWidth, gomma =
+  //     Math.max(12, lineW*1.8), identico ad applyBrushSettings). E' esattamente
+  //     il segno che traccia il mouse e quello della Wacom a pressione "piena
+  //     base" (fattore 1.0).
+  //   • DURANTE il tratto (isStroking) con Wacom segue LIVE la pressione con lo
+  //     STESSO fattore del brush reale (window.wacomGetWidthFactor === il
+  //     fattore di PressurePencilBrush / WatercolorStampBrush) → resta 1:1
+  //     istante per istante mentre si disegna.
   function _strokeDiameterPx(isStroking) {
     const tool = _activeFreehandTool();
     const lineW = typeof currentLineWidth !== "undefined" ? currentLineWidth : 4;
@@ -193,42 +212,26 @@
     else if (tool === "watercolor") base = waterW;
     else base = lineW;
 
-    // ── Modulazione pressione Wacom — PENNA vs ACQUERELLO ─────────────────────
-    // Entrambi gli strumenti, DURANTE un tratto, ingrossano il segno con la
-    // pressione (penna: PressurePath usa la pressione del punto; acquerello:
-    // ogni timbro usa baseWidth = currentWatercolorWidth * w.width). Ma il
-    // CLICK SINGOLO si comporta diverso fra i due:
-    //   • penna      → il dot usa la pressione del tap (puo' arrivare a maxFactor)
-    //   • acquerello → il dab usa SEMPRE la larghezza base (nessuna pressione)
-    // Quindi:
-    //   • DURANTE il tratto (isStroking): fattore LIVE per entrambi → l'anello
-    //     segue lo spessore reale che si sta disegnando.
-    //   • In HOVER: la PENNA mostra il MASSIMO (un tap deciso arriva li'), cosi'
-    //     l'anello non e' mai piu' piccolo del dot; l'ACQUERELLO resta alla base
-    //     (il dab e' sempre base) per non disegnare un anello piu' largo della
-    //     macchia.
-    // I getter ritornano 1.0 quando la modulazione e' spenta (mouse / Wacom off).
-    // NB: niente piu' gate su window.wacomIsConnected — in hover quel flag puo'
-    // essere false (penna sollevata) e l'anello restava alla base mentre un tap
-    // deciso disegnava gia' a piena pressione (il tratto usciva: erano i ~4 mm).
+    // ── Modulazione pressione Wacom SOLO durante il tratto ────────────────────
+    // Penna e acquerello, MENTRE si traccia, stringono/ingrossano il segno con la
+    // pressione esattamente come il brush reale, quindi l'anello li segue 1:1.
+    // In HOVER NON si modula: l'anello resta sulla larghezza nominale (= il
+    // segno a pressione normale / col mouse), niente piu' envelope al
+    // maxWidthFactor che lo gonfiava oltre il tratto disegnato.
+    // wacomGetWidthFactor ritorna 1.0 con modulazione spenta (mouse / Wacom off).
     if (isStroking && (tool === "pen" || tool === "watercolor") &&
         typeof window.wacomGetWidthFactor === "function") {
       let f = 1;
       try { f = window.wacomGetWidthFactor(); } catch (e) { f = 1; }
       if (Number.isFinite(f) && f > 0) base = base * f;
-    } else if (!isStroking && tool === "pen" &&
-               typeof window.wacomGetMaxWidthFactor === "function") {
-      let mf = 1;
-      try { mf = window.wacomGetMaxWidthFactor(); } catch (e) { mf = 1; }
-      if (Number.isFinite(mf) && mf > 0) base = base * mf;
     }
 
-    // ── Acquerello: alone della sbavatura attorno al timbro ───────────────────
-    // Il timbro acquerello e' circondato da un alone morbido (shadowBlur =
-    // currentBleed * 1.55) che si estende oltre il nucleo su tutti i lati: senza
-    // questo margine l'anello resta dentro la macchia. Tarabile con
-    // WATERCOLOR_RING_BLEED_K.
-    if (tool === "watercolor") {
+    // ── Acquerello: quanto dell'alone morbido (shadowBlur) includere ──────────
+    // Il timbro acquerello ha un alone sfumato che svanisce oltre il nucleo
+    // solido. WATERCOLOR_RING_BLEED_K = frazione di quell'alone da sommare al
+    // diametro (per lato). Default 0 → l'anello aderisce al nucleo = 1:1 con la
+    // larghezza impostata. (Vedi commento sulla costante per i dettagli.)
+    if (tool === "watercolor" && WATERCOLOR_RING_BLEED_K > 0) {
       const bleed = typeof currentBleed !== "undefined" ? currentBleed : 0;
       if (bleed > 0) base += 2 * bleed * WATERCOLOR_RING_BLEED_K;
     }

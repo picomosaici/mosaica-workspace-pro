@@ -61,17 +61,17 @@ jobs:
           body: |
             ## 🎨 Mosaica Workspace Pro ${{ github.ref_name }}
 
-            Aggiornamento di Luglio 2026 — due nuovi strumenti di selezione e disegno, più un menu radiale che ora lavora su più forme insieme.
+            Aggiornamento correttivo: il cerchio di riferimento del tratto ora combacia con il segno reale.
 
-            ### ✨ Cosa c'è di nuovo
+            ### 🛠️ Correzioni
 
-            - 🖌️ **Pennello selezione** — seleziona le tessere dipingendoci sopra a mano libera, come con un pennello; le passate si sommano e tenendo premuto **CTRL** (⌘ su Mac) deselezioni invece di aggiungere. Diametro della punta regolabile in mm reali (tasto destro sull'icona)
-            - ⬡ **Perimetro di contenimento** — traccia un poligono chiuso entro cui far valere pennello e acquerello: ideale per restare dentro le fughe. Si salva con il progetto e resta valido anche dopo averlo rimosso
+            - 🎯 **Cerchio di riferimento più fedele** — per la **penna** e il **pennello acquerello** il cerchio che mostra lo spessore ora corrisponde 1:1 al tratto reale. Prima appariva più largo del segno (seguiva l'alone sfumato dell'acquerello e, passandoci sopra senza disegnare, la pressione massima della penna)
+              - In *hover* mostra la larghezza impostata sugli slider
+              - Durante il tratto con tavoletta **Wacom** segue dal vivo la pressione, come il pennello vero
 
-            ### 🛠️ Miglioramenti
+            ### 🧹 Manutenzione
 
-            - 🎯 **Menu radiale in selezione multipla** — seleziona più forme con **CTRL + click** e applica colore, texture, blocco o eliminazione a tutte insieme, oltre a raggruppa / separa
-            - 📖 **Guida utente aggiornata** (IT + EN) con i nuovi strumenti e la correzione della selezione multipla
+            - Aggiornate alcune dipendenze degli strumenti di build (correzioni di sicurezza, nessun impatto sull'uso dell'app)
 
             ### 📥 Installazione
 
@@ -79,9 +79,9 @@ jobs:
             2. Eseguilo (se Windows mostra *"Editore sconosciuto"*, clicca **Ulteriori informazioni → Esegui comunque**)
             3. Segui l'installer — puoi scegliere la lingua all'avvio
 
-            > 💡 Le tue tavole salvate, le calibrazioni e le preferenze vengono **conservate** durante l'aggiornamento.
+            > 💡 Tavole salvate, calibrazioni e preferenze vengono **conservate** durante l'aggiornamento.
 
             ### 📝 Note tecniche
 
-            - Versione interna: `7.2026.0`
-            - Electron 41 · Fabric.js 5.1.0 → 5.3.0 (minima 5.1.0, massima testata 5.3.0)
+            - Versione interna: `7.2026.1`
+            - Electron 41 · Fabric.js 5.1.0 → 5.3.0 (invariati rispetto a 07.2026)
