@@ -39,19 +39,44 @@
   }
 
   // ────────────────────────────────────────────────────────────
-  //  Filtro forme — riusa la stessa logica già esistente in
-  //  renderer.js (isWatercolorOrFreehand + __isBackground)
+  //  Classificatore freehand/acquerello — fallback locale.
+  //  Allineato 1:1 a isWatercolorOrFreehand() di renderer.js.
+  //  CRUCIALE: include il ramo PressurePath. I tratti penna di
+  //  Mosaica (con o senza Wacom) sono fabric.PressurePath, type
+  //  "PressurePath", e NON sono path/image/group: senza questo
+  //  ramo scivolavano dentro l'export sia in "filled" sia in
+  //  "outline" comparendo come una linea del colore del tratto.
+  // ────────────────────────────────────────────────────────────
+  function isFreehandLocal(obj) {
+    if (!obj) return false;
+    const t = obj.type;
+    if (t === "PressurePath" || t === "pressurepath") return true;
+    return (
+      (obj.__isFreehand === true || obj.__isWatercolor === true) &&
+      (t === "path" || t === "image" || t === "group")
+    );
+  }
+
+  // ────────────────────────────────────────────────────────────
+  //  Filtro forme — usa la funzione CANONICA di renderer.js
+  //  (isWatercolorOrFreehand) quando disponibile in scope globale,
+  //  così non può più divergere; fallback al classificatore locale
+  //  (anch'esso PressurePath-aware) se per qualche motivo non lo è.
   // ────────────────────────────────────────────────────────────
   function getShapesForExport(canvasRef) {
+    let isFH = isFreehandLocal;
+    try {
+      if (typeof isWatercolorOrFreehand === "function") {
+        isFH = isWatercolorOrFreehand;
+      }
+    } catch (_) {
+      /* isWatercolorOrFreehand non in scope: resta il fallback locale */
+    }
+
     return canvasRef.getObjects().filter((obj) => {
       if (!obj) return false;
       if (obj.__isBackground) return false;
-
-      const isFreehandOrWatercolor =
-        (obj.__isFreehand === true || obj.__isWatercolor === true) &&
-        (obj.type === "path" || obj.type === "image" || obj.type === "group");
-
-      if (isFreehandOrWatercolor) return false;
+      if (isFH(obj)) return false;
       return true;
     });
   }

@@ -61,17 +61,12 @@ jobs:
           body: |
             ## 🎨 Mosaica Workspace Pro ${{ github.ref_name }}
 
-            Aggiornamento correttivo: il cerchio di riferimento del tratto ora combacia con il segno reale.
+            Aggiornamento correttivo: caricamento del canvas tra orientamento verticale/orizzontale ed esportazione SVG.
 
             ### 🛠️ Correzioni
 
-            - 🎯 **Cerchio di riferimento più fedele** — per la **penna** e il **pennello acquerello** il cerchio che mostra lo spessore ora corrisponde 1:1 al tratto reale. Prima appariva più largo del segno (seguiva l'alone sfumato dell'acquerello e, passandoci sopra senza disegnare, la pressione massima della penna)
-              - In *hover* mostra la larghezza impostata sugli slider
-              - Durante il tratto con tavoletta **Wacom** segue dal vivo la pressione, come il pennello vero
-
-            ### 🧹 Manutenzione
-
-            - Aggiornate alcune dipendenze degli strumenti di build (correzioni di sicurezza, nessun impatto sull'uso dell'app)
+            - 🔄 **Canvas verticale/orizzontale** — passando da un progetto all'altro con orientamento diverso, il foglio ora si carica con il verso e le proporzioni corrette ad ogni cambio
+            - 📐 **Esportazione SVG** — corretta l'esportazione di entrambe le tipologie di SVG
 
             ### 📥 Installazione
 
@@ -83,5 +78,5 @@ jobs:
 
             ### 📝 Note tecniche
 
-            - Versione interna: `7.2026.1`
+            - Versione interna: `7.2026.2`
             - Electron 41 · Fabric.js 5.1.0 → 5.3.0 (invariati rispetto a 07.2026)

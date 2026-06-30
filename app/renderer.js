@@ -5973,9 +5973,22 @@ function applyProjectData(data, filename, filePath = null) {
 
         currentProjectPath = filePath || null; // ← memorizza il path
 
-        // Aggiorna autoOpen se checkbox è spuntata
-        if (filePath && autoOpenCheckbox?.checked) {
-          window.projectAPI?.setAutoOpen(filePath);
+        // Sincronizza la spunta "apri all'avvio" con lo stato REALE: deve
+        // risultare attiva SOLO se il progetto appena caricato e' proprio quello
+        // registrato per l'apertura automatica. Aprire un altro progetto non deve
+        // piu' "rubargli" l'auto-open (era questo il bug: con la spunta ancora
+        // attiva, aprire un secondo progetto spostava l'auto-open su di lui e
+        // all'avvio si apriva il progetto sbagliato). NB: impostare .checked via
+        // codice NON scatena l'evento "change", quindi il listener resta inerte.
+        if (autoOpenCheckbox) {
+          try {
+            const _ao = await window.projectAPI?.getAutoOpen();
+            const _marked = _ao && _ao.lastProject ? String(_ao.lastProject) : null;
+            const _norm = (p) => String(p).replace(/[\\/]+/g, "\\").toLowerCase();
+            autoOpenCheckbox.checked = !!(filePath && _marked && _norm(filePath) === _norm(_marked));
+          } catch (_) {
+            autoOpenCheckbox.checked = false;
+          }
         }
 
         // 4. Settings freehand del progetto (FIX: era project.freehandSettings)

@@ -1,4 +1,20 @@
 ------------------------------------------------------------
+Versione 07.2026.2  (Luglio 2026)
+------------------------------------------------------------
+
+CORREZIONI:
+  + Caricamento del canvas tra orientamento verticale e
+    orizzontale: passando da un progetto all'altro con
+    orientamento diverso, il foglio ora si carica con il
+    verso e le proporzioni corrette ad ogni cambio
+  + Esportazione SVG: corretta l'esportazione di entrambe
+    le tipologie di SVG
+
+NOTE TECNICHE:
+  - Versione interna: 7.2026.2
+  - Electron e Fabric.js invariati rispetto a 07.2026
+  
+------------------------------------------------------------
 Versione 07.2026.1  (Luglio 2026)
 ------------------------------------------------------------
 
