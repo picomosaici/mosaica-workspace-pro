@@ -151,7 +151,7 @@
       "toast.textureAll.applied":              "✅ Texture applicata a tutte le {count} tessere",
       "toast.textureAll.none":                 "Nessuna tessera con texture",
       "toast.textureAll.removed":              "🧽 Texture rimossa da {count} tessere",
-      "toast.brushSelect.on":                  "🖌️ Pennello selezione attivo — dipingi sulle tessere (ALT = deseleziona)",
+      "toast.brushSelect.on":                  "🖌️ Pennello selezione attivo — dipingi sulle tessere (CTRL = deseleziona)",
       "toast.brushSelect.count":               "🖌️ {count} tessere — esci o premi Invio per confermare",
       "toast.brushSelect.committed":           "🖌️ {count} tessere selezionate",
 
@@ -1071,7 +1071,7 @@
       "toast.textureAll.applied":              "✅ Texture applied to all {count} tiles",
       "toast.textureAll.none":                 "No tiles with texture",
       "toast.textureAll.removed":              "🧽 Texture removed from {count} tiles",
-      "toast.brushSelect.on":                  "🖌️ Brush selection active — paint over the tiles (ALT = deselect)",
+      "toast.brushSelect.on":                  "🖌️ Brush selection active — paint over the tiles (CTRL = deselect)",
       "toast.brushSelect.count":               "🖌️ {count} tiles — exit or press Enter to confirm",
       "toast.brushSelect.committed":           "🖌️ {count} tiles selected",
 

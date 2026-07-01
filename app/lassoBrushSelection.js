@@ -11,7 +11,7 @@
 // invariato e accessibile dal suo pulsante):
 //   • qui NON si chiude un'area: si "dipinge" sopra le tessere;
 //   • i tratti si SOMMANO (puoi fare piu' passate) finche' lo strumento
-//     resta attivo; tenendo ALT premuto un tratto DESELEZIONA invece di
+//     resta attivo; tenendo CTRL premuto un tratto DESELEZIONA invece di
 //     selezionare;
 //   • la selezione vera (fabric.ActiveSelection) viene materializzata
 //     quando esci dal pennello (altro strumento / ESC annulla / Invio o
@@ -33,7 +33,7 @@
   let isBrushDrawing = false;
   let brushPoints = [];        // punti del tratto corrente (coord canvas LOGICHE)
   let hoverPoint = null;       // ultimo punto del puntatore (per il cerchio-anteprima)
-  let strokeRemoving = false;  // ALT premuto all'inizio del tratto → deseleziona
+  let strokeRemoving = false;  // CTRL premuto all'inizio del tratto → deseleziona
 
   // Insieme (vivo) delle tessere selezionate in questa sessione di pennello.
   let brushSelected = new Set();
@@ -465,7 +465,7 @@
     if (selectBtn) selectBtn.classList.remove("active");
 
     canvas.requestRenderAll();
-    _toast(_t("toast.brushSelect.on", "🖌️ Pennello selezione attivo — dipingi sulle tessere (ALT = deseleziona)"));
+    _toast(_t("toast.brushSelect.on", "🖌️ Pennello selezione attivo — dipingi sulle tessere (CTRL = deseleziona)"));
   }
 
   // commit=true → materializza la selezione (ActiveSelection); false → annulla.

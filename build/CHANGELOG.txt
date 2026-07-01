@@ -1,4 +1,22 @@
 ------------------------------------------------------------
+Versione 07.2026.3  (Luglio 2026)
+------------------------------------------------------------
+
+CORREZIONI:
+  + Messaggio del pennello selezione: ora indica
+    correttamente CTRL come tasto per deselezionare. Il
+    testo che compariva attivando lo strumento diceva per
+    errore ALT, mentre la deselezione durante la pennellata
+    e' sempre stata su CTRL (la guida utente era gia'
+    corretta)
+
+NOTE TECNICHE:
+  - Versione interna: 7.2026.3
+  - Solo correzione di testo, nessun cambiamento di
+    comportamento
+  - Electron e Fabric.js invariati rispetto a 07.2026
+
+------------------------------------------------------------
 Versione 07.2026.2  (Luglio 2026)
 ------------------------------------------------------------
 

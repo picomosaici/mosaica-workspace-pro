@@ -61,12 +61,11 @@ jobs:
           body: |
             ## 🎨 Mosaica Workspace Pro ${{ github.ref_name }}
 
-            Aggiornamento correttivo: caricamento del canvas tra orientamento verticale/orizzontale ed esportazione SVG.
+            Aggiornamento correttivo: etichetta del pennello selezione.
 
             ### 🛠️ Correzioni
 
-            - 🔄 **Canvas verticale/orizzontale** — passando da un progetto all'altro con orientamento diverso, il foglio ora si carica con il verso e le proporzioni corrette ad ogni cambio
-            - 📐 **Esportazione SVG** — corretta l'esportazione di entrambe le tipologie di SVG
+            - 🖌️ **Pennello selezione** — il messaggio che compare attivando lo strumento ora indica correttamente **CTRL** per deselezionare (prima diceva *ALT*). Nessun cambiamento di comportamento: la deselezione è sempre stata su CTRL, e la guida utente era già corretta
 
             ### 📥 Installazione
 
@@ -78,5 +77,5 @@ jobs:
 
             ### 📝 Note tecniche
 
-            - Versione interna: `7.2026.2`
+            - Versione interna: `7.2026.3`
             - Electron 41 · Fabric.js 5.1.0 → 5.3.0 (invariati rispetto a 07.2026)
