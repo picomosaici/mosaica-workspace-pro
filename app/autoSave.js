@@ -342,7 +342,7 @@
         // Perimetro di contenimento del disegno a mano libera: va salvato anche
         // qui (serializzatore separato), altrimenti si perde negli autosalvataggi.
         freehandClipPolygon:
-          typeof window.getFreehandClipPolygon === "function" ? window.getFreehandClipPolygon() : null
+          typeof window.getFreehandClipPolygon === "function" ? window.getFreehandClipPolygon() : null,
       };
 
       // 6. Ripristina sfondo nel canvas (stato visivo invariato)
@@ -446,10 +446,12 @@
     if (cClose && isSuspiciousCollapse(cClose)) {
       console.warn("[autoSave] chiusura con canvas collassato: progetto NON sovrascritto.");
       showCloseOverlay({
-        title: "Chiusura senza salvare",
-        detail:
+        title: __ta("autosave.close.crash.title", "Chiusura senza salvare"),
+        detail: __ta(
+          "autosave.close.crash.detail",
           "Il canvas risulta vuoto/incompleto (possibile crash). Per sicurezza il " +
-          "progetto su disco NON è stato sovrascritto: il tuo lavoro è preservato.",
+          "progetto su disco NON è stato sovrascritto: il tuo lavoro è preservato."
+        ),
         pathOrMsg: getProjectPath() || "",
         busy: false
       });
@@ -458,8 +460,8 @@
     }
 
     showCloseOverlay({
-      title: "Salvataggio in corso…",
-      detail: "Salvataggio automatico prima della chiusura.",
+      title: __ta("autosave.close.saving.title", "Salvataggio in corso…"),
+      detail: __ta("autosave.close.saving.detail", "Salvataggio automatico prima della chiusura."),
       pathOrMsg: "",
       busy: true
     });
@@ -468,8 +470,8 @@
       const content = serializeProject();
       if (!content) {
         showCloseOverlay({
-          title: "Nessun progetto da salvare",
-          detail: "Mosaica si chiuderà tra poco.",
+          title: __ta("autosave.close.noProject.title", "Nessun progetto da salvare"),
+          detail: __ta("autosave.close.noProject.detail", "Mosaica si chiuderà tra poco."),
           pathOrMsg: "",
           busy: false
         });
@@ -495,10 +497,10 @@
       }
 
       showCloseOverlay({
-        title: "Progetto salvato ✔",
+        title: __ta("autosave.close.saved.title", "Progetto salvato ✔"),
         detail: projectPath
-          ? "Il progetto è stato sovrascritto al percorso originale."
-          : "Salvataggio di ripristino creato automaticamente.",
+          ? __ta("autosave.close.saved.overwritten", "Il progetto è stato sovrascritto al percorso originale.")
+          : __ta("autosave.close.saved.session", "Salvataggio di ripristino creato automaticamente."),
         pathOrMsg: savedPath || "",
         busy: false
       });
@@ -506,8 +508,8 @@
     } catch (e) {
       console.error("[autoSave] Errore salvataggio di chiusura:", e);
       showCloseOverlay({
-        title: "Errore di salvataggio",
-        detail: "Non è stato possibile completare l'auto-salvataggio:",
+        title: __ta("autosave.close.error.title", "Errore di salvataggio"),
+        detail: __ta("autosave.close.error.detail", "Non è stato possibile completare l'auto-salvataggio:"),
         pathOrMsg: String((e && e.message) || e),
         busy: false
       });
@@ -547,15 +549,29 @@
   // ───────────────────────────────────────────────────────────
   //  UI — BADGE NELLA STATUS BAR
   // ───────────────────────────────────────────────────────────
+  // Helper i18n locale, con la stessa semantica di __t() in renderer.js:
+  // se il motore i18n non è pronto o la chiave manca, torna il testo
+  // italiano di riserva — il badge non resta mai vuoto.
+  function __ta(key, fallback) {
+    try {
+      if (typeof window.__t === "function") return window.__t(key, null, fallback);
+      if (window.i18n && typeof window.i18n.t === "function") {
+        const v = window.i18n.t(key);
+        if (v && v !== key) return v;
+      }
+    } catch (_) {}
+    return fallback;
+  }
+
   function showStatusBadge(state, extraMsg) {
     const badge = document.getElementById("statusAutoSave");
     if (!badge) return;
     badge.style.display = "inline-flex";
     badge.className = "status-item auto-save-badge state-" + state;
     let txt;
-    if (state === "salvataggio") txt = "💾 Auto-salvataggio in corso…";
-    else if (state === "salvato") txt = "✔ Auto-salvato";
-    else txt = "⚠ Errore auto-salvataggio" + (extraMsg ? ": " + extraMsg : "");
+    if (state === "salvataggio") txt = __ta("autosave.badge.saving", "💾 Auto-salvataggio in corso…");
+    else if (state === "salvato") txt = __ta("autosave.badge.saved", "✔ Auto-salvato");
+    else txt = __ta("autosave.badge.error", "⚠ Errore auto-salvataggio") + (extraMsg ? ": " + extraMsg : "");
     badge.innerHTML = `<span class="value">${txt}</span>`;
   }
 
@@ -582,10 +598,10 @@
         <div class="autoSaveCloseSpinner" id="autoSaveCloseSpinner"></div>
         <div class="autoSaveCloseActions">
           <button class="autoSaveBtn cancel" id="autoSaveCancelCloseBtn" style="display:none;">
-            Annulla chiusura
+            <span id="autoSaveCancelCloseLabel">Annulla chiusura</span>
           </button>
           <button class="autoSaveBtn primary" id="autoSaveCloseNowBtn" style="display:none;">
-            Esci ora (<span id="autoSaveCloseCountdown">${CLOSE_COUNTDOWN_S}</span>s)
+            <span id="autoSaveCloseNowLabel">Esci ora</span> (<span id="autoSaveCloseCountdown">${CLOSE_COUNTDOWN_S}</span>s)
           </button>
         </div>
       </div>
@@ -606,6 +622,16 @@
     const o = ensureCloseOverlay();
     o.style.display = "flex";
     requestAnimationFrame(() => o.classList.add("visible"));
+
+    // Le due etichette si RILEGGONO a ogni apertura invece di restare
+    // congelate alla creazione dell'overlay: stessa regola dei tooltip del
+    // radiale (Fetta 5). L'overlay nasce una volta sola e vive quanto la
+    // finestra, quindi congelarle vorrebbe dire mostrarle nella lingua che
+    // c'era al primo avvio.
+    const lblCancel = o.querySelector("#autoSaveCancelCloseLabel");
+    if (lblCancel) lblCancel.textContent = __ta("autosave.close.btn.cancel", "Annulla chiusura");
+    const lblExit = o.querySelector("#autoSaveCloseNowLabel");
+    if (lblExit) lblExit.textContent = __ta("autosave.close.btn.exitNow", "Esci ora");
 
     o.querySelector("#autoSaveCloseTitle").textContent = title || "";
     o.querySelector("#autoSaveCloseDetail").textContent = detail || "";

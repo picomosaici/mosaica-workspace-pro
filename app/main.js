@@ -740,6 +740,131 @@ ipcMain.handle("export-shapes-svg", async (_, svgContent) => {
 });
 
 /* ===============================
+   🧩 TAVOLA DELLE TESSERE (tileSheet.js)
+   ------------------------------------------------------------
+   Scrive N file (gli SVG per il laser; nella Fetta 3 anche il PDF
+   di più pagine, nella Fetta 4 la distinta .csv) in UNA cartella
+   scelta una volta sola, invece di un dialogo per file.
+   Payload:
+     { files: [{ name, content }],            ← testo UTF-8 (svg, csv)
+       pdf?:  { name, orientation, pages: [dataURL PNG] },
+       testi?: { title, overwriteQuestion, overwrite, cancel } }
+   Ritorna: null se annullato · { ok: true, dir, written } ·
+            { ok: false, error, dir?, written? }.
+   ⚠ Sicurezza: il nome di ogni file è SOLO un nome, mai un percorso —
+   minuscole, cifre, _ - . e un'estensione ammessa. Niente «..», niente
+   barre: nessun file può finire fuori dalla cartella scelta.
+   ⚠ File del processo principale: dopo averlo installato bisogna
+   RIAVVIARE Mosaica, non basta ricaricare la finestra.
+================================ */
+const TILE_SHEET_NAME_RE = /^[a-z0-9][a-z0-9_.-]{0,150}\.(svg|pdf|csv)$/;
+const TILE_SHEET_MAX_FILES = 80;
+const TILE_SHEET_MAX_PDF_PAGES = 20;
+let _tileSheetLastDir = null;
+
+function _tileSheetNameOk(n) {
+  return typeof n === "string" && TILE_SHEET_NAME_RE.test(n) && !n.includes("..") && path.basename(n) === n;
+}
+
+async function _writeTileSheetPdf(filePath, pdf) {
+  const landscape = pdf.orientation === "landscape";
+  // A4 in points (PDFKit): 595.28 x 841.89 — stessa misura del PDF di sempre
+  const pageW = landscape ? 841.89 : 595.28;
+  const pageH = landscape ? 595.28 : 841.89;
+  const doc = new PDFDocument({ size: "A4", layout: landscape ? "landscape" : "portrait", margin: 0, autoFirstPage: false });
+  const stream = fs.createWriteStream(filePath);
+  const done = new Promise((resolve, reject) => {
+    stream.on("finish", resolve);
+    stream.on("error", reject);
+  });
+  doc.pipe(stream);
+  for (const dataURL of pdf.pages) {
+    const base64 = String(dataURL).split(",")[1] || "";
+    doc.addPage({ size: "A4", layout: landscape ? "landscape" : "portrait", margin: 0 });
+    // la pagina è già un A4 1:1 a 300 DPI: la si stende sulla pagina intera
+    doc.image(Buffer.from(base64, "base64"), 0, 0, { width: pageW, height: pageH });
+  }
+  doc.end();
+  await done;
+}
+
+ipcMain.handle("export-tile-sheet", async (_, payload) => {
+  const files = Array.isArray(payload?.files) ? payload.files : [];
+  const pdf = payload?.pdf && Array.isArray(payload.pdf.pages) && payload.pdf.pages.length ? payload.pdf : null;
+  const testi = (payload && typeof payload.testi === "object" && payload.testi) || {};
+  if (!files.length && !pdf) return null;
+
+  // ── Validazione PRIMA del dialogo: se qualcosa non va non si chiede niente
+  if (files.length + (pdf ? 1 : 0) > TILE_SHEET_MAX_FILES) {
+    return { ok: false, error: `troppi file (${files.length})` };
+  }
+  const names = [];
+  for (const f of files) {
+    if (!f || !_tileSheetNameOk(f.name) || typeof f.content !== "string") {
+      return { ok: false, error: `file non valido: ${f && f.name}` };
+    }
+    names.push(f.name);
+  }
+  if (pdf) {
+    if (!_tileSheetNameOk(pdf.name) || !pdf.name.endsWith(".pdf")) return { ok: false, error: `nome PDF non valido: ${pdf.name}` };
+    if (pdf.pages.length > TILE_SHEET_MAX_PDF_PAGES) return { ok: false, error: `troppe pagine (${pdf.pages.length})` };
+    names.push(pdf.name);
+  }
+  if (new Set(names).size !== names.length) return { ok: false, error: "nomi di file duplicati" };
+
+  // ── La cartella, una volta sola
+  const options = {
+    title: testi.title || "Scegli la cartella per la tavola delle tessere",
+    defaultPath: _tileSheetLastDir || app.getPath("documents"),
+    properties: ["openDirectory", "createDirectory"]
+  };
+  const hasWin = mainWindow && !mainWindow.isDestroyed();
+  const { canceled, filePaths } = hasWin ? await dialog.showOpenDialog(mainWindow, options) : await dialog.showOpenDialog(options);
+  if (canceled || !filePaths || !filePaths[0]) return null;
+  const dir = filePaths[0];
+  _tileSheetLastDir = dir;
+
+  // ── Se ci sono già file con lo stesso nome, si chiede UNA volta
+  const existing = names.filter((n) => {
+    try {
+      return fs.existsSync(path.join(dir, n));
+    } catch (_) {
+      return false;
+    }
+  });
+  if (existing.length) {
+    const box = {
+      type: "question",
+      buttons: [testi.overwrite || "Sovrascrivi", testi.cancel || "Annulla"],
+      defaultId: 1,
+      cancelId: 1,
+      title: testi.title || "Tavola delle tessere",
+      message: String(testi.overwriteQuestion || "Nella cartella ci sono già {n} file con lo stesso nome. Vuoi sovrascriverli?").replace("{n}", String(existing.length)),
+      detail: existing.slice(0, 12).join("\n") + (existing.length > 12 ? "\n…" : "")
+    };
+    const r = hasWin ? await dialog.showMessageBox(mainWindow, box) : await dialog.showMessageBox(box);
+    if (r.response !== 0) return null;
+  }
+
+  // ── Scrittura
+  const written = [];
+  try {
+    for (const f of files) {
+      fs.writeFileSync(path.join(dir, f.name), f.content, "utf8");
+      written.push(f.name);
+    }
+    if (pdf) {
+      await _writeTileSheetPdf(path.join(dir, pdf.name), pdf);
+      written.push(pdf.name);
+    }
+  } catch (err) {
+    console.error("[tileSheet] errore di scrittura:", err);
+    return { ok: false, error: err.message || String(err), dir, written };
+  }
+  return { ok: true, dir, written };
+});
+
+/* ===============================
    ✏️ EXPORT FREEHAND SVG/PNG (singolo o multipli)
 ================================ */
 ipcMain.handle("export-freehand", async (_, payload) => {

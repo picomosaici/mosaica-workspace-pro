@@ -33,17 +33,20 @@ Sviluppata su tecnologia Electron e Fabric.js, offre un'esperienza nativa Window
 - ✂️ **Builder forme non regolari** con foglio in mm reali (A5→A0 + personalizzato), arrotondamento per singolo vertice, curve di Bézier sui lati, immagine di riferimento per il ricalco e composizioni multi-forma (posa palladiana)
 - 🪨 **Texture procedurali di pietra** generate da codice (granito, marmo, cemento, murano, EVA, venature): ripetibili senza giunte, colorabili a piacere e salvate nel progetto, così un file riaperto ritrova la texture identica anche su un altro PC
 - ✏️ **Disegno a mano libera** con pennelli pressure-sensitive e anteprima live dello spessore del tratto
-- 💧 **Stamp brush acquerello** per effetti pittorici realistici con *bleed*
-- 🚧 **Perimetro di contenimento**: tracci un poligono entro cui penna e acquerello possono colorare (e fuori no), comodo per restare dentro le fughe; viene salvato col progetto
+- 💧 **Stamp brush acquerello** per effetti pittorici realistici con *bleed*, con anello attorno al cursore misurato sulla punta vera
+- 🖼️ **Pennello Timbro**: copi una zona del lavoro e la ristampi dove dipingi; punta con forma, misura, spaziatura e rotazione regolabili, anche con una forma libera disegnata col costruttore della palladiana
+- 🚧 **Perimetro di contenimento**: tracci un poligono entro cui penna e acquerello possono colorare (e fuori no), comodo per restare dentro le fughe; si corregge con le maniglie, ha una lente mirino per piazzare i vertici con precisione e viene salvato col progetto
 - 🎯 **Selezione avanzata delle tessere**:
   - **Lazo a poligono** per racchiudere un'area
   - **Pennello selezione**: selezioni le tessere "dipingendoci" sopra a mano libera, con larghezza in mm regolabile e tratti che si sommano (CTRL per deselezionare)
-  - **Menu radiale** che agisce su una o più forme insieme (multi-selezione con CTRL+click): colore, texture, blocco, eliminazione, raggruppa / separa
+  - **Menu radiale** che agisce su una o più forme insieme (multi-selezione con CTRL+click): colore, texture, blocco, eliminazione, raggruppa / separa; quando non c'è spazio si dispone in colonna
+  - **Comandi della selezione**: deseleziona, inquadra la selezione, specchio orizzontale e verticale (anche sulle tessere ruotate, senza cambiare le misure)
 - 🎨 **Sistema di calibrazione** colore e dimensione tessere in mm reali
 - 🖌️ **Supporto tavoletta grafica Wacom** nativo
 - 🖼️ **Canvas A4 verticale/orizzontale** con immagine di sfondo come riferimento (fit, rotazione, rimozione)
 - 💾 **Salvataggio automatico** e gestione file di progetto
 - 📤 **Esportazione SVG e PDF** ad alta qualità, con export dedicato delle sole linee a mano libera
+- 🔪 **Tavola delle Tessere per il taglio laser**: SVG separati per famiglia di colore, compensazione del taglio e linguette, PDF per il banco di lavoro e distinta delle tessere in CSV
 - 🔍 **Zoom Photoshop-style** fluido con snapshot GPU: gesti di rotella reattivi anche su canvas pesanti (centinaia di tessere, sfondi grandi, decine di tratti)
 - 🖱️ **Mappatura mouse e tastiera completa**: tasti laterali X1/X2, combinazioni (chord), scorciatoie personalizzate, tasti direzionali rimappabili
 - 🚀 **Accelerazione GPU** per progetti complessi

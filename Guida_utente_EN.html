@@ -582,7 +582,7 @@
   <div class="header-inner">
     <div class="logo-badge">
       <div class="logo-dot">🎨</div>
-      User Guide · V 07.2026
+      User Guide · V 09.2026
     </div>
     <h1>Mosaica<br><em>Workspace Pro</em></h1>
     <p class="header-sub">Complete guide to using the application for to-scale mosaic design, freehand drawing, digital watercolor, and laser CAM export.</p>
@@ -602,12 +602,14 @@
     <a href="#disegno">Freehand Drawing</a>
     <a href="#acquerello">Watercolor</a>
     <a href="#punte">Brush Tips</a>
+    <a href="#timbro">Clone Stamp</a>
     <a href="#sfondo">Background</a>
     <a href="#progetti">Projects</a>
     <a href="#autosave">Auto-Save</a>
     <a href="#autoopen">Auto-Open</a>
     <a href="#fullscreen">Full Screen</a>
     <a href="#esporta">Export</a>
+    <a href="#tavola">Tile Sheet</a>
     <a href="#wacom">Wacom Tablet</a>
     <a href="#inputmapping">Input Mapping</a>
     <a href="#scorciatoie">Shortcuts</a>
@@ -640,7 +642,7 @@
   <div class="card-grid col2">
   <div class="card-mini">
       <h4>① Top Bar (at the top)</h4>
-      <p>Logo, <strong>File</strong> dropdown (Open/Save/New Project + auto-open), <strong>Export</strong> dropdown (PDF, PNG/SVG, freehand), <strong>Undo/Redo</strong> buttons, <strong>Zoom</strong> controls (+/−/reset with live percentage), <strong>Calibration</strong> dropdown, <strong>full screen</strong> toggle (⛶/🗗), <strong>📖 Guide</strong> button, <strong>🖊️ Wacom</strong> button (tablet settings with connection status indicator), and <strong>🖱️⌨️ Input</strong> button (custom mouse and keyboard mapping).</p>
+      <p>Logo, <strong>File</strong> dropdown (Open/Save/New Project + auto-open), <strong>Export</strong> dropdown (PDF, PNG/SVG, freehand), <strong>Undo/Redo</strong> buttons, <strong>Zoom</strong> controls (+/−/reset with live percentage and <strong>▣ fit selection</strong>), <strong>Calibration</strong> dropdown, <strong>full screen</strong> toggle (⛶/🗗), <strong>📖 Guide</strong> button, <strong>🖊️ Wacom</strong> button (tablet settings with connection status indicator), and <strong>🖱️⌨️ Input</strong> button (custom mouse and keyboard mapping).</p>
     </div>
     <div class="card-mini">
       <h4>② BG Panel (right below)</h4>
@@ -708,6 +710,14 @@
     </div>
   </div>
 
+  <h3>Fit Selection — The ▣ Button</h3>
+  <p>In the zoom bar, next to <strong>+</strong>, <strong>−</strong> and <strong>⨾</strong>, there is <strong>▣</strong>: it brings zoom and view onto the <strong>current selection</strong> in a single jump. There is no aiming to do — the selection ends up in the middle of the work area with some air around it, <strong>handles included</strong>, the rotation handle above the box included too. It is the quick way back to a piece of mosaic you had lost sight of, and the way to grab the handles of a selection larger than the screen.</p>
+  <ul>
+    <li>If nothing is selected, Mosaica tells you and the view does not move.</li>
+    <li>If the selection is so large that not even <strong>40%</strong> zoom can hold it, the button does what it can and <strong>warns you</strong> that part of it stays outside: that is the zoom limit, not a defect.</li>
+    <li>Zoom and pan never enter the history: a <kbd>Ctrl</kbd>+<kbd>Z</kbd> after a fit does not undo the fit, it undoes the last thing you did <em>to the mosaic</em>. This is the behavior it has always had.</li>
+  </ul>
+
   <h3>Adaptive Wheel Sensitivity</h3>
   <p>Wheel zoom has a <strong>sensitivity that adapts to gesture speed</strong>: when you turn the wheel slowly the zoom stays precise, one notch at a time; when you spin it quickly the zoom accelerates naturally to cover more range in less time, exactly like professional graphic editors. Speed is measured in events/second and smoothed with an exponential moving average (EMA) that decays over ~250 ms — so the moment you slow down, zoom returns to precise mode immediately. A <em>safety cap</em> on individual event intensity also protects against driver/OS spikes.</p>
 
@@ -719,6 +729,7 @@
     <li>If you are in pen, eraser, or watercolor mode and want to return to selecting shapes, click <strong>🖱️ Select</strong> in the left toolbar: it automatically deactivates all modal tools.</li>
     <li>The <strong>Status Bar</strong> shows coordinates in <em>real mm</em>: use it for precise positioning to the tenth of a millimeter. Coordinates disappear when the mouse leaves the workspace.</li>
     <li>If you lose sight of the sheet, press <strong>Ctrl + 0</strong> to return to 100% zoom and center the canvas.</li>
+    <li>If you have selected the whole mosaic and the handles have ended up off-screen, press <strong>▣ Fit selection</strong> in the zoom bar: the selection comes back inside the work area with its handles within reach.</li>
     <li>The app starts in <strong>full screen mode</strong>: the 🗗 button at the top right (or <strong>ESC</strong>) exits it.</li>
   </ul></div></div>
 </section>
@@ -736,19 +747,19 @@
     <li>
       <div>
         <div class="step-title">Open the calibration panel</div>
-        <div class="step-body">Click <strong>📏 Calibration</strong> in the top bar. A popover opens with a <strong>gray strip</strong> with a white border, exactly 50 mm theoretical length.</div>
+        <div class="step-body">Click <strong>📏 Calibration</strong> in the top bar. A popover opens with a <strong>black strip</strong>, 50 mm long in theory: it is the one you measure.</div>
       </div>
     </li>
     <li>
       <div>
-        <div class="step-title">Verify OS and browser zoom at 100%</div>
-        <div class="step-body">Before measuring, make sure the <strong>operating system zoom is at 100%</strong> (display scaling) and that no filters are active.</div>
+        <div class="step-title">Keep the Windows scaling you normally use</div>
+        <div class="step-body">Calibrate with the <strong>Windows display scaling</strong> you normally use. If you change it later, calibrate again.</div>
       </div>
     </li>
     <li>
       <div>
         <div class="step-title">Measure the strip with a caliper</div>
-        <div class="step-body">Place a <strong>digital caliper</strong> (or a rigid metal ruler) directly on the screen, on the strip labeled "50 mm THEORETICAL". Record the actual measurement.</div>
+        <div class="step-body">Place a <strong>digital caliper</strong> (or a rigid metal ruler) directly on the screen and measure the <strong>black strip</strong> labeled "50 mm THEORETICAL", <strong>edge to edge</strong>. Record the actual measurement.</div>
       </div>
     </li>
     <li>
@@ -768,6 +779,8 @@
   <div class="callout tip"><div class="callout-icon"></div><div>Calibration is <strong>automatically saved</strong> in the <code>calibration.json</code> file inside <code>%APPDATA%\mosaica-workspace-pro\</code>. There is no need to recalibrate every time you open the app, only if you change monitor or resolution.</div></div>
 
   <p>The <strong>Reset calibration (1.0)</strong> button resets the factor to 1.000 (no correction).</p>
+
+  <div class="callout warning"><div class="callout-icon"></div><div><strong>The factor also converts the measures of your projects.</strong> Recalibrating changes the millimeters of the tiles already drawn, and Mosaica tells you with a notice that says by how much they changed. Calibrate once, then leave it alone. An impossible measure (for example <code>4.785</code> instead of <code>47.85</code>) is refused instead of upsetting the sheet.</div></div>
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
     <li>Use a <strong>digital caliper</strong> or a rigid physical ruler (metal or hard plastic) instead of a flexible tape measure: the reading is more precise to the hundredth of a millimeter.</li>
@@ -847,6 +860,8 @@
 
   <h3>Selecting and Moving</h3>
   <p>Click a shape to select it. <strong>Blue control handles</strong> will appear at the edges and corners for resizing, and the <strong>↻</strong> symbol for rotation. Drag the shape to move it.</p>
+
+  <div class="callout tip"><div class="callout-icon"></div><div><strong>The handles of a large selection can always be grabbed.</strong> On a small tile the handles sit a few pixels away from the shape, in proportion to its size. On a selection as large as the sheet that proportion would throw them off-screen, so the gap has a <strong>cap</strong>: it stops at <strong>40 screen pixels</strong> and grows no further. The cap only bites past a size of <strong>about 7.5 cm</strong>: below that, nothing changes at all from before. And if the selection is larger than the window anyway, there is <strong>▣ Fit selection</strong> in the zoom bar.</div></div>
 
   <h3>Multi-Selection</h3>
   <p>You have four ways:</p>
@@ -1014,6 +1029,8 @@
   <h2>Radial Menu</h2>
   <p>When you select one or more objects, a <strong>circle of buttons</strong> appears around them. This is the radial menu: it contains all available actions for the selection. Buttons are arranged in a circle around the object, at a distance proportional to the size (you can fine-tune the radius with a slider that appears below the W/H measurements).</p>
 
+  <div class="callout tip"><div class="callout-icon"></div><div><strong>When the circle will not fit, the buttons stack into a column.</strong> At <strong>high zoom</strong>, on a very large shape, or in <strong>multi-selection</strong>, a circle wide enough to hold every button would end up off-screen or underneath the bars. In that case the menu lays itself out as a <strong>compact column</strong> next to the shape. Nothing the buttons do changes: only where they sit, and they go back to a circle as soon as there is room. The <strong>W</strong> and <strong>H</strong> measurements and the radius slider follow the column and <strong>always stay inside the visible area</strong>.</div></div>
+
   <div class="radial-grid">
     <div class="radial-item">
       <div class="radial-icon">↻</div>
@@ -1098,6 +1115,33 @@
         <div class="radial-desc">Visible on groups. Brings the shapes back to single state, maintaining positions and orientations.</div>
       </div>
     </div>
+    <div class="radial-item">
+      <div class="radial-icon">⬚</div>
+      <div>
+        <div class="radial-label">Deselect all</div>
+        <div class="radial-desc">Lets the selection go without touching the shapes. Handy when you have grabbed the whole mosaic and there is no empty patch of sheet left to click on to release it.</div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon">◨</div>
+      <div>
+        <div class="radial-label">Mirror — vertical axis</div>
+        <div class="radial-desc">
+          <strong>Left ↔ right.</strong> The line that splits the little square in the icon <em>is</em> the mirror axis.<br>
+          The measurements do not change by a tenth of a millimeter.
+        </div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon">⬓</div>
+      <div>
+        <div class="radial-label">Mirror — horizontal axis</div>
+        <div class="radial-desc">
+          <strong>Top ↔ bottom.</strong> Same rule as the other one: the name says the <em>axis</em>, not the movement.<br>
+          The measurements do not change by a tenth of a millimeter.
+        </div>
+      </div>
+    </div>
   </div>
 
   <h3>Fine Rotation and Scale — The Details</h3>
@@ -1121,6 +1165,23 @@
 
   <div class="callout tip"><div class="callout-icon"></div><div>With <strong>multiple objects selected</strong> the <strong>⎇ Group</strong> and <strong>⎆ Ungroup</strong> buttons appear in green. A group moves, resizes, and rotates as a single unit.</div></div>
 
+  <h3>The Mirror — ◨ and ⬓</h3>
+  <p><strong>The rule, in two lines.</strong> Mirroring is the gesture of turning the tile over between your fingers: the tile flips and stays <em>exactly</em> as wide and as tall as it was. It is not the handle dragged past the opposite side — that one flips and resizes at the same time, and half a millimeter less means a tile that no longer fits the place you cut it for.</p>
+
+  <div class="callout tip"><div class="callout-icon"></div><div><strong>The name refers to the axis, and the icon shows it.</strong> The line that cuts the little square in two <em>is</em> the mirror axis: <strong>◨</strong> has a <strong>vertical</strong> axis and swaps left with right, <strong>⬓</strong> has a <strong>horizontal</strong> axis and swaps top with bottom. If you get confused, look at the icon: the filled half moves to the other side, and that is the direction the tile goes.</div></div>
+
+  <p>On a <strong>single shape</strong> the axis passes through its own center: the shape flips and does not move by a single pixel. On a <strong>multi-selection</strong> the axis passes through the center of the whole selection, so what gets flipped is <strong>the layout</strong> — the tiles swap places as in a real mirror — and the selection box stays where it was and the same size.</p>
+
+  <ul>
+    <li><strong>A trapezoid</strong> with the tip on the left: with <strong>◨</strong> the tip moves to the right and the two bases stay where they were; with <strong>⬓</strong> the two bases swap and the tip stays on the left. The Inspector sliders show the new millimeters right away.</li>
+    <li><strong>A scalene triangle</strong>: angles α and β swap.</li>
+    <li><strong>Rotated tiles</strong> get their rotation <em>reversed</em>, not preserved — that is what makes the difference between a mirror and a shape turned at random. You only see it by eye when at least one tile is tilted.</li>
+    <li><strong>The containment perimeter (⬡)</strong> is a tool laid on the sheet, not a piece of the selection: it does not mirror.</li>
+    <li><strong>One gesture = one <kbd>Ctrl</kbd>+<kbd>Z</kbd>.</strong> Even if you mirrored four hundred tiles in one go.</li>
+  </ul>
+
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>The drawing under the tiles never mirrors.</strong> <strong>Pen</strong> and <strong>watercolor</strong> strokes stay where they are even when they sit inside the selection — and an absent-minded <kbd>Ctrl</kbd>+<kbd>A</kbd> is enough to pull them in. This is on purpose: the watercolor is the guide the tiles are laid onto, and with your hands you turn the tile, not the sheet. Mosaica tells you with a notice and counts how many strokes it left out.</div></div>
+
   <h3>Applying Color</h3>
   <p>After clicking 🎨 a panel appears with a color picker and eight quick colors. The color is applied immediately to the object. Click outside the panel to close it.</p>
 
@@ -1134,9 +1195,11 @@
     <li><strong>🔒 Lock / Unlock</strong> → acts on the whole selection. If even <em>one</em> shape is locked, the button shows <strong>🔓 Unlock</strong> (orange) to free them all.</li>
     <li><strong>🗑️ Delete</strong> → removes all selected shapes (reversible with <kbd>Ctrl</kbd>+<kbd>Z</kbd>).</li>
     <li><strong>⎇ Group</strong> → <strong>enables</strong> with two or more shapes selected and merges them into a single group. <strong>⎆ Ungroup</strong> enables instead when you have a group selected, and returns it to single shapes.</li>
+    <li><strong>⬚ Deselect all</strong> → lets the selection go. On a full mosaic it is handier than hunting for an empty patch of sheet to click on.</li>
+    <li><strong>◨ and ⬓ Mirror</strong> → flip <strong>the layout</strong> of all the selected tiles around the axis through the center of the selection, without changing the tiles' measurements by a tenth of a millimeter. See <em>The Mirror</em> above.</li>
     <li><strong>◔ Slice circle</strong> only shows when the selection is a single circle or ellipse, so it <strong>does not appear</strong> in multi-selection.</li>
   </ul>
-  <p>In multi-selection the Status Bar shows <strong>"N objects"</strong> instead of the single shape's measurements, and the Inspector's <strong>Dimensions</strong> block hides (single measurements would not make sense for several shapes). The menu anchors next to the <strong>last shape added</strong> to the selection.</p>
+  <p>In multi-selection the Status Bar shows <strong>"N objects"</strong> instead of the single shape's measurements, and the Inspector's <strong>Dimensions</strong> block hides (single measurements would not make sense for several shapes). The column of buttons sits <strong>outside the selection</strong>, against the edge of the box that encloses <em>all</em> the selected shapes — so it does not cover the tiles you are working on — while vertically it stays level with the <strong>last shape you added</strong>, that is, with where you are working. If the outer edge of the selection is off-screen, the column still stays <strong>inside the window</strong>, against its border.</p>
 
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
@@ -1144,6 +1207,8 @@
     <li>With multiple objects selected the <strong>⎇ Group</strong> and <strong>⎆ Ungroup</strong> buttons appear: group to move complex sets as a single shape.</li>
     <li>Use <strong>🔒 Lock</strong> on finished shapes to avoid selecting them by mistake while freehand drawing over them.</li>
     <li>To <strong>scale with precision of a whole millimeter</strong> use the ⤢ Scale button without modifiers; for the <strong>hundredth of a mm</strong> hold Ctrl (0.35 mm steps).</li>
+    <li><strong>⬚ Deselect all</strong> is the way out when the sheet is packed with tiles and you cannot find an empty spot to click on to release the selection.</li>
+    <li>Before mirroring, <strong>look at the icon</strong>: the line splitting the little square is the axis. And if you pressed the wrong one, <strong>press it again</strong> — two identical mirrors put everything back exactly as it was.</li>
     <li>The <strong>rotation handle</strong> (↻) shows the same icon as the cursor during fine rotation with right button + wheel: it is a visual preview of the gesture.</li>
   </ul></div></div>
 </section>
@@ -1275,6 +1340,7 @@
   <div class="section-label">07</div>
   <h2>Freehand Drawing</h2>
   <p>The <strong>Left Toolbar</strong> contains three modal drawing tools: <strong>pen ✏️</strong>, <strong>eraser 🧼</strong>, and <strong>watercolor 💧</strong>. They are mutually exclusive: activating one deactivates the others.</p>
+  <p>Next to them, after the hexagon ⬡, is the <strong>🖼️ Clone Stamp</strong>, which copies the background instead of laying down color: it has a chapter of its own, <a href="#timbro" style="color:var(--blue);">Clone Stamp</a>.</p>
 
   <div class="card-grid col3">
     <div class="card-mini">
@@ -1324,22 +1390,48 @@
     <li>To delete specific strokes without touching others, open the <strong>📋 Line List</strong> modal: it shows a preview of every stroke and allows selective deletion with checkboxes.</li>
     <li>Freehand strokes (pen and watercolor) are always rendered <strong>under the geometric shapes</strong>: if you need a drawing above a shape, create the shape before the stroke.</li>
     <li>When you are done drawing, click <strong>🖱️ Select</strong> to return to working with shapes.</li>
+    <li><strong>Mirroring the tiles does not touch your drawing.</strong> If you press <kbd>Ctrl</kbd>+<kbd>A</kbd> and then ◨ or ⬓, the tiles flip and the pen and watercolor strokes stay where they are: Mosaica warns you and counts how many it left out. The watercolor is the guide under the tiles — with your hands you turn the tile, not the sheet.</li>
     <li>The <strong>current color</strong> shown in the Inspector is shared between pen and watercolor: changing it in one also changes it for the other.</li>
   </ul></div></div>
 
   <h3>Containment perimeter (⬡)</h3>
-  <p>When you color the <strong>grout</strong> freehand or paint with watercolor inside a mosaic, it is easy to spill over the work area. The <strong>Containment perimeter</strong> solves this: you define a closed area once, and from then on <strong>pen and watercolor color only inside</strong> it; whatever goes outside is clipped away, exactly like the sheet border does.</p>
+  <p>When you color the <strong>grout</strong> freehand or paint with watercolor inside a mosaic, it is easy to spill over the work area. The <strong>Containment perimeter</strong> solves this: you define a closed area once, and from then on <strong>pen, watercolor and clone stamp color only inside</strong> it; whatever goes outside is clipped away, exactly like the sheet border does.</p>
 
   <h3>Drawing the perimeter</h3>
-  <p>The button is the hexagon <strong>⬡</strong> in the Left Toolbar. It is a single tool that combines two ways of tracing, which you can even mix within the same perimeter:</p>
+  <p>The button is the hexagon <strong>⬡</strong> in the Left Toolbar: it opens the <strong>perimeter mode</strong>, which works whatever tool you have in hand. If there is no perimeter yet, you trace it by combining two ways, which you can even mix within the same perimeter:</p>
   <ul>
     <li><strong>Tap</strong> (single click) → adds a <strong>vertex</strong>: perfect for snapping onto the outer corners of border tiles.</li>
-    <li><strong>Drag</strong> → traces <strong>freehand</strong>, like the brush selection.</li>
+    <li><strong>Drag</strong> → traces <strong>freehand</strong>, like the brush selection. If instead you press on a point already placed and drag, you <strong>move that point</strong>.</li>
     <li><kbd>Enter</kbd>, <strong>double-click</strong> or a <strong>tap near the first vertex</strong> → <strong>closes</strong> the perimeter.</li>
     <li><kbd>Backspace</kbd> → removes the <strong>last point</strong> added.</li>
-    <li><kbd>Esc</kbd> → <strong>cancels</strong> the current session (it does not delete an already-confirmed perimeter).</li>
+    <li><kbd>Esc</kbd> → leaves the mode: an outline not yet closed is <strong>cancelled</strong> (a perimeter already set is left alone).</li>
   </ul>
-  <p>At least <strong>3 points</strong> are needed to close. Once confirmed, you see the perimeter outline as a dashed guide while you work freehand.</p>
+  <p>At least <strong>3 points</strong> are needed to close. Closing <strong>sets</strong> the perimeter without leaving the mode: its <strong>handles</strong> stay, so you can adjust it right away.</p>
+
+  <h3>Handles: correcting the perimeter</h3>
+  <p>A click on <strong>⬡</strong> when a perimeter already exists <strong>reopens it with its handles</strong>. Inside the mode:</p>
+  <ul>
+    <li><strong>Drag</strong> a handle → you move it. The grab does not change with zoom, and the gesture starts only after a few pixels: a light touch stays a click.</li>
+    <li><strong>Double-click on a side</strong> → adds a point, placed right on the side.</li>
+    <li><strong>Click</strong> a handle → you select it (it turns <strong>cyan</strong>); <kbd>Del</kbd> or <kbd>Backspace</kbd> remove it. A perimeter never goes below 3 points.</li>
+    <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> → undoes one <strong>shape</strong> step of the perimeter. When there are none left, the key goes back to Mosaica's normal undo.</li>
+    <li><kbd>Enter</kbd>, <kbd>Esc</kbd>, another click on <strong>⬡</strong> or another tool → leave the mode; the perimeter stays.</li>
+  </ul>
+
+  <div class="callout success"><div class="callout-icon"></div><div>Moving, adding or removing a handle, the strokes already drawn inside the perimeter <strong>follow the new shape</strong>: widening it brings back what was hidden, narrowing it hides it. The clip is recomputed when you <strong>release</strong> the handle.</div></div>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>With the <strong>lasso</strong> or the <strong>brush selection</strong> on, the perimeter mode <strong>does not open</strong>, and tells you so: they share the same drawing layer. Close them first. The perimeter you set shows as a dashed guide with a freehand tool in hand and inside the perimeter mode; in plain selection it stays invisible.</div></div>
+
+  <h3>The crosshair lens</h3>
+  <p>Inside the perimeter mode, a <strong>lens</strong> appears under the cursor that magnifies what lies beneath, with a <strong>reticle in real millimeters</strong>: it lets you place points at precise distances from the tiles, not just see better. The <strong>cyan dot</strong> at the center of the reticle is exactly where the click places the vertex or the handle.</p>
+  <ul>
+    <li>The reticle step adapts to the magnification, from a quarter of a millimeter to 50 mm; every five steps there is a tick with its value in mm.</li>
+    <li><strong>Hold the pointer still</strong> for a moment: a ring of controls appears around the lens with two sliders, <strong>⌀ diameter</strong> (90–460 px, 190 to begin with) and <strong>🔍 magnification</strong> (1.5×–12×, 4× to begin with), plus the <strong>⊘</strong> button that turns it off.</li>
+    <li><kbd>L</kbd> turns the lens on and off, only inside the perimeter mode.</li>
+    <li>Diameter, magnification and lens on or off are <strong>remembered</strong> from one session to the next.</li>
+  </ul>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>In the lens the <strong>watercolor</strong> (and the clone stamp) look <strong>softened</strong>: they are images, not vector drawings, and magnified they lose sharpness. It is not a defect. Tiles and pen strokes stay sharp at any magnification.</div></div>
 
   <div class="callout tip"><div class="callout-icon"></div><div>To <strong>remove</strong> a perimeter you already set, <strong>right-click</strong> the ⬡ button (same logic as the brush selection). The clipping applied to strokes drawn while the perimeter was active <strong>still remains</strong>: removing the perimeter does not un-clip the strokes already contained.</div></div>
 
@@ -1437,6 +1529,9 @@
     </div>
   </div>
 
+  <h3>The ring around the cursor</h3>
+  <p>With pen, eraser and watercolor a <strong>dashed ring</strong> around the cursor shows how wide the stroke will be. For the watercolor the ring is <strong>measured on the loaded tip</strong>: it shows the typical width of the stroke, out to where the color drops to half the intensity of the center, and it updates when you change tip or width. The stroke lands <strong>centered on the cursor</strong>; a few stamps may fall outside the ring because of the <strong>Pos. jitter</strong> spread, which scatters them across the stroke.</p>
+
   <h3>Brush Tip Selector Modal</h3>
   <p>The <strong>Tip</strong> button in the Inspector opens a grid modal with all available textures in the <code>textures/brush/</code> folder. Clicking a tip immediately activates it and the specific Initial Rotation value for that tip is loaded into the slider.</p>
 
@@ -1503,16 +1598,156 @@
   </div>
 
     <div class="callout tip"><div class="callout-icon"></div><div>You can add your own custom tips: save any <strong>RGBA PNG with transparent background</strong> in the <code>textures/brush/</code> folder and it will automatically appear in the "Tip" modal at the next opening. Recommended resolution: 256–512 px on the longest side.</div></div>  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
-    <li>To add custom tips, save <strong>RGBA PNG files with transparent background</strong> in the <code>textures/brush/</code> folder: they will automatically appear in the modal at the next app opening. Draw the brush silhouette with the alpha channel (full alpha = pigment, faded alpha = soft edges).</li><li>To add custom tips, save <strong>RGBA PNG files with transparent background</strong> in the <code>textures/brush/</code> folder: they will automatically appear in the modal at the next app opening. Draw the brush silhouette with the alpha channel (full alpha = pigment, faded alpha = soft edges).</li><li>To add custom tips, save <strong>grayscale PNG files</strong> in the <code>textures/brush/</code> folder: they will automatically appear in the modal at the next app opening.</li>
+    <li>To add custom tips, save <strong>RGBA PNG files with transparent background</strong> in the <code>textures/brush/</code> folder: they will automatically appear in the modal at the next app opening. Draw the brush silhouette with the alpha channel (full alpha = pigment, faded alpha = soft edges).</li>
     <li>Each tip has its own independent <strong>Initial Rotation</strong>: experiment with different angles for each texture to discover unexpected stroke variations.</li>
     <li>"Dry brush" tips with holes and streaks (e.g. <code>brush_dry_grain.png</code>) give very realistic glaze effects when combined with rough paper texture.</li>
     <li>If a tip seems too large or too small relative to the stroke, remember that the global brush <strong>Width</strong> scales all tips proportionally.</li>
   </ul></div></div>
 </section>
 
+<!-- ── CLONE STAMP ── -->
+<section id="timbro">
+  <div class="section-label">10</div>
+  <h2>Clone Stamp</h2>
+  <p>The <strong>Clone Stamp 🖼️</strong> copies a piece of the <strong>background</strong> — the image you loaded or the paper — and paints it again wherever you brush. It lets you carry the paper, the grain or a piece of the image into the grout and onto the areas to blend, without leaving Mosaica and without losing the millimeters: all the clone stamp measures are in <strong>real millimeters</strong>, like those of the tiles.</p>
+  <p>The button is <strong>🖼️</strong> in the Left Toolbar, right after the hexagon ⬡. The clone stamp copies the background <strong>as it looks on the sheet</strong>, and its stroke sits <strong>above the background and below pen and watercolor</strong> (and, like all strokes, below the tiles).</p>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>If there is nothing to copy — neither a background image nor the paper — the clone stamp does not turn on and tells you so. It does not turn on either with the <strong>lasso</strong> or the <strong>brush selection</strong> on: they share the same drawing layer. Close them first.</div></div>
+
+  <h3>The source: where you copy from</h3>
+  <p>Around the cursor you see two dashed rings joined by a line: the <strong>tip</strong> ring (where you paint) and the <strong>cyan</strong> ring of the <strong>source</strong> (where you copy from). They show right away, even before you pick a source, and they have the real shape of the tip.</p>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>🔗 Follows</h4>
+      <p>The source <strong>follows the tip</strong> at the set Distance and Angle: while you paint you copy a continuous strip. It is the starting mode, with the source 20 mm to the left of the tip.</p>
+    </div>
+    <div class="card-mini">
+      <h4>📌 Fixed</h4>
+      <p>The source <strong>stays put</strong> on the chosen piece and does not follow the brush: every print always copies from there.</p>
+    </div>
+  </div>
+  <p>To pick the piece to copy you have two ways, and both set the source to <strong>Fixed</strong>:</p>
+  <ul>
+    <li><kbd>Ctrl</kbd>+<strong>Click</strong> on the sheet → that point becomes the fixed source.</li>
+    <li><strong>⊕ Pick source</strong> in the Inspector (the eyedropper) → your next click on the sheet picks the piece. While it is armed, the source ring sits on the tip ring: it shows you that the click takes exactly from there. <kbd>Esc</kbd> or a second click on the button cancel it.</li>
+    <li>To release the fixed source, click <strong>Follows</strong> in the Inspector.</li>
+  </ul>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>If the source ring turns <strong>red</strong>, the source has gone off the sheet, even just partly: there is no background to copy there.</div></div>
+
+  <h3>The tip: shape, size and movement</h3>
+  <div class="card" style="padding: 8px 0;">
+    <div class="wc-control">
+      <div class="wc-name">Size</div>
+      <div class="wc-desc">
+        <strong>Tip width</strong> in real millimeters: the diameter if it is round, the longer side if it is free. It is also the size of the copied piece: one control for both.
+        <div><span class="wc-range">1 – 60 mm · 12 mm to begin with</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Shape</div>
+      <div class="wc-desc">
+        <strong>Six tips:</strong> round (to begin with), square, rectangular, triangular, oval and <strong>free</strong>. The free one stays off until you have drawn one (see below). With the round tip the clone stamp works exactly as it did before the shapes.
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Proportion</div>
+      <div class="wc-desc">
+        <strong>The height of the tip</strong> in parts of its width: 100% makes it as tall as it is wide. It shows only with rectangle, oval and triangle, and each shape remembers its own: rectangle and oval start at 50%, the triangle starts <strong>equilateral</strong> (87%).
+        <div><span class="wc-range">10% – 200%</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Rotation</div>
+      <div class="wc-desc">
+        <strong>Turns the tip</strong>: <strong>+</strong> is clockwise, like the rotation of the tiles and the watercolor Initial rot.
+        <div><span class="wc-range">−180° – +180°</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Direction</div>
+      <div class="wc-desc">
+        <strong>☑ follows the stroke</strong> (on to begin with): the tip turns the way your hand goes, like the flat watercolor tips, and Rotation adds to it. Off, the tip stays put: with sharp corners the edge comes out cleaner, because the shake of the hand does not fray it.
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Spacing</div>
+      <div class="wc-desc">
+        <strong>Distance between one print and the next</strong>, in parts of the tip. Low = continuous stroke; above 1× the prints come apart.
+        <div><span class="wc-range">0.05× – 2× · 0.25× to begin with</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Distance</div>
+      <div class="wc-desc">
+        <strong>How far the following source sits</strong> from the tip: left of the slider's center = on the left side, right of center = on the right side. With a fixed source it applies when you go back to Follows.
+        <div><span class="wc-range">−100 – +100 mm · 20 mm to the left to begin with</span></div>
+      </div>
+    </div>
+    <div class="wc-control" style="border-bottom:none;">
+      <div class="wc-name">Angle</div>
+      <div class="wc-desc">
+        <strong>Tilts the following source</strong> relative to the tip: + moves it up, − down; at ±90° it sits right above or below the tip.
+        <div><span class="wc-range">−90° – +90°</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>With <strong>“follows the stroke”</strong> on, the <strong>first print waits</strong>: when you press, there is no direction yet. The print lands where you pressed as soon as your hand has moved by about a quarter of the tip width. A <strong>quick click</strong> prints with the Rotation only. With the round tip nothing waits.</div></div>
+
+  <h3>The free tip</h3>
+  <p>Press <strong>✏️ Draw the shape…</strong>: the <strong>shape builder</strong> (the palladiana one) opens in tip mode, even with the brush in hand. Draw the shape you want, close it with <kbd>Enter</kbd> and press <strong>✔️ Use as tip</strong>, which takes the place of the usual “Insert into canvas”: nothing is inserted into the mosaic.</p>
+  <ul>
+    <li>The shape arrives in <strong>real millimeters, 1:1</strong>: Size takes its longer side. If it is over 60 mm it is cut down, and you are told. Then you scale it with the slider like the others.</li>
+    <li>The sixth Shape button lights up, and the free tip stays saved even when you close Mosaica.</li>
+    <li>An open shape, one with no surface or a tiny one cannot be a tip: it is refused and the builder stays open so you can fix it.</li>
+  </ul>
+
+  <h3>The colors of the copied piece</h3>
+  <div class="card" style="padding: 8px 0;">
+    <div class="wc-control">
+      <div class="wc-name">Brightness</div>
+      <div class="wc-desc">
+        <strong>Lightens or darkens</strong> the copied piece. In the middle: as it is.
+        <div><span class="wc-range">−100 – +100</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Hue</div>
+      <div class="wc-desc">
+        <strong>Turns the hue</strong> around the color wheel, without changing its lightness or saturation. In the middle: as it is.
+        <div><span class="wc-range">−180° – +180°</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Transparency</div>
+      <div class="wc-desc">
+        <strong>How much the stroke lets you see</strong> what lies beneath. At zero it is solid.
+        <div><span class="wc-range">0% – 90%</span></div>
+      </div>
+    </div>
+    <div class="wc-control" style="border-bottom:none;">
+      <div class="wc-name">Colours</div>
+      <div class="wc-desc">
+        <strong>How the colors come out:</strong> Original, Greyscale, Inverted, Negative (backlit) and <strong>CMY — one plate</strong>, that is the piece as the cyan, magenta or yellow ink alone would print it.
+      </div>
+    </div>
+  </div>
+  <p><strong>↺ Original colours</strong> brings everything back to how it is in the background. The colors apply to the strokes you paint from then on and are <strong>not saved</strong>: when Mosaica is reopened they start again as original. The tip and source settings (size, shape, proportions, rotation, direction, spacing, distance, angle and the free tip) are remembered instead.</p>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical tips</strong><ul>
+    <li><strong>Each stroke is one thing:</strong> shape, proportion, rotation, direction and colors are fixed at the start of the stroke. If you move a slider while painting, it applies to the next stroke.</li>
+    <li>A clone stamp stroke is a <strong>photograph</strong> of what it copied: if you later change the paper or the background image, the stamped areas keep the old one.</li>
+    <li>To remove a stroke use <kbd>Ctrl</kbd>+<kbd>Z</kbd> or <strong>📋 Line list</strong>: there the clone stamp has its own thumbnail and the label “(stamp)”.</li>
+    <li>The <strong>⬡ perimeter</strong> applies to the clone stamp too: inside a perimeter the clone stamp paints only inside.</li>
+    <li>Size is <strong>one control</strong> for all shapes: picking a 35 mm free tip, the round one and the others become 35 mm as well.</li>
+    <li>Even with a large background (a photo of many MB) the clone stamp stays smooth: it works in a separate process, like the watercolor.</li>
+  </ul></div></div>
+</section>
+
 <!-- ── BACKGROUND ── -->
 <section id="sfondo">
-  <div class="section-label">10</div>
+  <div class="section-label">11</div>
   <h2>Background Image</h2>
   <p>The <strong>BG Panel</strong> (the horizontal bar immediately below the top bar) is dedicated to the background image. You can load a reference photo, a drawing, or a photographed project to trace your mosaic over it.</p>
 
@@ -1561,7 +1796,7 @@
 
 <!-- ── PROJECTS ── -->
 <section id="progetti">
-  <div class="section-label">11</div>
+  <div class="section-label">12</div>
   <h2>Saving and Opening Projects</h2>
   <p>Mosaica projects are saved as <strong>.msp.json</strong> files. They contain all shapes, freehand strokes, watercolors, colors, applied textures, the background image, canvas orientation (portrait/landscape), and the current pen and watercolor parameters. The default folder is:</p>
 
@@ -1600,7 +1835,7 @@
 
 <!-- ── AUTO-SAVE ── -->
 <section id="autosave">
-  <div class="section-label">12</div>
+  <div class="section-label">13</div>
   <h2>Auto-Save</h2>
   <p>Mosaica automatically saves your work <strong>in the background</strong> every minute and when you close the app. No interaction required: it happens on its own.</p>
 
@@ -1661,8 +1896,8 @@
     </li>
     <li>
       <div>
-        <div class="step-title">"Cancel closing" button</div>
-        <div class="step-body">If you clicked X by mistake, click <strong>Cancel closing</strong> in the overlay: the app stays open and you can continue working.</div>
+        <div class="step-title">"Cancel close" button</div>
+        <div class="step-body">If you clicked X by mistake, click <strong>Cancel close</strong> in the overlay: the app stays open and you can continue working.</div>
       </div>
     </li>
   </ol>
@@ -1673,13 +1908,13 @@
     <li>If you want a meaningful name for the project, <strong>save it explicitly</strong> with File → Save Project: from that moment auto-save overwrites that file instead of creating a session one.</li>
     <li>Session files remain in the userData folder even after closing: every 10 files the oldest is deleted. If you need to keep a particular one, copy it elsewhere or rename it (the app will no longer delete it because it does not match the date+time pattern).</li>
     <li>When working on a project saved on a <strong>USB flash drive</strong> or <strong>SD card</strong>, auto-save overwrites the file directly there: do not unplug the media during work or you will see a "Folder not available" error.</li>
-    <li>The <strong>"Cancel closing"</strong> button is a safety net: if you close by mistake, you have 4 seconds (plus save time) to stop the closing.</li>
+    <li>The <strong>"Cancel close"</strong> button is a safety net: if you close by mistake, you have 4 seconds (plus save time) to stop the closing.</li>
   </ul></div></div>
 </section>
 
 <!-- ── AUTO-OPEN ── -->
 <section id="autoopen">
-  <div class="section-label">13</div>
+  <div class="section-label">14</div>
   <h2>Automatic Opening of the Last Project</h2>
   <p>Mosaica can automatically open the last saved project every time you launch the app. The preference is configured from the <strong>File</strong> dropdown in the top bar.</p>
 
@@ -1735,7 +1970,7 @@
 
 <!-- ── FULL SCREEN ── -->
 <section id="fullscreen">
-  <div class="section-label">14</div>
+  <div class="section-label">15</div>
   <h2>Full Screen Mode</h2>
   <p>Mosaica always starts in <strong>full screen mode</strong> to maximize workspace. You can exit and enter at any time.</p>
 
@@ -1759,9 +1994,9 @@
 
 <!-- ── EXPORT ── -->
 <section id="esporta">
-  <div class="section-label">15</div>
+  <div class="section-label">16</div>
   <h2>Exporting Your Work</h2>
-  <p>The <strong>Export</strong> dropdown in the top bar offers three items, each with a dedicated modal to choose the content to export.</p>
+  <p>The <strong>Export</strong> dropdown in the top bar offers four items, each with a dedicated modal. The first three are below; the fourth, <strong>🧩 Tile sheet (laser)</strong>, prepares the files to cut the tiles with the laser and has a chapter of its own: <a href="#tavola" style="color:var(--blue);">Tile Sheet</a>.</p>
 
   <div class="card-grid col3">
     <div class="card-mini">
@@ -1774,7 +2009,7 @@
     </div>
     <div class="card-mini">
       <h4>✏️ Freehand</h4>
-      <p>Export only freehand and watercolor strokes as vector SVG or high-resolution PNG, in a single file or separate ones.</p>
+      <p>Export only freehand, watercolor and clone stamp strokes as vector SVG or high-resolution PNG, in a single file or separate ones.</p>
     </div>
   </div>
 
@@ -1840,9 +2075,92 @@
   </ul></div></div>
 </section>
 
+<!-- ── TILE SHEET ── -->
+<section id="tavola">
+  <div class="section-label">17</div>
+  <h2>Tile Sheet — the files for the laser</h2>
+  <p>From the <strong>Export</strong> dropdown → <strong>🧩 Tile sheet (laser)</strong> Mosaica prepares in one go the files to <strong>cut the rubber tiles with the laser</strong> and to work them at the bench. <strong>Nothing moves on the mosaic</strong>: the sorting, the reset rotation and the bill of materials live only inside the exported files.</p>
+
+  <div class="card-grid col3">
+    <div class="card-mini">
+      <h4>🧩 SVG for the laser</h4>
+      <p>One A4 file for each <strong>color family</strong> (all the reds together, all the blues together…) and inside it one grid for each <strong>exact color</strong>. Outlines only, in real millimeters.</p>
+    </div>
+    <div class="card-mini">
+      <h4>📄 PDF for the workbench</h4>
+      <p>The same sheets, printable <strong>1:1</strong>, the <strong>color table</strong> with HEX and RGB to buy the rubber, and the <strong>bill of materials</strong> of the tiles.</p>
+    </div>
+    <div class="card-mini">
+      <h4>📊 Bill of materials as CSV</h4>
+      <p>The bill of materials as a <strong>table</strong> to open with Excel or LibreOffice, to sort and filter.</p>
+    </div>
+  </div>
+
+  <h3>How the tiles are laid out</h3>
+  <ul>
+    <li>Every tile with its <strong>rotation reset</strong> around its center and its <strong>base horizontal</strong>.</li>
+    <li>Grouped by color, with a <strong>new row at every color</strong>. Two nearly identical colors stay <strong>separate</strong>, each with its own grid.</li>
+    <li>In a grid on the shape's <strong>true box</strong>, with the gap you choose between one tile and the next. A <strong>group</strong> is a single piece.</li>
+    <li>Strokes (pen, watercolor, clone stamp), the background and hidden objects are left out: the preview tells you how many.</li>
+  </ul>
+
+  <h3>The choices in the modal</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Choice</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>Only the selected tiles</td><td>Puts only the tiles selected on the sheet into the tile sheet. It turns itself on if you open the modal with <strong>at least two</strong> tiles selected.</td></tr>
+      <tr><td>A4 sheet</td><td>Portrait (to begin with) or landscape.</td></tr>
+      <tr><td>Tiles aligned</td><td><strong>At the bottom</strong> (to begin with: bases in a line, a tile left crooked shows at a glance) or at the top.</td></tr>
+      <tr><td>Gap between tiles</td><td><strong>2 mm</strong> to begin with, horizontally and vertically.</td></tr>
+      <tr><td>Gap between grids</td><td><strong>10 mm</strong> to begin with, minimum 6: in Beam Studio grids separate without catching pieces of the next one.</td></tr>
+      <tr><td>Sheet margin</td><td><strong>5 mm</strong> to begin with: no tile touches the edge.</td></tr>
+      <tr><td>Cut compensation</td><td><strong>0.3 mm</strong> to begin with; 0 turns it off (see below).</td></tr>
+      <tr><td>Growth</td><td><strong>As a band</strong> (to begin with) or proportional.</td></tr>
+      <tr><td>Outlines</td><td><strong>Closed + with tabs</strong> (to begin with) or closed only.</td></tr>
+      <tr><td>Tab gap</td><td>The length of the tab opening: <strong>0.4 mm</strong> to begin with.</td></tr>
+      <tr><td>Tiles in the PDF</td><td><strong>Coloured</strong> (to begin with) or outline only, which uses less ink.</td></tr>
+      <tr><td>Bill of materials: also as CSV</td><td>On to begin with.</td></tr>
+    </tbody>
+  </table>
+  <p>Before you confirm, the <strong>What will be created</strong> box tells you for each family how many tiles, grids and A4 sheets there are, how many files will be created and which tiles are left out. With <strong>📁 Choose the folder and create the files</strong> you pick where to write them; if files with the same name are already there, Mosaica asks before overwriting them. The choices are remembered for next time, except “only the selected tiles”, which is decided every time from the selection.</p>
+
+  <h3>Cut compensation and tabs</h3>
+  <p>On EVA rubber the laser burns away a band of material all along the outline. The <strong>compensation</strong> makes up for it: every measure of the tile grows by the chosen value <strong>only in the cutting files</strong>. With 0.3 mm, width, height and diameter grow by 0.3 mm, that is 0.15 mm per side. The PDF and the bill of materials keep the <strong>real measures</strong>.</p>
+  <ul>
+    <li><strong>As a band</strong>: every side moves outwards by half the compensation, like the laser does.</li>
+    <li><strong>Proportional</strong>: the tile is enlarged like a photocopy, like LightBurn's lock ratio.</li>
+    <li>With tabs, next to every file comes its twin <strong>…_tabs.svg</strong>, identical in the positions, with a small open cut on every tile that keeps it attached to the sheet. The cut sits in the middle of the straight side on the base, <strong>never on the curve</strong>; on circles, at the lowest point.</li>
+    <li>If a shape cannot be enlarged, or has no straight side long enough for the tab, the preview tells you and that tile stays as it is.</li>
+  </ul>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>The cutting files have <strong>already grown</strong> by the compensation: in <strong>LightBurn no scaling and no Kerf Offset</strong>, or the rubber grows twice. And there is no text in the SVGs: the laser would cut that too.</div></div>
+
+  <h3>The PDF for the workbench</h3>
+  <p>One single PDF with the sheets drawn <strong>1:1, identical to the SVGs</strong> but with the real measures, the <strong>color table</strong> (square, HEX, RGB, family and number of tiles) to buy the rubber, and the <strong>bill of materials</strong> with measures to a tenth of a millimeter.</p>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>Print it <strong>at 100%</strong> (“actual size”, no fit to page) and measure with the caliper the <strong>100 mm black bar</strong> printed on the first page: if it does not measure 100 mm, the print was scaled. A few tenths of difference depend on the printer.</div></div>
+
+  <p>The PDF stops at <strong>20 pages</strong>: beyond that only the SVGs are created, and the preview says so beforehand. A tile sheet stops at 80 files.</p>
+
+  <h3>The bill of materials as CSV</h3>
+  <p>Next to the PDF comes the bill of materials as a table: one row for each color, shape and size, with nine columns — Family, HEX, RGB, Shape, Width (mm), Height (mm), Quantity, Extra measures, Notes. There is no totals row: the spreadsheet does the sums.</p>
+  <ul>
+    <li><strong>Excel</strong>: it opens with a double-click, with the columns already separated.</li>
+    <li><strong>LibreOffice</strong>: in the “Text Import” window choose <strong>Comma</strong> as separator and the <strong>UTF-8</strong> encoding.</li>
+    <li>The format follows Mosaica's language: in English comma between columns and point for decimals; in Italian semicolon and decimal comma.</li>
+  </ul>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical tips</strong><ul>
+    <li><strong>Save the project</strong> before exporting: the file names come from the project name, so you recognize them in the folder.</li>
+    <li>The Inspector also counts a 1 px outline that is not there in the cut, so it may say a few tenths more: the PDF and the bill of materials are what counts.</li>
+    <li>Measures in millimeters depend on the screen <a href="#calibrazione" style="color:var(--blue);">calibration</a>: calibrate once and then leave it alone.</li>
+    <li>A tile too large for an A4 with the chosen margins is left out of sheets and SVGs, but it is counted in the bill of materials.</li>
+  </ul></div></div>
+</section>
+
 <!-- ── WACOM TABLET ── -->
 <section id="wacom">
-  <div class="section-label">16</div>
+  <div class="section-label">18</div>
   <h2>Wacom Tablet — Pressure, Tilt, Pen Buttons</h2>
   <p>Mosaica integrates a complete system for Wacom graphic tablets (and any other tablet exposing <code>PointerEvent.pressure</code>). Pressure is <strong>true, point-by-point</strong>: every segment of the stroke stores its own pressure, is serialized in <code>.msp.json</code> projects, exported in SVG, and participates in Undo/Redo like any other Fabric object.</p>
 
@@ -1976,7 +2294,7 @@
 
 <!-- ── MOUSE & KEYBOARD MAPPING ── -->
 <section id="inputmapping">
-  <div class="section-label">17</div>
+  <div class="section-label">19</div>
   <h2>Mouse &amp; Keyboard Mapping</h2>
   <p>Mosaica's classic shortcuts (Ctrl+Z/C/V/X, Delete, Ctrl+/−, arrows, Ctrl+R, double-click) are <strong>protected and always active</strong>. The Input Mapping module lets you add <em>on top</em> of these:</p>
   <ul>
@@ -2109,7 +2427,7 @@
 
 <!-- ── SHORTCUTS ── -->
 <section id="scorciatoie">
-  <div class="section-label">18</div>
+  <div class="section-label">20</div>
   <h2>Keyboard Shortcuts</h2>
 
   <h3>History and Clipboard</h3>
@@ -2161,6 +2479,21 @@
     </tbody>
   </table>
 
+  <h3>Drawing: perimeter, lens and clone stamp</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Key</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Enter</kbd></td><td>⬡ Closes the perimeter you are tracing; with the handles, leaves the mode</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>⬡ Leaves the perimeter mode (an outline not closed is cancelled)</td></tr>
+      <tr><td><kbd>Backspace</kbd></td><td>⬡ Removes the last traced point, or the selected handle</td></tr>
+      <tr><td><kbd>Del</kbd></td><td>⬡ Removes the selected handle</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>⬡ Inside the perimeter mode undoes one shape step of the perimeter</td></tr>
+      <tr><td><kbd>L</kbd></td><td>🔍 Turns the crosshair lens on and off (only inside the perimeter mode)</td></tr>
+      <tr><td><kbd>Ctrl</kbd> + Click</td><td>🖼️ Clone Stamp: picks the fixed source</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>🖼️ Clone Stamp: cancels the “Pick source” eyedropper</td></tr>
+    </tbody>
+  </table>
+
   <h3>Full Screen, Modals, Other</h3>
   <table class="shortcut-table">
     <thead><tr><th>Key</th><th>Action</th></tr></thead>
@@ -2176,7 +2509,7 @@
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
     <li><strong>Right button + wheel</strong> on the shape is the fastest way to rotate with precision without using handles: 0.25° by default, 0.5° with Shift, 1° with Ctrl.</li>
     <li>If the cursor is inside a text field or a slider, shortcuts are disabled: press <strong>Esc</strong> or click on the canvas to reactivate them.</li>
-    <li>The <strong>arrow keys</strong> move the selected object by 1 px (10 px with Shift); if no shape is selected, they pan the view.</li>
+    <li>The <strong>arrow keys</strong> move the selected object by 0.1 mm (1 mm with Shift, 0.01 mm with Ctrl); if no shape is selected, they pan the view.</li>
     <li><strong>Ctrl + R</strong> restarts the application: useful if you notice slowdowns after many undo/redo operations or heavy exports. Auto-save runs before closing, you don't lose your work.</li>
     <li>To quickly duplicate a shape, select it and press <strong>Ctrl + C</strong> then <strong>Ctrl + V</strong>: the copy is pasted with a 25 px offset.</li>
     <li>The <kbd>Esc</kbd> key has intelligent priority: first closes modals, then dropdowns, finally exits full screen — pressing it repeatedly is the universal "back button".</li>
@@ -2185,7 +2518,7 @@
 
 <!-- ── SECURITY & UPDATES ── -->
 <section id="sicurezza">
-  <div class="section-label">19</div>
+  <div class="section-label">21</div>
   <h2>Security &amp; Online Updates</h2>
   <p>Mosaica Workspace Pro is an <strong>offline drawing application</strong>: the only thing it does on the network is <strong>check whether a new version exists</strong> on the official GitHub repository and, at your request, download its installer. Everything else in the program never talks to the internet. This section explains how updates work and which protections are always active.</p>
 
@@ -2247,7 +2580,7 @@
 <!-- ════════════════════════════════ FOOTER ════════════════════════════════ -->
 <footer>
   <strong>Mosaica Workspace Pro</strong> · User Guide · By Pico Mosaici<br>
-  <span style="margin-top:6px;display:block;">Updated to version · V 06.2026</span>
+  <span style="margin-top:6px;display:block;">Updated to version · V 09.2026</span>
   <span style="margin-top:6px;display:block;">© 2026 Pico Mosaici® by Pietro Coraggio | Venafro (IS) | All rights reserved</span>
 </footer>
 

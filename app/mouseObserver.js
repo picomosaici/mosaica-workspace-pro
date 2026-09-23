@@ -37,6 +37,11 @@
 //           preme destro+rotella appena fuori dalla bbox)
 //      Questo risolve i casi in cui findTarget() restituisce null perché
 //      l'offset interno di Fabric è "stale" dopo pan/zoom via CSS sul paper.
+//    – ⚠ IL LIVELLO (3) NON È "LA FORMA SOTTO IL PUNTATORE". È un ripiego:
+//      la forma che era già selezionata, presa perché sotto il puntatore non
+//      c'era niente. Per la rotazione piatta va benissimo: ruota quella
+//      selezionata, come ha sempre fatto. findShapeAt() lo dice in
+//      `out.level`, per chi deve distinguere i due casi.
 //    – L'handler "wheel" è registrato in fase CAPTURE su window così
 //      intercetta l'evento PRIMA di QUALSIASI altro listener (incluso lo
 //      zoom in renderer.js). Lo zoom viene saltato (stopImmediatePropagation)
@@ -162,10 +167,45 @@
     return true;
   }
 
+  // Il puntatore nel sistema di riferimento GIUSTO per una data forma.
+  //
+  // ⚠ DIFETTO VECCHIO, CURATO QUI. Una forma che sta dentro una selezione
+  // multipla NON tiene le sue coordinate in pixel di schermo: Fabric scrive
+  // in `setCoords()`
+  //     lineCoords = this.group ? this.aCoords : this.calcLineCoords();
+  // cioè le lascia nel sistema del GRUPPO, senza lo zoom, perché lo zoom lo
+  // toglie dal puntatore prima del confronto (`_normalizePointer`). Il
+  // livello (2) qui sotto invece confrontava sempre col puntatore di schermo:
+  // appena lo zoom non era al 100%, per le forme dentro una selezione
+  // multipla stava confrontando due sistemi diversi, e la risposta era
+  // casuale. Adesso si fa la stessa normalizzazione che fa Fabric.
+  //
+  // Se `_normalizePointer` un giorno sparisse (è interna) la forma dentro il
+  // gruppo viene saltata invece di essere confrontata a caso: il livello (1)
+  // l'aveva comunque già vista, perché una selezione multipla sotto il
+  // puntatore la trova findTarget.
+  function pointerForObject(obj, pointer) {
+    if (!obj.group) return pointer;
+    if (typeof canvas._normalizePointer !== "function") return null;
+    try {
+      return canvas._normalizePointer(obj.group, pointer);
+    } catch (_) {
+      return null;
+    }
+  }
+
   // Ricerca multi-fallback della forma sotto il puntatore.
   // Risolve i casi in cui findTarget() ritorna null perché _offset di Fabric
   // è stale dopo trasformazione CSS sul #paper.
-  function findShapeAt(e) {
+  //
+  // `out` è facoltativo e in coda (la regola degli argomenti nuovi): chi non
+  // lo passa si comporta esattamente come prima. Chi lo passa riceve in
+  // `out.level` il livello che ha risposto — 1, 2 oppure 3 — e può così
+  // distinguere "la forma sotto il puntatore" dal ripiego sull'oggetto
+  // attivo, che sotto il puntatore non c'è.
+  function findShapeAt(e, out) {
+    if (out) out.level = 0;
+
     // (0) ricalcola l'offset interno di Fabric (idempotente, costo trascurabile)
     if (typeof canvas.calcOffset === "function") {
       try {
@@ -183,6 +223,7 @@
       /* ignore */
     }
     if (target && isRotatable(target)) {
+      if (out) out.level = 1;
       dbg("findShapeAt → findTarget OK:", target.type);
       return target;
     }
@@ -195,7 +236,11 @@
         const obj = objs[i];
         if (!obj.evented) continue;
         if (!isRotatable(obj)) continue;
-        if (typeof obj.containsPoint === "function" && obj.containsPoint(pointer)) {
+        if (typeof obj.containsPoint !== "function") continue;
+        const p = pointerForObject(obj, pointer);
+        if (!p) continue;
+        if (obj.containsPoint(p)) {
+          if (out) out.level = 2;
           dbg("findShapeAt → containsPoint OK:", obj.type);
           return obj;
         }
@@ -205,8 +250,11 @@
     }
 
     // (3) fallback su activeObject (se è una singola forma ruotabile)
+    // ⚠ Questo NON è "la forma sotto il puntatore": è la forma che era già
+    // selezionata. Chi passa `out` lo sa e si regola.
     const active = canvas.getActiveObject && canvas.getActiveObject();
     if (active && isRotatable(active) && active.type !== "activeSelection") {
+      if (out) out.level = 3;
       dbg("findShapeAt → activeObject fallback:", active.type);
       return active;
     }
@@ -288,8 +336,13 @@
         return;
       }
 
-      const target = findShapeAt(e);
-      dbg("mousedown destro, target =", target ? target.type + " angle=" + (target.angle || 0) : "null");
+      // `info.level` dice COME è stato trovato il bersaglio: serve a
+      // distinguere la forma sotto il puntatore (livelli 1 e 2) dal ripiego
+      // sull'oggetto attivo (livello 3), sotto cui non c'è niente.
+      const info = { level: 0 };
+      const target = findShapeAt(e, info);
+      dbg("mousedown destro, target =", target ? target.type + " angle=" + (target.angle || 0) : "null",
+        "livello =", info.level);
       if (!target) return;
 
       rightButtonHeld = true;

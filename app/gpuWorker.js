@@ -12,6 +12,24 @@ const PREVIEW_THROTTLE_MS = 16; // ~60 fps
 let strokeBBox = null; // { minX, minY, maxX, maxY } | null
 
 // ==================== HELPER ====================
+// ── Cantiere del Pennello Timbro, Fetta 3-bis (16/09/2026) ───────────────────
+//   ① Una tela OffscreenCanvas su cui nessuno ha mai chiesto un contesto NON
+//     si puo' trasformare in bitmap: Chromium risponde "InvalidStateError: The
+//     ImageBitmap could not be allocated". Succedeva a OGNI inizio tratto (la
+//     preview vuota di strokeStart) e nel ritaglio vuoto: vedi _emptyBitmap().
+//   ② Lo sparpagliamento degli strati era ruotato DUE volte (lo spostamento
+//     veniva applicato dentro la rotazione del timbro): la larghezza del tratto
+//     cambiava con la direzione (orizzontale 32,2 px, verticale 30,3). Ora
+//     e' perpendicolare AL TRATTO in tutte le direzioni, come dice la guida
+//     utente del cursore "Jitter pos.": vedi performStamp().
+//
+// ── Cantiere del Pennello Timbro, Fetta 4A-1 (17/09/2026) ────────────────────
+//   ③ Il ritaglio FINALE (strokeResult) arriva col suo PNG gia' codificato
+//     (dataURL). Fabric 5.1.0 / 5.2.4 / 5.3.0 ricodifica in PNG, a ogni
+//     fotografia dell'annulla e a ogni salvataggio automatico, ogni tratto
+//     la cui immagine e' una tela (fabric.Image.getSrc → toDataURL): il costo
+//     cresceva col numero dei tratti. Il pennello tiene questo PNG e non lo
+//     rifa' piu'. La codifica avviene qui, fuori dal filo principale.
 function degToRad(deg) {
   return ((deg || 0) * Math.PI) / 180;
 }
@@ -47,14 +65,46 @@ function _expandBBox(cx, cy, baseWidth, posJitter, bleed) {
   strokeBBox.maxY = Math.max(strokeBBox.maxY, cy + pad);
 }
 
+// ─── Una bitmap vuota (1×1, trasparente) ─────────────────────────────────────
+// La tela va "accesa" con getContext() PRIMA di createImageBitmap(): senza
+// contesto Chromium rifiuta la conversione (Fetta 3-bis, punto ①).
+function _emptyBitmap() {
+  const c = new OffscreenCanvas(1, 1);
+  c.getContext("2d");
+  return createImageBitmap(c);
+}
+
+// Nessun timbro disegnato nel tratto corrente?
+function _bboxIsEmpty() {
+  return !strokeBBox || strokeBBox.minX === Infinity || strokeBBox.minY === Infinity;
+}
+
+// ─── Il PNG di una tela, come data-URL (Fetta 4A-1) ─────────────────────────
+// Se la codifica fallisce si restituisce null: il pennello la fara' da se',
+// una volta sola, la prima volta che serve.
+async function _pngDataURL(canvas) {
+  try {
+    const blob = await canvas.convertToBlob({ type: "image/png" });
+    if (typeof FileReaderSync === "function") return new FileReaderSync().readAsDataURL(blob);
+    return await new Promise((resolve) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(fr.result);
+      fr.onerror = () => resolve(null);
+      fr.readAsDataURL(blob);
+    });
+  } catch (err) {
+    return null;
+  }
+}
+
 // ─── Ritaglia il canvas corrente al bounding-box, restituisce bitmap + offset ─
-async function _buildCroppedBitmap() {
+// withPNG: solo per il risultato finale (Fetta 4A-1), non per le anteprime.
+async function _buildCroppedBitmap(withPNG) {
   if (!offscreenCanvas) return null;
 
-  // Se non c'è nessun timbro (bbox non inizializzata) → canvas vuoto 1×1
-  if (!strokeBBox || strokeBBox.minX === Infinity || strokeBBox.minY === Infinity) {
-    const empty = new OffscreenCanvas(1, 1);
-    return { bitmap: await createImageBitmap(empty), offsetX: 0, offsetY: 0 };
+  // Se non c'è nessun timbro (bbox non inizializzata) → bitmap vuota 1×1
+  if (_bboxIsEmpty()) {
+    return { bitmap: await _emptyBitmap(), offsetX: 0, offsetY: 0 };
   }
 
   // Clampa al canvas fisico per evitare rettangoli fuori bounds
@@ -70,10 +120,13 @@ async function _buildCroppedBitmap() {
   // copia solo la regione dipinta dal canvas principale
   ctx.drawImage(offscreenCanvas, x, y, cw, ch, 0, 0, cw, ch);
 
+  const dataURL = withPNG ? await _pngDataURL(cropped) : null;
+
   return {
     bitmap: await createImageBitmap(cropped),
     offsetX: x,
-    offsetY: y
+    offsetY: y,
+    dataURL
   };
 }
 
@@ -85,6 +138,8 @@ function performStamp(params) {
     x,
     y,
     rotation,
+    perpX,
+    perpY,
     baseWidth = 24,
     flow = 0.82,
     layers = 22,
@@ -111,12 +166,18 @@ function performStamp(params) {
 
   offscreenCtx.save();
   offscreenCtx.translate(x, y);
-  offscreenCtx.rotate(rotation);
 
   offscreenCtx.shadowColor = shadowColor;
   offscreenCtx.shadowBlur = Math.max(0, bleed * 1.55 * densityFactor * (isFirstStamp ? 0.35 : 1));
 
-  const perp = getPerpendicularVector(rotation);
+  // Direzione dello sparpagliamento degli strati, SUL FOGLIO: perpendicolare
+  // al tratto. Il pennello la manda gia' fatta (perpX, perpY); se manca, si
+  // ripiega sulla perpendicolare alla rotazione del timbro.
+  // ⚠ Lo spostamento si applica PRIMA della rotazione del timbro: applicato
+  //   dopo (com'era fino alla Fetta 3-bis) veniva ruotato una seconda volta,
+  //   ed era di traverso solo nei tratti orizzontali.
+  const perp =
+    Number.isFinite(perpX) && Number.isFinite(perpY) ? { x: perpX, y: perpY } : getPerpendicularVector(rotation);
   const flowVal = Math.max(0.05, flow);
 
   for (let l = 0; l < effectiveLayers; l++) {
@@ -127,6 +188,7 @@ function performStamp(params) {
     const layerRotJitter = degToRad((Math.random() - 0.5) * rotJitter * 0.22);
 
     offscreenCtx.translate(perp.x * layerPerpJitter, perp.y * layerPerpJitter);
+    offscreenCtx.rotate(rotation);
     offscreenCtx.rotate(layerRotJitter);
     offscreenCtx.globalAlpha = flowVal * (1 - (l / effectiveLayers) * 0.85) * (isFirstStamp ? 0.72 : 1);
 
@@ -178,9 +240,10 @@ async function handleWorkerMessage(e) {
       // Resetta il bounding-box per il nuovo tratto
       strokeBBox = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
 
-      // Preview iniziale vuota (canvas 1×1 ritagliato)
-      const emptyCanvas = new OffscreenCanvas(1, 1);
-      const emptyBitmap = await createImageBitmap(emptyCanvas);
+      // Preview iniziale vuota (bitmap 1×1): ripulisce l'anteprima a schermo.
+      // Fino alla Fetta 3-bis questa riga lanciava un errore a ogni tratto e
+      // la preview vuota non partiva mai.
+      const emptyBitmap = await _emptyBitmap();
       self.postMessage({ type: "strokePreview", strokeId, bitmap: emptyBitmap, offsetX: 0, offsetY: 0 }, [emptyBitmap]);
       break;
     }
@@ -216,8 +279,23 @@ async function handleWorkerMessage(e) {
     case "strokeEnd": {
       if (!offscreenCanvas) return;
 
-      // ── Bitmap finale ritagliato + offset di posizionamento ────────────────
-      const result = await _buildCroppedBitmap();
+      if (_bboxIsEmpty()) {
+        // ── Niente di dipinto: il tratto si chiude SENZA oggetto ────────────
+        // (bitmap: null). Il pennello libera lo stato del tratto e non mette
+        // sul foglio un'immagine trasparente da 1×1 px, con la sua voce di
+        // annullamento. Prima qui il ritaglio vuoto lanciava un errore e il
+        // risultato non arrivava mai.
+        self.postMessage({ type: "strokeResult", strokeId: currentStrokeId, bitmap: null, offsetX: 0, offsetY: 0 });
+        offscreenCtx = null;
+        offscreenCanvas = null;
+        stampBitmap = null;
+        currentStrokeId = null;
+        strokeBBox = null;
+        break;
+      }
+
+      // ── Bitmap finale ritagliato + offset di posizionamento + PNG ──────────
+      const result = await _buildCroppedBitmap(true);
       if (result) {
         self.postMessage(
           {
@@ -225,7 +303,8 @@ async function handleWorkerMessage(e) {
             strokeId: currentStrokeId,
             bitmap: result.bitmap,
             offsetX: result.offsetX,
-            offsetY: result.offsetY
+            offsetY: result.offsetY,
+            dataURL: result.dataURL
           },
           [result.bitmap]
         );

@@ -144,7 +144,7 @@ function __wt(key, params, fallback) {
     "right-click":      { label: __wt("wacom.action.rightClick",      null, "Click destro (default)"),  icon: "🖱️" },
     "double-click":     { label: __wt("wacom.action.doubleClick",     null, "Doppio click"),            icon: "⚡" },
     eraser:             { label: __wt("wacom.action.eraser",          null, "Gomma rapida"),            icon: "🧼" },
-    pan:                { label: __wt("wacom.action.pan",             null, "Pan canvas (Alt+drag)"),   icon: "✋" },
+    pan:                { label: __wt("wacom.action.pan",             null, "Pan canvas (Alt+trascina)"), icon: "✋" },
     undo:               { label: __wt("wacom.action.undo",            null, "Annulla (Ctrl+Z)"),        icon: "↩️" },
     redo:               { label: __wt("wacom.action.redo",            null, "Ripeti (Ctrl+Y)"),         icon: "↪️" },
     "toggle-freehand":  { label: __wt("wacom.action.toggleFreehand",  null, "Toggle Penna"),            icon: "✏️" },
@@ -661,7 +661,7 @@ function __wt(key, params, fallback) {
     function fmtCode(code) {
       if (code == null) return null;
       if (code === -2) return __wt("wacom.calib.codeContextmenu", null, "contextmenu (right-click sintetico)");
-      return __wt("wacom.calib.codePrefix", { code: code }, `code ${code}`);
+      return __wt("wacom.calib.codePrefix", { code: code }, `codice ${code}`);
     }
 
     if (STATE.calibrationMode === "lower") {

@@ -682,6 +682,13 @@
 
   // ================  Init ===========================================
   function initLassoBrushSelection() {
+    // ⚠ UNA VOLTA SOLA (cantiere «La Bottega», 21 settembre 2026, trappola
+    //   206). Questa funzione la chiama renderer.js con un timer e, se il
+    //   timer l'ha mancata, l'avvio di riserva in fondo a questo file: le due
+    //   strade non devono mai sommarsi, o ogni pulsante riceverebbe due
+    //   ascoltatori e un click lo accenderebbe e spegnerebbe insieme.
+    if (window.__mwpAvvioPennelloSel) return;
+    if (document.getElementById("lassoBrushBtn")) window.__mwpAvvioPennelloSel = true;
     const btn = document.getElementById("lassoBrushBtn");
     if (!btn) {
       console.warn("[lassoBrushSelection] #lassoBrushBtn non trovato nel DOM");
@@ -692,7 +699,7 @@
     // Se l'utente passa ad un altro strumento mentre il pennello e' attivo,
     // CONFERMA la selezione e disattiva (cosi' puo' subito colorare/applicare
     // texture/cancellare le tessere appena dipinte).
-    ["selectToolBtn", "addShapeBtn", "customShapeBtn", "scene3DBtn", "lassoSelectBtn",
+    ["selectToolBtn", "addShapeBtn", "customShapeBtn", "lassoSelectBtn",
      "freehandBtn", "eraserBtn", "watercolorBtn"].forEach((id) => {
       const b = document.getElementById(id);
       if (!b) return;
@@ -743,4 +750,39 @@
   window.isBrushSelectionMode = () => isBrushMode;
   window.setBrushSelectionDiameter = setBrushDiameter;
   window.getBrushSelectionDiameter = getBrushDiameter;
+})();
+
+// ════════════════════════════════════════════════════════════════
+//  AVVIO DI RISERVA — cantiere «La Bottega», 21 settembre 2026
+//  renderer.js accende questo modulo con un timer FISSO, contato da
+//  quando renderer.js stesso ha finito di caricarsi. Se in quel momento
+//  questo file non e' ancora arrivato (disco lento, antivirus, un file
+//  grosso caricato prima di lui), il timer salta e non riprova piu':
+//  il pulsante resta morto per tutta la sessione (trappola 206). Qui il
+//  modulo si accende da se', SOLO se il timer lo ha mancato.
+//  175 ms dopo DOMContentLoaded cade sempre DOPO il timer di renderer.js
+//  (che parte prima, a pagina ancora in caricamento) e PRIMA della lente
+//  e del timbro (200 ms): l'ordine degli ascoltatori resta quello di
+//  sempre — come col timer a 170 ms, dopo il lazo e prima del perimetro.
+// ════════════════════════════════════════════════════════════════
+(function () {
+  let tentativi = 0;
+  function riserva() {
+    if (window.__mwpAvvioPennelloSel) return;
+    if (typeof window.initLassoBrushSelection !== "function") return;
+    tentativi++;
+    console.log("[lassoBrushSelection] avvio di riserva (il timer di renderer.js l'aveva mancato)");
+    let ok = true;
+    try {
+      ok = window.initLassoBrushSelection() !== false;
+    } catch (e) {
+      console.warn("[lassoBrushSelection] avvio di riserva fallito:", e);
+    }
+    if (!ok && !(window.__mwpAvvioPennelloSel) && tentativi < 10) setTimeout(riserva, 200);
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => setTimeout(riserva, 175));
+  } else {
+    setTimeout(riserva, 175);
+  }
 })();

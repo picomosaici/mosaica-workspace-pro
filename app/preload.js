@@ -58,6 +58,7 @@ contextBridge.exposeInMainWorld("desktopAPI", {
    exportFreehand: tracked("exportFreehand", "export-freehand"),
    exportFullPNG: tracked("exportFullPNG", "export-full-png"),
    exportShapesSVG: tracked("exportShapesSVG", "export-shapes-svg"),
+   exportTileSheet: tracked("exportTileSheet", "export-tile-sheet"),
    restartApp: () => ipcRenderer.invoke("app:restart"),
    openGuide: (lang) => ipcRenderer.invoke("open-guide", lang),
    setFullScreen: (flag) => ipcRenderer.send("window:set-fullscreen", flag),

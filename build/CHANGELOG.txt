@@ -1,4 +1,56 @@
 ------------------------------------------------------------
+Versione 09.2026  (Settembre 2026)
+------------------------------------------------------------
+
+NOVITA':
+  + Tavola delle Tessere (Esporta): prepara i file per il
+    taglio laser. SVG separati per famiglia di colore, con
+    compensazione del taglio e linguette per tenere fermi i
+    pezzi; PDF per il banco di lavoro e distinta delle
+    tessere in formato CSV
+  + Pennello Timbro: copia una zona del lavoro (la
+    sorgente) e la ristampa dove dipingi. Punta con forma,
+    misura, spaziatura e rotazione regolabili; si puo' usare
+    anche una forma libera disegnata col costruttore della
+    palladiana
+  + Comandi della selezione nel menu radiale: deseleziona,
+    inquadra la selezione e specchio orizzontale/verticale.
+    Lo specchio funziona anche sulle tessere ruotate e non
+    cambia mai le misure
+  + Perimetro di contenimento: ora si corregge con le
+    maniglie (doppio clic su un lato aggiunge un punto,
+    CANC lo toglie) e ha una lente mirino (tasto L) per
+    piazzare i vertici con precisione
+  + Nuove punte pennello
+
+MIGLIORAMENTI:
+  * Acquerello: l'anello attorno al cursore e' misurato
+    sulla punta vera; corretti alcuni difetti del pennello
+  * Menu radiale: quando non c'e' spazio (zoom alto su una
+    forma grande) i pulsanti si dispongono in colonna
+  * Le misure L/A durante il ridimensionamento restano
+    sempre visibili e non finiscono sotto la barra di stato
+  * Avvio degli strumenti piu' sicuro: ogni strumento si
+    accende al primo clic
+  * Calibrazione dello schermo: ripetere la calibrazione su
+    uno schermo gia' calibrato (o dopo un Reset) ora da' il
+    fattore giusto; prima lo riportava a circa 1.0
+
+CORREZIONI:
+  + Tasto destro in multi-selezione con zoom diverso da
+    100%: ora prende sempre la forma giusta
+  + Installazioni nuove: pennelli e carta dell'acquerello
+    sono di nuovo inclusi nell'installer (dalla 07.2026.1
+    mancavano a chi installava Mosaica per la prima volta)
+
+NOTE TECNICHE:
+  - Versione interna: 9.2026.0
+  - Electron 41 - Fabric.js 5.1.0 -> 5.3.0
+  - 900 chiavi di traduzione simmetriche IT + EN
+  - I progetti salvati con le versioni precedenti si aprono
+    normalmente
+
+------------------------------------------------------------
 Versione 07.2026.3  (Luglio 2026)
 ------------------------------------------------------------
 

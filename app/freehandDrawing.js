@@ -339,28 +339,84 @@ function applyPaperTextureState(state) {
 // ==================== RIORDINO LIVELLI CANVAS ====================
 // Mantiene l'ordine corretto degli oggetti sul canvas:
 //   1) Sfondo (texture carta o immagine utente, marcati __isBackground)
-//   2) Tratti freehand (penna, gomma, stamp acquerello, marcati __isFreehand)
-//   3) Forme (triangoli, trapezi, settori, ecc.)
+//   2) Tratti del Pennello Timbro (marcati data.mwpStamp)
+//   3) Tratti freehand (penna, gomma, stamp acquerello, marcati __isFreehand)
+//   4) Forme (triangoli, trapezi, settori, ecc.)
 // In questo modo, anche con immagine di sfondo, i tratti restano sempre
 // SOPRA l'immagine ma SOTTO le forme — anche in progetti già esistenti
 // e dopo pushState/applySnapshot/undo/redo.
+//
+// ⚠ LA QUARTA FASCIA — PENNELLO TIMBRO. I tratti del timbro copiano lo
+// sfondo, e devono stare SOPRA lo sfondo ma SOTTO penna e acquerello, così
+// non si mescolano con loro. Nascono anche loro con __isFreehand (serve a
+// isWatercolorOrFreehand, all'export e al ritaglio del perimetro), quindi il
+// controllo su data.mwpStamp deve venire PRIMA di quello su __isFreehand:
+// invertire i due rami rimetterebbe il timbro nella fascia della penna.
+// L'identità sta nel campo `data` perché è l'unico già presente in tutte le
+// liste di serializzazione: nessuna lista è stata fatta crescere, e il
+// timbro sopravvive a CTRL+Z e al salvataggio.
 let _reorderRAF = 0;
+
+// ====================== IL PNG DI UN TRATTO, UNA VOLTA SOLA ======================
+// Cantiere del Pennello Timbro, Fetta 4A-1 (trappola 166).
+// Fabric 5.1.0 / 5.2.4 / 5.3.0: fabric.Image.getSrc() restituisce
+// element.toDataURL() quando l'elemento e' una tela, e toObject/toJSON lo
+// chiamano. Ogni fotografia dell'annulla e ogni salvataggio automatico
+// ricodificavano in PNG TUTTI i tratti d'acquerello e di timbro nati nella
+// sessione: il costo cresceva col numero dei tratti e pesava su qualunque
+// gesto (anche spostare una tessera).
+// Qui la tela di un tratto tiene il suo PNG: quello gia' fatto dal worker se
+// c'e', altrimenti quello fatto la prima volta che serve. Poi mai piu'.
+// Il tratto e' immutabile: nessuno ridisegna i pixel di una tela che sta gia'
+// sul foglio (la rotazione del foglio crea tele nuove, senza PNG in memoria).
+// ⚠ Solo toDataURL() senza argomenti, o PNG senza qualita': le altre
+//   richieste passano al metodo vero.
+function cacheCanvasPngDataURL(el, url) {
+  if (!el || el.__mwpPngCached) return el;
+  // Il metodo vero si cerca sul prototipo AL MOMENTO della chiamata, non si
+  // fotografa adesso: chi lo avvolge dopo (un banco, un'estensione) resta
+  // in gioco.
+  const proto = Object.getPrototypeOf(el);
+  const captured = el.toDataURL;
+  const native = function () {
+    const f = proto && typeof proto.toDataURL === "function" ? proto.toDataURL : captured;
+    return f.apply(this, arguments);
+  };
+  if (typeof captured !== "function") return el;
+  let cached = typeof url === "string" && url.indexOf("data:image/png") === 0 ? url : null;
+  el.toDataURL = function (type, quality) {
+    const plain =
+      arguments.length === 0 ||
+      ((type === undefined || type === null || type === "image/png") && quality === undefined);
+    if (!plain) return native.apply(this, arguments);
+    if (cached === null) cached = native.call(this);
+    return cached;
+  };
+  el.__mwpPngCached = true;
+  return el;
+}
+
+function isCloneStampObject(o) {
+  return !!(o && o.data && o.data.mwpStamp);
+}
 function reorderCanvasLayers() {
   if (!canvas) return;
   const all = canvas.getObjects();
   if (!all.length) return;
 
   const bgItems = [];
+  const stampItems = [];
   const freehandItems = [];
   const otherItems = [];
 
   for (const o of all) {
     if (o.__isBackground) bgItems.push(o);
+    else if (isCloneStampObject(o)) stampItems.push(o);
     else if (o.__isFreehand) freehandItems.push(o);
     else otherItems.push(o);
   }
 
-  const desired = bgItems.concat(freehandItems, otherItems);
+  const desired = bgItems.concat(stampItems, freehandItems, otherItems);
 
   // Verifica se l'ordine è già corretto: in tal caso evita lavoro inutile
   let already = true;
@@ -376,6 +432,47 @@ function reorderCanvasLayers() {
   // di add/remove, quindi non innesca ricorsione del listener qui sotto)
   desired.forEach((o, i) => canvas.moveTo(o, i));
   canvas.requestRenderAll();
+}
+
+// ⚠ IL RIORDINO RIMANDATO, NON SALTATO (cantiere del Pennello Timbro,
+//   Fetta 4A-1, trappola 167). Durante un caricamento o un annulla il
+//   riordino si saltava del tutto, fidandosi che il file avesse gia'
+//   l'ordine giusto. Non sempre l'aveva: i tratti (penna, acquerello,
+//   timbro) venivano fotografati per l'annulla SUBITO dopo l'aggiunta,
+//   mentre il riordino arrivava un fotogramma dopo. Nella storia — e in
+//   un progetto salvato subito dopo un annulla — il tratto stava in cima,
+//   SOPRA le tessere, e alla riapertura restava li' finche' un'aggiunta
+//   qualsiasi non rifaceva l'ordine. Ora, se il riordino arriva durante un
+//   caricamento, si prenota e parte UNA volta a caricamento finito. Il
+//   lavoro in piu' e' un confronto O(n) per caricamento, e zero spostamenti
+//   quando l'ordine e' gia' giusto.
+let _reorderPending = false;
+let _reorderPendingRAF = 0;
+
+function _restoreBusy() {
+  if (typeof isApplyingSnapshot !== "undefined" && isApplyingSnapshot) return true;
+  if (typeof isRestoringProject !== "undefined" && isRestoringProject) return true;
+  return false;
+}
+
+function _waitRestoreThenReorder() {
+  _reorderPending = true;
+  if (_reorderPendingRAF) return;
+  const tick = () => {
+    _reorderPendingRAF = 0;
+    if (!_reorderPending) return;
+    if (_restoreBusy()) {
+      _reorderPendingRAF = requestAnimationFrame(tick);
+      return;
+    }
+    _reorderPending = false;
+    try {
+      reorderCanvasLayers();
+    } catch (err) {
+      console.warn("[reorderCanvasLayers]", err);
+    }
+  };
+  _reorderPendingRAF = requestAnimationFrame(tick);
 }
 
 function _scheduleReorderCanvasLayers() {
@@ -395,16 +492,23 @@ function _scheduleReorderCanvasLayers() {
   // Le variabili sono nel global script scope di renderer.js → accessibili
   // da freehandDrawing.js perché caricato dopo come <script> non-module.
   // (autoSave.js già usa lo stesso pattern a riga 124 per isRestoringProject.)
-  if (typeof isApplyingSnapshot !== "undefined" && isApplyingSnapshot) return;
-  if (typeof isRestoringProject !== "undefined" && isRestoringProject) return;
+  //
+  // (Fetta 4A-1: durante questi due flussi il riordino non si fa subito, ma
+  // si PRENOTA per quando il flusso e' finito — vedi sopra.)
+  if (_restoreBusy()) {
+    _waitRestoreThenReorder();
+    return;
+  }
 
   _reorderRAF = requestAnimationFrame(() => {
     _reorderRAF = 0;
     // Re-check al frame: lo stato potrebbe essere appena cambiato durante
     // l'attesa del prossimo RAF (es. applySnapshot iniziato un istante dopo
     // lo schedule). Difesa in profondità.
-    if (typeof isApplyingSnapshot !== "undefined" && isApplyingSnapshot) return;
-    if (typeof isRestoringProject !== "undefined" && isRestoringProject) return;
+    if (_restoreBusy()) {
+      _waitRestoreThenReorder();
+      return;
+    }
     try {
       reorderCanvasLayers();
     } catch (err) {
@@ -788,6 +892,13 @@ function toggleWatercolor() {
 
 // ==================== INIZIALIZZAZIONE ====================
 function initFreehandDrawing() {
+  // ⚠ UNA VOLTA SOLA (cantiere «La Bottega», 21 settembre 2026, trappola
+  //   206). Questa funzione la chiama renderer.js con un timer e, se il
+  //   timer l'ha mancata, l'avvio di riserva in fondo a questo file: le due
+  //   strade non devono mai sommarsi, o ogni pulsante riceverebbe due
+  //   ascoltatori e un click lo accenderebbe e spegnerebbe insieme.
+  if (window.__mwpAvvioDisegno) return;
+  window.__mwpAvvioDisegno = true;
   const freeBtn = document.getElementById("freehandBtn");
   const eraserBtn = document.getElementById("eraserBtn");
   const watercolorBtn = document.getElementById("watercolorBtn");
@@ -973,6 +1084,11 @@ function initFreehandDrawing() {
         opt.path.set("opacity", Math.max(0.05, Math.min(1, opFactor)));
       }
     }
+
+    // Il tratto al suo livello PRIMA della fotografia (Fetta 4A-1 del
+    // cantiere del timbro, trappola 167): altrimenti nella storia resta in
+    // cima, sopra le tessere.
+    reorderCanvasLayers();
 
     if (typeof pushState === "function") pushState(); // solo main history
   });
@@ -1266,3 +1382,40 @@ window.applyPaperTextureState = applyPaperTextureState;
 window.loadFreehandSettings = loadFreehandSettings;
 window.saveFreehandSettings = saveFreehandSettings;
 window.reorderCanvasLayers = reorderCanvasLayers;
+window.cacheCanvasPngDataURL = cacheCanvasPngDataURL;
+window.isCloneStampObject = isCloneStampObject;
+
+// ════════════════════════════════════════════════════════════════
+//  AVVIO DI RISERVA — cantiere «La Bottega», 21 settembre 2026
+//  renderer.js accende questo modulo con un timer FISSO, contato da
+//  quando renderer.js stesso ha finito di caricarsi. Se in quel momento
+//  questo file non e' ancora arrivato (disco lento, antivirus, un file
+//  grosso caricato prima di lui), il timer salta e non riprova piu':
+//  il pulsante resta morto per tutta la sessione (trappola 206). Qui il
+//  modulo si accende da se', SOLO se il timer lo ha mancato.
+//  155 ms dopo DOMContentLoaded cade sempre DOPO il timer di renderer.js
+//  (che parte prima, a pagina ancora in caricamento) e PRIMA della lente
+//  e del timbro (200 ms): l'ordine degli ascoltatori resta quello di
+//  sempre — penna, gomma e acquerello per primi, come col timer a 150 ms.
+// ════════════════════════════════════════════════════════════════
+(function () {
+  let tentativi = 0;
+  function riserva() {
+    if (window.__mwpAvvioDisegno) return;
+    if (typeof window.initFreehandDrawing !== "function") return;
+    tentativi++;
+    console.log("[freehandDrawing] avvio di riserva (il timer di renderer.js l'aveva mancato)");
+    let ok = true;
+    try {
+      ok = window.initFreehandDrawing() !== false;
+    } catch (e) {
+      console.warn("[freehandDrawing] avvio di riserva fallito:", e);
+    }
+    if (!ok && !(window.__mwpAvvioDisegno) && tentativi < 10) setTimeout(riserva, 200);
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => setTimeout(riserva, 155));
+  } else {
+    setTimeout(riserva, 155);
+  }
+})();

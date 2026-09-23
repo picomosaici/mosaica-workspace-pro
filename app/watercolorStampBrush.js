@@ -1,4 +1,25 @@
 // ====================== watercolorStampBrush.js ======================
+// Cantiere del Pennello Timbro, Fetta 3-bis (16/09/2026):
+//   ② ogni timbro manda al worker la PERPENDICOLARE AL TRATTO (perpX, perpY):
+//     lo sparpagliamento degli strati ("Jitter pos.") e' di traverso al tratto
+//     in tutte le direzioni e con tutte le punte, come dice la guida utente.
+//     Prima era ruotato due volte e nei tratti verticali non allargava niente.
+//   ③ tolto lo SPOSTAMENTO CASUALE DEL TRATTO INTERO (strokeParams.perpOffset,
+//     fino a +/-6,6 px coi valori di partenza), per decisione di Mirko: non era
+//     un tremolio (un solo numero per tutto il tratto), faceva solo cadere il
+//     tratto di lato rispetto al cursore. Il tratto ora e' centrato sul
+//     cursore, dove lo promette l'anello. I bordi irregolari restano: li fa lo
+//     sparpagliamento degli strati.
+//
+// Cantiere del Pennello Timbro, Fetta 4A-1 (17/09/2026):
+//   • il tratto finito arriva dal worker col suo PNG gia' fatto, e la sua
+//     tela lo tiene (cacheCanvasPngDataURL, freehandDrawing.js): le
+//     fotografie dell'annulla e il salvataggio automatico non ricodificano
+//     piu' ogni acquerello della sessione (trappola 166);
+//   • il tratto va al suo livello PRIMA della fotografia dell'annulla,
+//     altrimenti nella storia resta sopra le tessere (trappola 167);
+//   • un solo disegno del foglio a fine tratto invece di due: l'anteprima
+//     si toglie nel fotogramma in cui il tratto e' disegnato.
 
 let watercolorStampCanvas = null;
 let watercolorStampLoading = null;
@@ -95,7 +116,14 @@ function _initGpuWorker() {
         const watercolorParams = _strokeFinalizeParamsById.get(msg.strokeId);
 
         if (watercolorParams) {
-          _applyWorkerBitmapToFabric(msg.bitmap, brush.canvas, watercolorParams, msg.offsetX || 0, msg.offsetY || 0);
+          _applyWorkerBitmapToFabric(
+            msg.bitmap,
+            brush.canvas,
+            watercolorParams,
+            msg.offsetX || 0,
+            msg.offsetY || 0,
+            msg.dataURL || null
+          );
         } else if (msg.bitmap) {
           msg.bitmap.close();
         }
@@ -139,7 +167,8 @@ function _initGpuWorker() {
 // offsetX / offsetY (pixel del canvas fisico) indicano dove posizionare il
 // bitmap ritagliato all'interno del canvas Fabric. Ricevuti dal worker insieme
 // al bitmap cropped; predefiniti a 0 per retro-compatibilità.
-function _applyWorkerBitmapToFabric(bitmap, fabricCanvas, watercolorParams, offsetX, offsetY) {
+// dataURL (Fetta 4A-1): il PNG del ritaglio, gia' codificato dal worker.
+function _applyWorkerBitmapToFabric(bitmap, fabricCanvas, watercolorParams, offsetX, offsetY, dataURL) {
   if (!bitmap) return;
 
   const ox = offsetX || 0;
@@ -152,6 +181,9 @@ function _applyWorkerBitmapToFabric(bitmap, fabricCanvas, watercolorParams, offs
   tmpCanvas.height = bitmap.height;
   tmpCanvas.getContext("2d").drawImage(bitmap, 0, 0);
   bitmap.close(); // libera GPU memory — il contenuto è ora nel tmpCanvas
+
+  // Il PNG una volta sola (Fetta 4A-1, trappola 166).
+  if (typeof cacheCanvasPngDataURL === "function") cacheCanvasPngDataURL(tmpCanvas, dataURL);
 
   const img = new fabric.Image(tmpCanvas);
   img.set({
@@ -183,13 +215,20 @@ function _applyWorkerBitmapToFabric(bitmap, fabricCanvas, watercolorParams, offs
 
   fabricCanvas.add(img);
 
+  // Il livello PRIMA della fotografia (Fetta 4A-1, trappola 167).
+  if (typeof window.reorderCanvasLayers === "function") window.reorderCanvasLayers();
+
   if (typeof pushState === "function") pushState();
 
-  fabricCanvas.renderAll();
+  // Un solo disegno del foglio (prima erano due: renderAll subito e
+  // requestRenderAll al fotogramma dopo). Il requestAnimationFrame qui sotto
+  // e' registrato DOPO quello di requestRenderAll, quindi gira dopo, nello
+  // stesso fotogramma: l'anteprima si toglie quando il tratto e' gia'
+  // disegnato, senza lampi.
+  fabricCanvas.requestRenderAll();
 
   requestAnimationFrame(() => {
     _clearWatercolorPreviewOverlay();
-    fabricCanvas.requestRenderAll();
   });
 }
 
@@ -252,6 +291,9 @@ function _applyContextTopToFabric(fabricCanvas, watercolorParams) {
 
     fabricCanvas.add(img);
     fabricCanvas.clearContext(fabricCanvas.contextTop);
+
+    // Il livello PRIMA della fotografia (Fetta 4A-1, trappola 167).
+    if (typeof window.reorderCanvasLayers === "function") window.reorderCanvasLayers();
 
     if (typeof pushState === "function") pushState();
 
@@ -454,7 +496,6 @@ class WatercolorStampBrush extends fabric.PencilBrush {
     this.rotationResponsiveness = 0.35;
     this.smoothedAngle = null;
 
-    this.strokeParams = null;
     this.strokeStarted = false;
     this.hasDrawnAnyStamp = false;
 
@@ -472,6 +513,15 @@ class WatercolorStampBrush extends fabric.PencilBrush {
   _getPerpendicularVector(rotation) {
     const perpAngle = rotation + Math.PI / 2;
     return { x: Math.cos(perpAngle), y: Math.sin(perpAngle) };
+  }
+
+  // La perpendicolare AL TRATTO (non al timbro): la direzione del tratto e'
+  // smoothedAngle, che _getStampRotationForSegment() ha appena aggiornato.
+  // Il timbro invece e' girato anche della rotazione della punta, del
+  // piccolo jitter e dell'inclinazione della penna: niente di questo conta
+  // per "di traverso al tratto".
+  _strokePerpVector() {
+    return this._getPerpendicularVector(this.smoothedAngle || 0);
   }
 
   _buildStrokeId() {
@@ -560,9 +610,8 @@ class WatercolorStampBrush extends fabric.PencilBrush {
     this._strokeChunkBuffer = [];
     this._strokeStampData = null;
 
-    this.strokeParams = {
-      perpOffset: (Math.random() - 0.5) * currentPositionJitter * 1.2
-    };
+    // (Fino alla Fetta 3-bis qui si estraeva lo spostamento casuale del tratto
+    // intero, strokeParams.perpOffset: tolto per decisione di Mirko.)
 
     const strokeColor = isWatercolorMode
       ? watercolorToneColor(currentStrokeColor, jitterToneControl)
@@ -634,8 +683,7 @@ class WatercolorStampBrush extends fabric.PencilBrush {
         this.strokeStarted = true;
 
         const rotation0 = this._getStampRotationForSegment(dx0, dy0);
-        const perp0 = this._getPerpendicularVector(rotation0);
-        const basePerpOffset = this.strokeParams?.perpOffset || 0;
+        const perp0 = this._strokePerpVector();
         const steps0 = Math.max(1, Math.round(dist0 / dynamicSegment));
         const speedFactor = Math.min(3.2, dist0 / dynamicSegment);
 
@@ -648,8 +696,10 @@ class WatercolorStampBrush extends fabric.PencilBrush {
           const w = readWacomFactors();
 
           this._queueStrokeStamp({
-            x: x + perp0.x * basePerpOffset,
-            y: y + perp0.y * basePerpOffset,
+            x,
+            y,
+            perpX: perp0.x,
+            perpY: perp0.y,
             rotation: rotation0 + w.tiltRot,
             baseWidth: currentWatercolorWidth * w.width * w.tiltW,
             flow: currentWatercolorFlow * w.flow * w.opacity,
@@ -678,8 +728,7 @@ class WatercolorStampBrush extends fabric.PencilBrush {
 
       const steps = Math.max(1, Math.round(dist / dynamicSegment));
       const rotation = this._getStampRotationForSegment(dx, dy);
-      const perp = this._getPerpendicularVector(rotation);
-      const basePerpOffset = this.strokeParams?.perpOffset || 0;
+      const perp = this._strokePerpVector();
       const speedFactor = Math.min(3.2, dist / dynamicSegment);
 
       for (let i = 1; i <= steps; i++) {
@@ -691,8 +740,10 @@ class WatercolorStampBrush extends fabric.PencilBrush {
         const w = readWacomFactors();
 
         this._queueStrokeStamp({
-          x: x + perp.x * basePerpOffset,
-          y: y + perp.y * basePerpOffset,
+          x,
+          y,
+          perpX: perp.x,
+          perpY: perp.y,
           rotation: rotation + w.tiltRot,
           baseWidth: currentWatercolorWidth * w.width * w.tiltW,
           flow: currentWatercolorFlow * w.flow * w.opacity,
@@ -728,8 +779,7 @@ class WatercolorStampBrush extends fabric.PencilBrush {
       this.strokeStarted = true;
 
       const rotation0 = this._getStampRotationForSegment(dx0, dy0);
-      const perp0 = this._getPerpendicularVector(rotation0);
-      const basePerpOffset = this.strokeParams?.perpOffset || 0;
+      const perp0 = this._strokePerpVector();
       const steps0 = Math.max(1, Math.round(dist0 / dynamicSegment));
 
       for (let i = 0; i <= steps0; i++) {
@@ -739,12 +789,7 @@ class WatercolorStampBrush extends fabric.PencilBrush {
 
         // Modulazione Wacom + TILT anche nel fallback legacy
         const w = readWacomFactors();
-        this._stampAt(
-          x + perp0.x * basePerpOffset,
-          y + perp0.y * basePerpOffset,
-          rotation0 + w.tiltRot,
-          currentWatercolorWidth * w.width * w.tiltW
-        );
+        this._stampAt(x, y, rotation0 + w.tiltRot, currentWatercolorWidth * w.width * w.tiltW, perp0);
       }
 
       this.hasDrawnAnyStamp = true;
@@ -761,8 +806,7 @@ class WatercolorStampBrush extends fabric.PencilBrush {
 
     const steps = Math.max(1, Math.round(dist / dynamicSegment));
     const rotation = this._getStampRotationForSegment(dx, dy);
-    const perp = this._getPerpendicularVector(rotation);
-    const basePerpOffset = this.strokeParams?.perpOffset || 0;
+    const perp = this._strokePerpVector();
 
     for (let i = 1; i <= steps; i++) {
       const progress = i / steps;
@@ -771,12 +815,7 @@ class WatercolorStampBrush extends fabric.PencilBrush {
 
       // Modulazione Wacom + TILT anche nel fallback legacy
       const w = readWacomFactors();
-      this._stampAt(
-        x + perp.x * basePerpOffset,
-        y + perp.y * basePerpOffset,
-        rotation + w.tiltRot,
-        currentWatercolorWidth * w.width * w.tiltW
-      );
+      this._stampAt(x, y, rotation + w.tiltRot, currentWatercolorWidth * w.width * w.tiltW, perp);
     }
 
     this.hasDrawnAnyStamp = true;
@@ -784,7 +823,12 @@ class WatercolorStampBrush extends fabric.PencilBrush {
     this.canvas.requestRenderAll();
   }
 
-  _stampAt(x, y, rotation, baseWidth) {
+  // perp: la perpendicolare AL TRATTO, sul foglio ({x, y}). Se manca, la
+  // perpendicolare alla rotazione del timbro. Stessa ricetta di performStamp()
+  // in gpuWorker.js: lo spostamento di ogni strato PRIMA della rotazione.
+  // ⚠ Questo percorso di riserva (senza worker) non conosce isFirstStamp:
+  //   il timbro del click secco qui esce pieno. Com'era prima della 3-bis.
+  _stampAt(x, y, rotation, baseWidth, perp) {
     // ── Preview su contextTop (comportamento invariato) ────────────────────
     const ctx = this.canvas.contextTop;
     ctx.globalCompositeOperation = "source-over";
@@ -796,11 +840,11 @@ class WatercolorStampBrush extends fabric.PencilBrush {
     const scale = baseWidth / STAMP_BASE_WIDTH;
     const w = stamp.width * scale;
     const h = stamp.height * scale;
-    const perp = this._getPerpendicularVector(rotation);
+    const p =
+      perp && Number.isFinite(perp.x) && Number.isFinite(perp.y) ? perp : this._getPerpendicularVector(rotation);
 
     ctx.save();
     ctx.translate(x, y);
-    ctx.rotate(rotation);
 
     ctx.shadowColor = isWatercolorMode
       ? watercolorToneColor(currentStrokeColor, jitterToneControl)
@@ -815,7 +859,8 @@ class WatercolorStampBrush extends fabric.PencilBrush {
       const layerRotJitter = degToRad((Math.random() - 0.5) * currentRotationJitter * 0.22);
 
       ctx.save();
-      ctx.translate(perp.x * layerPerpJitter, perp.y * layerPerpJitter);
+      ctx.translate(p.x * layerPerpJitter, p.y * layerPerpJitter);
+      ctx.rotate(rotation);
       ctx.rotate(layerRotJitter);
       ctx.globalAlpha = flow * (1 - (l / layers) * 0.85);
       ctx.drawImage(stamp, -w / 2, -h / 2, w, h);
@@ -843,11 +888,16 @@ class WatercolorStampBrush extends fabric.PencilBrush {
 
     if (!this.hasDrawnAnyStamp && this.downPoint) {
       const rotation = this.tipAngleOffset || 0;
+      // Un click secco non ha direzione: vale quella di un tratto
+      // orizzontale, come per l'anello (sparpagliamento in verticale).
+      const clickPerp = { x: 0, y: 1 };
 
       if (this._useStreamingWorker && _gpuWorkerReady && _gpuWorker && this._strokeId) {
         this._queueStrokeStamp({
           x: this.downPoint.x,
           y: this.downPoint.y,
+          perpX: clickPerp.x,
+          perpY: clickPerp.y,
           rotation,
           baseWidth: currentWatercolorWidth,
           flow: currentWatercolorFlow,
@@ -863,9 +913,7 @@ class WatercolorStampBrush extends fabric.PencilBrush {
         this.hasDrawnAnyStamp = true;
         this._flushStrokeChunk();
       } else {
-        this._stampAt(this.downPoint.x, this.downPoint.y, rotation, currentWatercolorWidth, {
-          isFirstStamp: true
-        });
+        this._stampAt(this.downPoint.x, this.downPoint.y, rotation, currentWatercolorWidth, clickPerp);
         this.hasDrawnAnyStamp = true;
       }
     }
@@ -892,7 +940,6 @@ class WatercolorStampBrush extends fabric.PencilBrush {
       this._strokeStampData = null;
       this._strokeChunkBuffer = [];
       this._currentTintedStamp = null;
-      this.strokeParams = null;
       this.lastPoint = null;
       this.downPoint = null;
       this.smoothedAngle = null;
@@ -916,7 +963,6 @@ class WatercolorStampBrush extends fabric.PencilBrush {
       this._strokeFlushRAF = 0;
     }
 
-    this.strokeParams = null;
     this.lastPoint = null;
     this.downPoint = null;
     this.smoothedAngle = null;

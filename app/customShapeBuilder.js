@@ -23,6 +23,15 @@
 //  reali (A4 estendibile); griglia/righelli LOD; colore+opacità forma; blocco
 //  inserimento per fogli > A4; export Polygon/Path compatibile Fabric 5.1–5.3.
 //
+//  NOVITÀ CANTIERE «LA BOTTEGA», FETTA 4A-2 (22 settembre 2026):
+//   • MODO PUNTA DEL PENNELLO TIMBRO. Chiamato da cloneStampBrush.js con
+//     window.openCustomShapeBuilderForStampTip({ onUse }), il modale si apre
+//     anche col pennello in mano (perché è il timbro stesso ad aprirlo) e al
+//     posto di «✅ Inserisci nel canvas» mostra «✔️ Usa come punta»: la forma
+//     selezionata diventa la punta del timbro, in MILLIMETRI VERI 1:1.
+//     Niente altro cambia — nel modo normale il pulsante, il rifiuto col
+//     pennello in mano e l'inserimento nel mosaico sono quelli di prima.
+//
 //  Compatibilità: Fabric.js v5.1.0 → v5.3.0
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -143,6 +152,12 @@
     state.movingShape = -1;    state.hoverShape = -1;
     state.moveLastWorld = null;
   }
+
+  // ── Modo «punta del Pennello Timbro» (cantiere «La Bottega», Fetta 4A-2) ──
+  // Quando è attivo, il modale non serve a inserire forme nel mosaico ma a
+  // disegnare la punta del timbro: { onUse } è la funzione che riceve il
+  // contorno effettivo della forma scelta, in mm veri. null = modo normale.
+  let tipMode = null;
 
   // Riferimenti DOM (popolati alla prima apertura)
   let modalEl = null;
@@ -897,7 +912,18 @@
     const act = activeShape();
     const closedCount = countClosed();
 
-    if (insertBtn) {
+    if (insertBtn && tipMode) {
+      // Modo punta: si usa la forma SELEZIONATA (o l'ultima chiusa). La
+      // dimensione del foglio non conta: la punta non va nel mosaico.
+      const enabled = !!shapeForTip();
+      insertBtn.disabled = !enabled;
+      insertBtn.style.opacity = enabled ? "1" : "0.4";
+      insertBtn.style.cursor = enabled ? "pointer" : "not-allowed";
+      insertBtn.title = enabled
+        ? __ct("csb.tip.useTitle", null, "Usa la forma selezionata come punta del Pennello Timbro, in millimetri veri")
+        : __ct("csb.tip.useTitleNone", null, "Chiudi una forma (Invio) per poterla usare come punta");
+      insertBtn.textContent = __ct("csb.tip.use", null, "✔️ Usa come punta");
+    } else if (insertBtn) {
       // ≤A4: inserisce TUTTE le forme chiuse del foglio. >A4: solo palladiana.
       const enabled = withinA4 && closedCount >= 1;
       insertBtn.disabled = !enabled;
@@ -969,7 +995,9 @@
     }
     if (statusEl) {
       const total = closedCount;
-      const pall = withinA4 ? "" : __ct("csb.status.palladianaWarn", null, " ⚠️ Foglio palladiana (>A4): usa 💾 Salva palladiana — l'inserimento nel mosaico è disattivato.");
+      // Nel modo punta l'avviso «l'inserimento è disattivato» non c'entra:
+      // la punta non passa dall'inserimento nel mosaico.
+      const pall = (withinA4 || tipMode) ? "" : __ct("csb.status.palladianaWarn", null, " ⚠️ Foglio palladiana (>A4): usa 💾 Salva palladiana — l'inserimento nel mosaico è disattivato.");
       const prefix = total > 0 ? __ct("csb.status.shapesOnSheet", { total }, `Forme sul foglio: ${total}. `) : "";
       if (isDrawing()) {
         const n = act ? act.vertices.length : 0;
@@ -986,6 +1014,11 @@
         statusEl.textContent = prefix +
           "Clicca una forma per selezionarla e spostarla/modificarla; doppio click sul vuoto (o ➕ Nuova forma) per disegnarne una." + pall;
       }
+    }
+    if (statusEl && tipMode) {
+      statusEl.textContent =
+        __ct("csb.tip.status", null, "🖼️ Punta del Pennello Timbro: disegna una forma, chiudila e premi «✔️ Usa come punta» (si usa quella selezionata). ") +
+        statusEl.textContent;
     }
     if (mmCursorEl) {
       if (state.mouseInside) {
@@ -1569,7 +1602,48 @@
     return shape;
   }
 
+  // ───────────────────── Modo punta: la forma e la consegna ──────────────
+  // Si usa la forma ATTIVA se è chiusa, altrimenti l'ultima chiusa del
+  // foglio: così «Usa come punta» funziona anche dopo aver cominciato a
+  // disegnarne un'altra, e non c'è nessun caso in cui il pulsante è acceso e
+  // non si sa quale forma prenderebbe.
+  function shapeForTip() {
+    const a = activeShape();
+    if (a && a.closed && a.vertices.length >= 3) return a;
+    for (let i = state.shapes.length - 1; i >= 0; i--) {
+      const sh = state.shapes[i];
+      if (sh.closed && sh.vertices.length >= 3) return sh;
+    }
+    return null;
+  }
+
+  // Il CONTORNO EFFETTIVO della forma (curve dell'utente e angoli
+  // arrotondati già dentro: sono gli stessi comandi che il modale disegna e
+  // che l'export mette nell'SVG), convertito in MILLIMETRI VERI. È il timbro
+  // a decidere se va bene: se dice no, il modale resta aperto.
+  function useAsStampTip() {
+    if (!tipMode) return false;
+    const sh = shapeForTip();
+    if (!sh) return false;
+    const cmds = effectiveCommands(sh.vertices, sh.curves, cornerPxArrayFor(sh)).map((c) => {
+      const o = { t: c.t, x: _px2mm(c.x), y: _px2mm(c.y) };
+      if (c.t === "Q") { o.cx = _px2mm(c.cx); o.cy = _px2mm(c.cy); }
+      return o;
+    });
+    let ok = false;
+    try {
+      ok = tipMode.onUse({ cmds: cmds }) !== false;
+    } catch (err) {
+      console.warn("[customShapeBuilder] punta del timbro rifiutata:", err);
+      ok = false;
+    }
+    if (ok) closeModal();
+    return ok;
+  }
+
   function insertShapeIntoCanvas() {
+    // Modo punta: il pulsante verde non inserisce niente nel mosaico.
+    if (tipMode) return void useAsStampTip();
     if (typeof canvas === "undefined" || !canvas) return;
     if (canvas.isDrawingMode) {
       if (typeof flashToast === "function") flashToast(__ct("csb.toast.disablePenInsert", null, "Disattiva penna/acquerello prima di inserire la forma"));
@@ -2065,11 +2139,39 @@
   }
 
   // ───────────────────── Open / Close modale ─────────────────────────────
+  // Il titolo dice in che modo siamo: creare una forma per il mosaico, o
+  // disegnare la punta del timbro.
+  function syncModeTitle() {
+    if (!modalEl) return;
+    const h = modalEl.querySelector("h3");
+    if (!h) return;
+    h.textContent = tipMode
+      ? __ct("csb.tip.modalTitle", null, "✏️ Disegna la punta del Pennello Timbro")
+      : __ct("csb.modal.title", null, "✏️ Crea forma personalizzata");
+  }
+
   function openModal() {
+    // ⚠ Col pennello in mano il modale NON si apre: è la regola di sempre.
+    //   Il modo punta è l'eccezione dichiarata, e la apre il timbro stesso
+    //   (openForStampTip), non questo pulsante.
     if (typeof canvas !== "undefined" && canvas && canvas.isDrawingMode) {
       if (typeof flashToast === "function") flashToast(__ct("csb.toast.disablePenCreate", null, "Disattiva penna/acquerello per creare una forma"));
       return;
     }
+    tipMode = null;
+    openModalCore();
+  }
+
+  // Apre il modale in modo PUNTA (cantiere «La Bottega», Fetta 4A-2). Lo
+  // chiama cloneStampBrush.js col pennello timbro in mano.
+  function openForStampTip(opts) {
+    if (!opts || typeof opts.onUse !== "function") return false;
+    tipMode = { onUse: opts.onUse };
+    openModalCore();
+    return true;
+  }
+
+  function openModalCore() {
     buildModalDOM();
     modalEl.style.display = "flex";
 
@@ -2080,6 +2182,11 @@
     resetDragHover();
     state.snappingToFirst = false;
     syncShapeControls();
+    syncModeTitle();
+    // ⚠ Subito, non al fotogramma dopo: updateUI() la chiamerebbe layout()
+    //   dentro requestAnimationFrame, e nel modo punta il pulsante verde
+    //   direbbe «Inserisci nel canvas» per un fotogramma.
+    updateUI();
 
     try { CSB.background.onOpen(); } catch (_) {}
 
@@ -2093,6 +2200,8 @@
   function closeModal() {
     if (!modalEl) return;
     modalEl.style.display = "none";
+    tipMode = null;
+    syncModeTitle();
     state.shapes = [];
     state.activeIndex = -1;
     state.selectedVertex = -1;
@@ -2134,6 +2243,20 @@
       onClose: () => {}
     }
   };
+  // Porta per il banco (cantiere «La Bottega», Fetta 4A-2): sola lettura dello
+  // stato e le funzioni del modo punta, per poter provare il contratto senza
+  // simulare i click sul foglio. All'applicazione non serve.
+  CSB.__test = {
+    state: () => state,
+    tipMode: () => tipMode,
+    modalEl: () => modalEl,
+    insertBtn: () => insertBtn,
+    newShapeObject: () => newShapeObject(),
+    shapeForTip: () => shapeForTip(),
+    useAsStampTip: () => useAsStampTip(),
+    updateUI: () => updateUI(),
+    effectiveCommands: (v, c, r) => effectiveCommands(v, c, r)
+  };
   window.CSB = CSB;
 
   // ───────────────────── Bind del pulsante in toolbar ────────────────────
@@ -2153,4 +2276,6 @@
 
   // Esposizione opzionale per debug / API esterna
   window.openCustomShapeBuilder = openModal;
+  // Il modo punta del Pennello Timbro (cantiere «La Bottega», Fetta 4A-2).
+  window.openCustomShapeBuilderForStampTip = openForStampTip;
 })();

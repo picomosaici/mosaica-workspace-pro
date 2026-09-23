@@ -194,6 +194,126 @@
       }
 
       /* ══════════════════════════════════════════════════════════
+         LENTE / MIRINO DEL PERIMETRO (freehandClipLens.js)
+         Fetta 2 del cantiere "Il perimetro e la lente".
+         Il layer non copre nulla: è un punto di ancoraggio 0×0, e ogni
+         pezzo si posiziona da sé in coordinate finestra (position:fixed)
+         come fa #radialMenu. Solo gli slider e i pulsanti prendono il
+         mouse; il vetro no, altrimenti si mangerebbe il click che piazza
+         la maniglia.
+         ══════════════════════════════════════════════════════════ */
+      #clipLensLayer {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 0;
+        height: 0;
+        overflow: visible;
+        pointer-events: none;
+        z-index: 9996;
+      }
+      #clipLensLayer[aria-hidden="true"] {
+        display: none;
+      }
+      #clipLensCanvas {
+        position: fixed;
+        border-radius: 50%;
+        pointer-events: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+      }
+      /* ⚠ Il cursore di sistema deve sparire mentre il mirino è a schermo,
+         altrimenti la freccia/croce di Windows sta SOPRA il reticolo. Sta
+         qui e non inline perché Fabric riscrive `cursor` inline ad ogni
+         hover: una regola di foglio di stile con !important vince su una
+         dichiarazione inline normale, mentre un inline !important
+         verrebbe sovrascritto al primo movimento del mouse. */
+      body.clip-lens-on #paper canvas {
+        cursor: none !important;
+      }
+      #clipLensRing[aria-hidden="true"] {
+        display: none;
+      }
+      .clip-lens-wrap {
+        position: fixed;
+        width: 210px;
+        box-sizing: border-box;
+        background: rgba(15, 15, 15, 0.88);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        padding: 5px 10px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        pointer-events: auto;
+        font-family: monospace;
+        font-size: 12px;
+        color: #fff;
+      }
+      .clip-lens-ico {
+        color: #00c8ff;
+        font-size: 13px;
+        font-weight: bold;
+        flex-shrink: 0;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+      }
+      .clip-lens-val {
+        flex-shrink: 0;
+        min-width: 62px;
+        text-align: right;
+        letter-spacing: 0.3px;
+      }
+      .clip-lens-wrap input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        flex: 1;
+        height: 4px;
+        background: linear-gradient(90deg, #ff8c00, #00c8ff);
+        border-radius: 4px;
+        outline: none;
+        cursor: pointer;
+      }
+      .clip-lens-wrap input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 13px;
+        height: 13px;
+        background: #fff;
+        border: 2px solid #00c8ff;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+      }
+      #clipLensBtns {
+        position: fixed;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        pointer-events: auto;
+      }
+      .clip-lens-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(15, 15, 15, 0.88);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+        cursor: pointer;
+        user-select: none;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+      }
+      .clip-lens-btn:hover {
+        border-color: rgba(0, 200, 255, 0.7);
+        background: rgba(25, 25, 25, 0.95);
+      }
+
+      /* ══════════════════════════════════════════════════════════
          COLOR POPUP — INVARIATO
          ══════════════════════════════════════════════════════════ */
       #colorPopup {
@@ -483,10 +603,15 @@
         margin-top: 8px;
         color: #cfd8ff;
       }
+      /* Calibrazione (cantiere «La Tavola delle Tessere», 19/09/2026):
+         la striscia è UNA sola cosa da misurare — nera piena, su fondo
+         chiaro, senza bordo bianco né ombra. Prima il bordino bianco di
+         2 px stava FUORI dalla parte scura (box-sizing content-box) e
+         misurare il bianco o il nero cambiava la misura di ~1 mm su 50. */
       #calibRect {
         margin-top: 6px;
         height: 58px;
-        background: #444;
+        background: #e6e6e6;
         border: 3px solid #111;
         border-radius: 6px;
         position: relative;
@@ -496,18 +621,19 @@
       .calibStrip {
         position: absolute;
         inset: 6px;
-        background: linear-gradient(90deg, #222 0%, #555 50%, #222 100%);
+        box-sizing: border-box;
+        background: #000;
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 2px solid #fff;
-        border-radius: 3px;
+        border: 0;
+        border-radius: 0;
       }
       #calibStrip {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        box-shadow: none;
       }
       .stripLabel {
         font-weight: 700;
@@ -1036,6 +1162,60 @@
       }
       .inspector-btn:hover {
         filter: brightness(1.12);
+      }
+
+      /* ── Pennello Timbro (cantiere "Il Pennello Timbro", Fetta 2B) ──
+         Interruttore a due voci Agganciata / Fissa, e contagocce armato
+         nello stesso ciano dell'anello della sorgente sul foglio. */
+      .stamp-seg {
+        display: flex;
+        flex: 1;
+        min-width: 0;
+        border: 1px solid #555;
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .stamp-seg button {
+        flex: 1;
+        min-width: 0;
+        background: #2b2b2b;
+        color: var(--col-text);
+        border: 0;
+        padding: 4px 6px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .stamp-seg button + button {
+        border-left: 1px solid #555;
+      }
+      .stamp-seg button.active {
+        background: var(--col-accent);
+        color: #fff;
+      }
+      .inspector-btn.armed {
+        background: #0090b8;
+        box-shadow: inset 0 0 0 2px rgba(0, 200, 255, 0.95);
+      }
+      .stamp-dim {
+        opacity: 0.45;
+      }
+      /* Colori del timbro (Fetta 3): il menu come quello della
+         miscelazione dell'acquerello, e il pulsante "Colori originali"
+         spento quando i colori sono gia' originali. */
+      .stamp-select {
+        flex: 1;
+        min-width: 0;
+        background: #2b2b2b;
+        color: #fff;
+        border: 1px solid #555;
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 12px;
+      }
+      #stampColorResetBtn:disabled {
+        opacity: 0.45;
+        cursor: default;
+        filter: none;
       }
 
       /* ── Mini history (undo/redo dentro Inspector header, opzionali) ── */
@@ -1605,9 +1785,51 @@
     </div>
 
     <!-- ════════════════════════════════════════════════════════
+         LENTE / MIRINO DEL PERIMETRO (freehandClipLens.js)
+         Fetta 2 del cantiere "Il perimetro e la lente". Vive SOLO dentro
+         la modalità perimetro (⬡) e serve ad appoggiare i vertici sugli
+         spigoli delle tessere quando si colorano le fughe: il centro del
+         reticolo è esattamente il punto dove il click piazza la maniglia.
+         L'anello compare quando il puntatore si ferma e resta ancorato
+         dov'è comparso, altrimenti gli slider scapperebbero col cursore.
+         ════════════════════════════════════════════════════════ -->
+    <div id="clipLensLayer" aria-hidden="true">
+      <canvas id="clipLensCanvas"></canvas>
+      <div id="clipLensRing" aria-hidden="true">
+        <div
+          class="clip-lens-wrap"
+          id="clipLensSizeWrap"
+          data-i18n-title="freehandClip.lens.sizeTitle"
+          title="Diametro della lente">
+          <span class="clip-lens-ico">⌀</span>
+          <input type="range" id="clipLensSize" min="90" max="460" step="2" value="190" />
+          <span class="clip-lens-val" id="clipLensSizeVal">190 px</span>
+        </div>
+        <div
+          class="clip-lens-wrap"
+          id="clipLensMagWrap"
+          data-i18n-title="freehandClip.lens.magTitle"
+          title="Ingrandimento dentro la lente (il reticolo è in millimetri reali)">
+          <span class="clip-lens-ico">🔍</span>
+          <input type="range" id="clipLensMag" min="15" max="120" step="1" value="40" />
+          <span class="clip-lens-val" id="clipLensMagVal">×4.0</span>
+        </div>
+        <div id="clipLensBtns">
+          <div
+            class="clip-lens-btn"
+            id="clipLensOff"
+            data-i18n-title="freehandClip.lens.offTitle"
+            title="Spegni la lente (L per riaccenderla)">
+            ⊘
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
          RADIAL MENU — INVARIATO
          ════════════════════════════════════════════════════════ -->
-    <div id="radialMenu" style="display: none">
+        <div id="radialMenu" style="display: none">
       <div class="radial-btn" data-action="rotate" data-i18n-tooltip="radial.tooltip.rotate" data-tooltip="Ruota l'oggetto (trascina o rotella)">↻</div>
       <div class="radial-btn" data-action="duplicate" data-i18n-tooltip="radial.tooltip.duplicate" data-tooltip="Duplica oggetto">⎘</div>
       <div class="radial-btn" data-action="scale" data-i18n-tooltip="radial.tooltip.scale" data-tooltip="Ridimensiona liberamente">⤢</div>
@@ -1627,6 +1849,34 @@
       <div class="radial-btn" data-action="delete" data-i18n-tooltip="radial.tooltip.delete" data-tooltip="Elimina oggetto (tasto Canc)">🗑️</div>
       <div class="radial-btn" data-action="group" data-i18n-tooltip="radial.tooltip.group" data-tooltip="Raggruppa oggetti selezionati">⎇</div>
       <div class="radial-btn" data-action="ungroup" data-i18n-tooltip="radial.tooltip.ungroup" data-tooltip="Separa gruppo">⎆</div>
+      
+      <!-- ── COMANDI DELLA SELEZIONE (selectionTools.js) ─────────────
+           ⚠ NESSUN display inline, ed è voluto: il radiale è UNO SOLO
+           (la ruota e la colonna della multi-selezione sono lo stesso
+           contenitore, cambia solo chi è visibile). Un pulsante senza
+           display inline compare da solo in tutti e due i posti, perché
+           updateRadialForMultiSelection() tocca solo group/ungroup/lock. -->
+      <div class="radial-btn" data-action="deselectAll" data-i18n-tooltip="radial.tooltip.deselectAll" data-tooltip="Deseleziona tutto">⬚</div>
+      <!-- ── LO SPECCHIO (selectionTools.js, Fetta 3) ────────────────
+           ⚠ IL NOME DICE L'ASSE, e le icone lo mostrano: la linea che
+           divide il quadratino È l'asse dello specchio.
+             ◨ → asse VERTICALE   → sinistra ↔ destra
+             ⬓ → asse ORIZZONTALE → alto ↔ basso
+           Gli attributi dell'azione invece dicono il MOVIMENTO,
+           perché "mirrorH" si potrebbe leggere sia "asse orizzontale"
+           sia "si muove in orizzontale", che sono l'opposto:
+           mirrorLeftRight e mirrorTopBottom non si possono
+           fraintendere.
+           ⚠ Deliberatamente NON frecce: sarebbero un invito allo
+           sbaglio. Su un trapezio: sull'asse verticale il lato
+           inclinato passa dall'altro lato e le basi restano dov'erano;
+           sull'asse orizzontale le basi si scambiano e il lato
+           inclinato resta dal suo lato.
+           ⚠ Le misure NON cambiano: lo specchio è una riflessione
+           pura, non una scala negativa — non viene scritto nessun
+           numero di dimensione. -->
+      <div class="radial-btn" data-action="mirrorLeftRight" data-i18n-tooltip="radial.tooltip.mirrorLeftRight" data-tooltip="Specchia sull'asse verticale (sinistra ↔ destra)">◨</div>
+      <div class="radial-btn" data-action="mirrorTopBottom" data-i18n-tooltip="radial.tooltip.mirrorTopBottom" data-tooltip="Specchia sull'asse orizzontale (alto ↔ basso)">⬓</div>
     </div>
     <div id="radialTooltip"></div>
 
@@ -1682,7 +1932,7 @@
       data-i18n="lasso.popover.resetLabel"
       data-i18n-title="lasso.popover.resetTooltip"
       title="Ripristina il valore consigliato per mosaici fitti">
-      Default (0.20)
+      Predefinito (0.20)
     </button>
   </div>
 </div>
@@ -1719,7 +1969,7 @@
 
   <p class="mwp-pop-hint" data-i18n="texturePanel.all.hint">
     Applica la texture scelta a tutte le tessere del canvas (non tocca penna,
-    acquerello, sfondo, Palladiana). Grana e colore valgono per tutte.
+    acquerello, sfondo e Palladiana). Grana e colore valgono per tutte.
   </p>
 
   <div class="mwp-pop-actions">
@@ -1755,7 +2005,7 @@
     <button type="button" class="mwp-pop-btn primary" id="brushSettingsReset"
             data-i18n="lassoBrush.popover.resetLabel"
             data-i18n-title="lassoBrush.popover.resetTooltip"
-            title="Ripristina la dimensione consigliata">Default (12 mm)</button>
+            title="Ripristina la dimensione consigliata">Predefinito (12 mm)</button>
   </div>
 </div>
 
@@ -1820,6 +2070,9 @@
             <button id="exportFreehandBtn" data-i18n="menu.export.freehand.label" data-i18n-title="menu.export.freehand.tooltip" title="Esporta solo linee a mano libera">
               ✏️ Esporta disegno mano libera
             </button>
+            <button id="exportTileSheetBtn" data-i18n="menu.export.tileSheet.label" data-i18n-title="menu.export.tileSheet.tooltip" title="Tessere ordinate per colore, un SVG per famiglia, per il laser">
+              🧩 Tavola delle tessere (laser)
+            </button>
           </div>
         </div>
       </div>
@@ -1832,10 +2085,20 @@
 
       <!-- Zoom (id="zoomPanel" mantenuto per compat JS) -->
       <div class="topbar-section" id="zoomPanel">
-        <button id="zoomOut" class="topbar-icon-btn" data-i18n-title="topbar.zoom.out.tooltip" title="Zoom out">−</button>
+        <button id="zoomOut" class="topbar-icon-btn" data-i18n-title="topbar.zoom.out.tooltip" title="Riduci lo zoom">−</button>
         <span id="zoomPercent">100%</span>
-        <button id="zoomIn" class="topbar-icon-btn" data-i18n-title="topbar.zoom.in.tooltip" title="Zoom in">+</button>
-        <button id="zoomReset" class="topbar-icon-btn" data-i18n-title="topbar.zoom.reset.tooltip" title="Reset zoom">⤾</button>
+        <button id="zoomIn" class="topbar-icon-btn" data-i18n-title="topbar.zoom.in.tooltip" title="Aumenta lo zoom">+</button>
+        <button id="zoomReset" class="topbar-icon-btn" data-i18n-title="topbar.zoom.reset.tooltip" title="Azzera lo zoom">⤾</button>
+        <!-- ── INQUADRA LA SELEZIONE (selectionTools.js, Fetta 2) ──────
+             Sta QUI e non nel menu radiale, e non è un ripiego: un
+             comando di zoom appartiene ai comandi di zoom. Il radiale
+             parla della forma selezionata, questa barra parla di come
+             la guardi. E c'è anche l'aritmetica: ogni pulsante in più
+             sul radiale alza il pavimento del raggio del cerchio e
+             anticipa il ripiegamento a colonna.
+             ⚠ Icona ▣ e NON ⛶: quella è già del pulsante schermo
+             intero, cinquanta righe più su. -->
+        <button id="zoomFitSelection" class="topbar-icon-btn" data-i18n-title="topbar.zoom.fitSelection.tooltip" title="Inquadra la selezione">▣</button>
       </div>
 
       <div class="topbar-spacer"></div>
@@ -1978,7 +2241,8 @@
       <button id="freehandBtn" class="tool-btn" data-i18n-title="leftToolbar.freehand.tooltip" title="Penna — disegno a mano libera">✏️</button>
       <button id="eraserBtn" class="tool-btn" data-i18n-title="leftToolbar.eraser.tooltip" title="Gomma — cancella tratti freehand">🧼</button>
       <button id="watercolorBtn" class="tool-btn" data-i18n-title="leftToolbar.watercolor.tooltip" title="Acquerello — pennellata con bleed">💧</button>
-      <button id="freehandClipBtn" class="tool-btn" data-i18n-title="leftToolbar.freehandClip.tooltip" title="Perimetro di contenimento del disegno (penna/acquerello). Tap = vertice, trascina = mano libera, Invio = chiudi, ESC = annulla. Click destro = cancella.">⬡</button>
+      <button id="freehandClipBtn" class="tool-btn" data-i18n-title="leftToolbar.freehandClip.tooltip" title="Perimetro di contenimento del disegno (penna/acquerello): colora solo dentro l'area. Tap = vertice, trascina = mano libera, le maniglie si spostano, doppio-click su un lato = punto nuovo, CANC = togli, Invio = chiudi/fine, ESC = esci. Click destro = cancella. L = lente mirino.">⬡</button>
+      <button id="stampBtn" class="tool-btn" aria-pressed="false" data-i18n-title="leftToolbar.stamp.tooltip" title="Pennello Timbro — copia un pezzo dello sfondo (immagine o carta) e lo ridipinge dove passi il pennello. Ctrl+Click sceglie il pezzo da copiare. Sta sopra lo sfondo e sotto penna e acquerello.">🖼️</button>
       <div class="tool-divider"></div>
       <button id="selectFreehandBtn" class="tool-btn" data-i18n-title="leftToolbar.selectFreehand.tooltip" title="Lista linee disegnate (selettore)">📋</button>
       <button id="clearAllFreehandBtn" class="tool-btn danger" data-i18n-title="leftToolbar.clearAllFreehand.tooltip" title="Cancella TUTTO il disegno a mano libera">
@@ -1991,7 +2255,7 @@
          ════════════════════════════════════════════════════════ -->
     <div id="historyPanel" aria-hidden="false">
       <div class="inspector-header">
-        <p class="inspector-title" data-i18n="inspector.title">Inspector</p>
+        <p class="inspector-title" data-i18n="inspector.title">Ispettore</p>
         <p class="inspector-subtitle" id="inspectorSubtitle" data-i18n="inspector.subtitle.empty">Nessuna selezione</p>
       </div>
       <div class="inspector-body">
@@ -2152,7 +2416,7 @@
           </div>
 
           <div class="inspector-row">
-            <span class="lbl" data-i18n="inspector.acquerello.layers">Layers</span>
+            <span class="lbl" data-i18n="inspector.acquerello.layers">Livelli</span>
             <input type="range" id="layersSlider" min="1" max="38" value="22" step="1" />
             <span class="val" id="layersValue">22</span>
           </div>
@@ -2178,7 +2442,7 @@
           </div>
 
           <div class="inspector-row">
-            <span class="lbl" data-i18n="inspector.acquerello.mixing">Mixing</span>
+            <span class="lbl" data-i18n="inspector.acquerello.mixing">Miscelazione</span>
             <select
               id="watercolorCompositeSelect"
               style="
@@ -2194,6 +2458,319 @@
               <option value="overlay" data-i18n="inspector.acquerello.mixing.overlay">Overlay (somma colori)</option>
               <option value="soft-light" data-i18n="inspector.acquerello.mixing.softLight">Soft Light (somma delicato)</option>
             </select>
+          </div>
+        </div>
+
+        <!-- ── PENNELLO TIMBRO (cantiere "Il Pennello Timbro", Fetta 2B).
+             Lo stato lo tiene cloneStampBrush.js: questi elementi lo
+             mostrano e basta. ── -->
+        <div class="inspector-section" data-section="timbro">
+          <p class="inspector-section-title" data-i18n="inspector.stamp.title">Pennello Timbro</p>
+
+          <div class="inspector-row">
+            <span class="lbl" data-i18n="inspector.stamp.size">Dimensione</span>
+            <input
+              type="range"
+              id="stampSizeSlider"
+              min="1"
+              max="60"
+              value="12"
+              step="0.5"
+              data-i18n-title="inspector.stamp.size.tooltip"
+              title="Diametro della punta in millimetri reali. È anche il lato del pezzo copiato: un comando solo per tutti e due." />
+            <span class="val" id="stampSizeValue">12.0 mm</span>
+          </div>
+
+          <!-- Forma della punta (Fetta 4A-2 del cantiere «La Bottega»): tonda,
+               quadrata, rettangolare, triangolare, ovale e libera. Le icone sono
+               disegnate qui dentro, non sono caratteri: cosi' si vedono uguali con
+               qualunque font. Lo stato lo tiene cloneStampBrush.js. -->
+          <div class="inspector-row">
+            <span class="lbl" data-i18n="inspector.stamp.shape">Forma</span>
+            <div class="stamp-seg" id="stampShapeGroup" role="group">
+              <button
+                type="button"
+                id="stampShapeRoundBtn"
+                class="active"
+                aria-pressed="true"
+                data-i18n-title="inspector.stamp.shape.round"
+                data-i18n-aria-label="inspector.stamp.shape.round"
+                aria-label="Tonda"
+                title="Tonda"><svg viewBox="0 0 16 16" aria-hidden="true" style="width: 14px; height: 14px; fill: currentColor; display: block; margin: 0 auto"><circle cx="8" cy="8" r="6" /></svg></button>
+              <button
+                type="button"
+                id="stampShapeSquareBtn"
+                aria-pressed="false"
+                data-i18n-title="inspector.stamp.shape.square"
+                data-i18n-aria-label="inspector.stamp.shape.square"
+                aria-label="Quadrata"
+                title="Quadrata"><svg viewBox="0 0 16 16" aria-hidden="true" style="width: 14px; height: 14px; fill: currentColor; display: block; margin: 0 auto"><rect x="2" y="2" width="12" height="12" /></svg></button>
+              <button
+                type="button"
+                id="stampShapeRectBtn"
+                aria-pressed="false"
+                data-i18n-title="inspector.stamp.shape.rect"
+                data-i18n-aria-label="inspector.stamp.shape.rect"
+                aria-label="Rettangolare"
+                title="Rettangolare"><svg viewBox="0 0 16 16" aria-hidden="true" style="width: 14px; height: 14px; fill: currentColor; display: block; margin: 0 auto"><rect x="1" y="5" width="14" height="6" /></svg></button>
+              <button
+                type="button"
+                id="stampShapeTriBtn"
+                aria-pressed="false"
+                data-i18n-title="inspector.stamp.shape.tri"
+                data-i18n-aria-label="inspector.stamp.shape.tri"
+                aria-label="Triangolare"
+                title="Triangolare"><svg viewBox="0 0 16 16" aria-hidden="true" style="width: 14px; height: 14px; fill: currentColor; display: block; margin: 0 auto"><polygon points="8,2 14.5,13.5 1.5,13.5" /></svg></button>
+              <button
+                type="button"
+                id="stampShapeOvalBtn"
+                aria-pressed="false"
+                data-i18n-title="inspector.stamp.shape.oval"
+                data-i18n-aria-label="inspector.stamp.shape.oval"
+                aria-label="Ovale"
+                title="Ovale"><svg viewBox="0 0 16 16" aria-hidden="true" style="width: 14px; height: 14px; fill: currentColor; display: block; margin: 0 auto"><ellipse cx="8" cy="8" rx="7" ry="4" /></svg></button>
+              <button
+                type="button"
+                id="stampShapeCustomBtn"
+                class="stamp-dim"
+                aria-pressed="false"
+                disabled
+                data-i18n-title="inspector.stamp.shape.custom"
+                data-i18n-aria-label="inspector.stamp.shape.custom"
+                aria-label="Libera"
+                title="Libera"><svg viewBox="0 0 16 16" aria-hidden="true" style="width: 14px; height: 14px; fill: currentColor; display: block; margin: 0 auto"><path d="M3 9 Q2 3 8 2.5 Q15 3 13.5 8.5 Q12 14 7 13.5 Q3 13 3 9 Z" /></svg></button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            id="stampDrawShapeBtn"
+            class="inspector-btn"
+            data-i18n="inspector.stamp.drawShape"
+            data-i18n-title="inspector.stamp.drawShape.tooltip"
+            title="Apre il costruttore delle forme: disegna la punta che vuoi, chiudila e premi «Usa come punta». Arriva in millimetri veri, 1:1.">✏️ Disegna la forma…</button>
+
+          <!-- La Proporzione vale per rettangolo, ovale e triangolo: la riga si
+               vede solo con quelle forme, e ognuna ricorda la sua. -->
+          <div class="inspector-row" id="stampRatioRow" style="display: none">
+            <span class="lbl" data-i18n="inspector.stamp.ratio">Proporzione</span>
+            <input
+              type="range"
+              id="stampRatioSlider"
+              min="10"
+              max="200"
+              value="50"
+              step="1"
+              data-i18n-title="inspector.stamp.ratio.tooltip"
+              title="L'altezza della punta, in parti della larghezza: 100% la fa alta quanto è larga. Ogni forma ricorda la sua; il triangolo parte equilatero." />
+            <span class="val" id="stampRatioValue">50%</span>
+          </div>
+
+          <!-- Rotazione della punta: + in senso orario, come le tessere. -->
+          <div class="inspector-row">
+            <span class="lbl" data-i18n="inspector.stamp.rotation">Rotazione</span>
+            <input
+              type="range"
+              id="stampRotationSlider"
+              min="-180"
+              max="180"
+              value="0"
+              step="1"
+              data-i18n-title="inspector.stamp.rotation.tooltip"
+              title="Gira la punta: + in senso orario, come la rotazione delle tessere. Con «segue il tratto» acceso si somma alla direzione della mano." />
+            <span class="val" id="stampRotationValue">0°</span>
+          </div>
+
+          <div class="inspector-row" id="stampFollowRow">
+            <span class="lbl" data-i18n="inspector.stamp.follow">Direzione</span>
+            <label
+              style="display: flex; align-items: center; gap: 6px; flex: 1; cursor: pointer; font-size: 11px; color: var(--col-text-dim)"
+              data-i18n-title="inspector.stamp.follow.tooltip"
+              title="La punta si gira nella direzione in cui vai, come le punte piatte dell'acquerello. Spenta, resta ferma: con gli spigoli vivi il bordo esce più pulito.">
+              <input type="checkbox" id="stampFollowChk" checked style="cursor: pointer" />
+              <span data-i18n="inspector.stamp.follow.hint">segue il tratto</span>
+            </label>
+          </div>
+
+          <!-- Spaziatura delle impronte (Fetta 4A-1): in centesimi della punta. -->
+          <div class="inspector-row">
+            <span class="lbl" data-i18n="inspector.stamp.spacing">Spaziatura</span>
+            <input
+              type="range"
+              id="stampTipSpacingSlider"
+              min="5"
+              max="200"
+              value="25"
+              step="5"
+              data-i18n-title="inspector.stamp.spacing.tooltip"
+              title="Distanza fra un'impronta e l'altra, in parti della punta. Poco = tratto continuo; sopra 1× le impronte si staccano." />
+            <span class="val" id="stampTipSpacingValue">0.25×</span>
+          </div>
+
+          <div class="inspector-row">
+            <span class="lbl" data-i18n="inspector.stamp.distance">Distanza</span>
+            <input
+              type="range"
+              id="stampDistanceSlider"
+              min="-100"
+              max="100"
+              value="-20"
+              step="0.5"
+              data-i18n-title="inspector.stamp.distance.tooltip"
+              title="Quanto sta lontana la sorgente agganciata dalla punta: a sinistra del centro = dalla parte sinistra, a destra = dalla parte destra. L'Angolo la inclina. Con la sorgente fissa vale quando torni ad Agganciata." />
+            <span class="val" id="stampDistanceValue">← 20.0 mm</span>
+          </div>
+
+          <!-- Angolo della sorgente agganciata (Fetta 4A-1): + = verso l'alto. -->
+          <div class="inspector-row">
+            <span class="lbl" data-i18n="inspector.stamp.angle">Angolo</span>
+            <input
+              type="range"
+              id="stampAngleSlider"
+              min="-90"
+              max="90"
+              value="0"
+              step="1"
+              data-i18n-title="inspector.stamp.angle.tooltip"
+              title="Inclina la sorgente agganciata rispetto alla punta: + la porta verso l'alto, − verso il basso; a ±90° sta proprio sopra o sotto la punta. Con la sorgente fissa vale quando torni ad Agganciata." />
+            <span class="val" id="stampAngleValue">0°</span>
+          </div>
+
+          <div class="inspector-row">
+            <span class="lbl" data-i18n="inspector.stamp.source">Sorgente</span>
+            <div class="stamp-seg" role="group">
+              <button
+                type="button"
+                id="stampSourceAnchoredBtn"
+                class="active"
+                aria-pressed="true"
+                data-i18n="inspector.stamp.source.anchored"
+                data-i18n-title="inspector.stamp.source.anchored.tooltip"
+                title="La sorgente segue la punta alla distanza impostata: copi una striscia continua. Libera la sorgente fissa.">Agganciata</button>
+              <button
+                type="button"
+                id="stampSourceFixedBtn"
+                aria-pressed="false"
+                data-i18n="inspector.stamp.source.fixed"
+                data-i18n-title="inspector.stamp.source.fixed.tooltip"
+                title="La sorgente resta ferma sul pezzo scelto e non segue il pennello. Se non ne hai scelto uno, il click dopo sul foglio lo sceglie.">Fissa</button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            id="stampPickSourceBtn"
+            class="inspector-btn"
+            aria-pressed="false"
+            data-i18n="inspector.stamp.pick"
+            data-i18n-title="inspector.stamp.pick.tooltip"
+            title="Contagocce: il click dopo sul foglio sceglie il pezzo da copiare, che diventa la sorgente fissa. Esc o un secondo click qui annullano.">⊕ Prendi sorgente</button>
+
+          <!-- Colori del timbro (Fetta 3). Valgono per i tratti dipinti da
+               quel momento; non si salvano. -->
+          <div class="inspector-divider"></div>
+
+          <div class="inspector-row">
+            <span class="lbl" data-i18n="inspector.stamp.brightness">Luminosità</span>
+            <input
+              type="range"
+              id="stampBrightnessSlider"
+              min="-100"
+              max="100"
+              value="0"
+              step="1"
+              data-i18n-title="inspector.stamp.brightness.tooltip"
+              title="Schiarisce o scurisce il pezzo copiato. Al centro: com'è." />
+            <span class="val" id="stampBrightnessValue">0</span>
+          </div>
+
+          <div class="inspector-row">
+            <span class="lbl" data-i18n="inspector.stamp.hue">Tono</span>
+            <input
+              type="range"
+              id="stampHueSlider"
+              min="-180"
+              max="180"
+              value="0"
+              step="1"
+              data-i18n-title="inspector.stamp.hue.tooltip"
+              title="Gira la tinta del pezzo copiato sulla ruota dei colori, senza cambiarne luce e saturazione. Al centro: com'è." />
+            <span class="val" id="stampHueValue">0°</span>
+          </div>
+
+          <div class="inspector-row">
+            <span class="lbl" data-i18n="inspector.stamp.transparency">Trasparenza</span>
+            <input
+              type="range"
+              id="stampTransparencySlider"
+              min="0"
+              max="90"
+              value="0"
+              step="1"
+              data-i18n-title="inspector.stamp.transparency.tooltip"
+              title="Quanto il tratto lascia vedere quello che ha sotto. A zero è pieno." />
+            <span class="val" id="stampTransparencyValue">0%</span>
+          </div>
+
+          <div class="inspector-row">
+            <span class="lbl" data-i18n="inspector.stamp.colorMode">Colori</span>
+            <select
+              id="stampColorModeSelect"
+              class="stamp-select"
+              data-i18n-title="inspector.stamp.colorMode.tooltip"
+              title="Come vengono i colori del pezzo copiato.">
+              <option value="normal" selected data-i18n="inspector.stamp.colorMode.normal">Originali</option>
+              <option value="grayscale" data-i18n="inspector.stamp.colorMode.grayscale">Scala di grigi</option>
+              <option value="invert" data-i18n="inspector.stamp.colorMode.invert">Invertiti</option>
+              <option value="negative" data-i18n="inspector.stamp.colorMode.negative">Negativo (controluce)</option>
+              <option value="cmy" data-i18n="inspector.stamp.colorMode.cmy">CMY — una lastra</option>
+            </select>
+          </div>
+
+          <div class="inspector-row" id="stampCmyRow" style="display: none">
+            <span class="lbl" data-i18n="inspector.stamp.cmy">Lastra</span>
+            <div class="stamp-seg" role="group">
+              <button
+                type="button"
+                id="stampCmyCBtn"
+                class="active"
+                aria-pressed="true"
+                data-i18n-title="inspector.stamp.cmy.c.tooltip"
+                title="Lastra del ciano: il pezzo come lo stamperebbe il solo inchiostro ciano.">C</button>
+              <button
+                type="button"
+                id="stampCmyMBtn"
+                aria-pressed="false"
+                data-i18n-title="inspector.stamp.cmy.m.tooltip"
+                title="Lastra del magenta: il pezzo come lo stamperebbe il solo inchiostro magenta.">M</button>
+              <button
+                type="button"
+                id="stampCmyYBtn"
+                aria-pressed="false"
+                data-i18n-title="inspector.stamp.cmy.y.tooltip"
+                title="Lastra del giallo: il pezzo come lo stamperebbe il solo inchiostro giallo.">Y</button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            id="stampColorResetBtn"
+            class="inspector-btn"
+            disabled
+            data-i18n="inspector.stamp.colorReset"
+            data-i18n-title="inspector.stamp.colorReset.tooltip"
+            title="Riporta luminosità, tono, trasparenza e colori come sono nello sfondo.">↺ Colori originali</button>
+
+          <div class="inspector-divider"></div>
+          <div style="font-size: 11px; color: var(--col-text-dim); line-height: 1.5" data-i18n-html="inspector.stamp.note">
+            <b>Ctrl+Click</b> sul foglio = scegli la sorgente fissa.<br />
+            Agganciata: la sorgente segue la punta alla distanza impostata.<br />
+            Fissa: la sorgente resta sul pezzo scelto.<br />
+            <b>Esc</b> annulla il contagocce.
+          </div>
+          <div style="font-size: 11px; color: var(--col-text-dim); line-height: 1.5; margin-top: 6px" data-i18n-html="inspector.stamp.colorNote">
+            I colori valgono per i tratti che dipingi da adesso.<br />
+            Alla riapertura di Mosaica ripartono originali.
           </div>
         </div>
 
@@ -2282,8 +2859,8 @@
       </div>
 
       <div class="bgPanel-section" id="bgControls" style="gap: 6px">
-        <button id="bgFitContain" class="bgBtn" data-i18n="bgPanel.fitContain.label" data-i18n-title="bgPanel.fitContain.tooltip" title="Fit Contain">Contain</button>
-        <button id="bgFitCover" class="bgBtn secondary" data-i18n="bgPanel.fitCover.label" data-i18n-title="bgPanel.fitCover.tooltip" title="Fit Cover">Cover</button>
+        <button id="bgFitContain" class="bgBtn" data-i18n="bgPanel.fitContain.label" data-i18n-title="bgPanel.fitContain.tooltip" title="Adatta l'immagine dentro il foglio">Adatta</button>
+        <button id="bgFitCover" class="bgBtn secondary" data-i18n="bgPanel.fitCover.label" data-i18n-title="bgPanel.fitCover.tooltip" title="Riempi tutto il foglio con l'immagine">Riempi</button>
         <button id="bgRotateLeft" class="bgBtn" data-i18n="bgPanel.rotateLeft.label" data-i18n-title="bgPanel.rotateLeft.tooltip" title="Ruota a sinistra">↶ Ruota</button>
         <button id="bgRotateRight" class="bgBtn" data-i18n="bgPanel.rotateRight.label" data-i18n-title="bgPanel.rotateRight.tooltip" title="Ruota a destra">Ruota ↷</button>
         <button id="bgClearBtn" class="bgBtn danger" data-i18n="bgPanel.clear.label" data-i18n-title="bgPanel.clear.tooltip" title="Rimuovi sfondo">🗑 Rimuovi</button>
@@ -2742,6 +3319,160 @@
     </div>
 
     <!-- ════════════════════════════════════════════════════════
+         MODALE: Tavola delle tessere (cantiere «La Tavola delle
+         Tessere», Fetta 1). Lo accende tileSheet.js. tabindex="-1":
+         il modale prende il fuoco all'apertura, così Backspace/Canc
+         non arrivano alle tessere selezionate dietro (trappola 193).
+         ════════════════════════════════════════════════════════ -->
+    <div
+      id="tileSheetModal"
+      tabindex="-1"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.92);
+        z-index: 20002;
+        align-items: center;
+        justify-content: center;
+        outline: none;
+      ">
+      <div
+        style="
+          background: #1f1f1f;
+          padding: 22px 24px;
+          border-radius: 12px;
+          width: 580px;
+          max-width: 92vw;
+          max-height: 90vh;
+          overflow: auto;
+          color: #eee;
+          box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
+        ">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px">
+          <h3 style="margin: 0; font-size: 17px" data-i18n="tileSheet.modal.title">🧩 Tavola delle tessere — file per il laser</h3>
+          <button
+            id="tileSheetCloseBtn"
+            data-i18n-title="tileSheet.modal.close.tooltip"
+            title="Chiudi"
+            style="background: none; border: none; color: #aaa; font-size: 26px; cursor: pointer; line-height: 1">
+            ×
+          </button>
+        </div>
+        <div style="font-size: 12px; opacity: 0.8; margin-bottom: 8px" data-i18n="tileSheet.modal.subtitle">
+          Le tessere ordinate per colore, con la rotazione azzerata e la base orizzontale: un file SVG A4 per ogni
+          famiglia di colore, una matrice per ogni colore esatto. Sul mosaico non si muove niente.
+        </div>
+        <div
+          style="font-size: 12px; margin-bottom: 14px; padding: 8px 10px; background: rgba(255, 179, 71, 0.1); border-left: 3px solid #ffb347; border-radius: 4px"
+          data-i18n="tileSheet.modal.note.laser">
+          Gli SVG contengono SOLO i contorni delle tessere, in millimetri veri: nessuna scritta, perché il laser
+          taglierebbe anche quella.
+        </div>
+        <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; cursor: pointer" data-i18n-title="tileSheet.modal.onlySelected.tooltip" title="Metti in tavola solo le tessere selezionate sul foglio">
+          <input type="checkbox" id="tileSheetOnlySelected" />
+          <span><span data-i18n="tileSheet.modal.onlySelected">Solo le tessere selezionate</span> (<span id="tileSheetOnlySelectedCount">0</span>)</span>
+        </label>
+        <div style="display: flex; gap: 26px; flex-wrap: wrap; margin-bottom: 12px; font-size: 13px">
+          <div>
+            <div style="opacity: 0.75; margin-bottom: 4px" data-i18n="tileSheet.modal.sheet.label">Foglio A4</div>
+            <label style="margin-right: 12px; cursor: pointer"><input type="radio" name="tileSheetOrient" value="portrait" checked /> <span data-i18n="tileSheet.modal.sheet.portrait">Verticale</span></label>
+            <label style="cursor: pointer"><input type="radio" name="tileSheetOrient" value="landscape" /> <span data-i18n="tileSheet.modal.sheet.landscape">Orizzontale</span></label>
+          </div>
+          <div>
+            <div style="opacity: 0.75; margin-bottom: 4px" data-i18n="tileSheet.modal.align.label">Tessere allineate</div>
+            <label style="margin-right: 12px; cursor: pointer" data-i18n-title="tileSheet.modal.align.bottom.tooltip" title="Le basi in fila: si vede subito se una tessera è rimasta storta"><input type="radio" name="tileSheetAlign" value="bottom" checked /> <span data-i18n="tileSheet.modal.align.bottom">in basso</span></label>
+            <label style="cursor: pointer"><input type="radio" name="tileSheetAlign" value="top" /> <span data-i18n="tileSheet.modal.align.top">in alto</span></label>
+          </div>
+        </div>
+        <div style="display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 14px; font-size: 13px">
+          <label data-i18n-title="tileSheet.modal.gap.tooltip" title="Distanza fra le scatole delle tessere, in orizzontale e in verticale">
+            <div style="opacity: 0.75; margin-bottom: 4px" data-i18n="tileSheet.modal.gap.label">Spazio fra le tessere (mm)</div>
+            <input type="number" id="tileSheetGap" min="0" max="50" step="0.1" value="2" style="background: #2a2a2a; color: #eee; border: 1px solid #444; border-radius: 5px; padding: 4px 6px; width: 72px" />
+          </label>
+          <label data-i18n-title="tileSheet.modal.gridGap.tooltip" title="Aria prima di ogni matrice: così in Beam Studio le matrici si separano senza prendere pezzi di quella accanto. Minimo 6 mm.">
+            <div style="opacity: 0.75; margin-bottom: 4px" data-i18n="tileSheet.modal.gridGap.label">Stacco fra le matrici (mm)</div>
+            <input type="number" id="tileSheetGridGap" min="6" max="80" step="0.5" value="10" style="background: #2a2a2a; color: #eee; border: 1px solid #444; border-radius: 5px; padding: 4px 6px; width: 72px" />
+          </label>
+          <label data-i18n-title="tileSheet.modal.margin.tooltip" title="Bordo vuoto del foglio: nessuna tessera tocca il bordo">
+            <div style="opacity: 0.75; margin-bottom: 4px" data-i18n="tileSheet.modal.margin.label">Margine del foglio (mm)</div>
+            <input type="number" id="tileSheetMargin" min="0" max="50" step="0.5" value="5" style="background: #2a2a2a; color: #eee; border: 1px solid #444; border-radius: 5px; padding: 4px 6px; width: 72px" />
+          </label>
+        </div>
+        <!-- Fetta 2: la compensazione del taglio e le linguette (§4.16, §4.14) -->
+        <div style="font-size: 12px; opacity: 0.75; margin: 2px 0 6px; border-top: 1px solid #333; padding-top: 10px" data-i18n="tileSheet.modal.cut.title">Taglio laser</div>
+        <div style="display: flex; gap: 26px; flex-wrap: wrap; margin-bottom: 10px; font-size: 13px">
+          <label data-i18n-title="tileSheet.modal.kerf.tooltip" title="Quanto cresce OGNI misura della tessera nei file da taglio, per recuperare la gomma che il laser si mangia. 0,3 = +0,3 mm su larghezza, altezza e diametro (0,15 per lato). 0 = spenta. Il PDF e la distinta restano con le misure vere.">
+            <div style="opacity: 0.75; margin-bottom: 4px" data-i18n="tileSheet.modal.kerf.label">Compensazione del taglio (mm)</div>
+            <input type="number" id="tileSheetKerf" min="0" max="1.5" step="0.05" value="0.3" style="background: #2a2a2a; color: #eee; border: 1px solid #444; border-radius: 5px; padding: 4px 6px; width: 72px" />
+          </label>
+          <div>
+            <div style="opacity: 0.75; margin-bottom: 4px" data-i18n="tileSheet.modal.growth.label">Crescita</div>
+            <label style="margin-right: 12px; cursor: pointer" data-i18n-title="tileSheet.modal.growth.band.tooltip" title="Ogni lato si sposta in fuori di metà compensazione: come il laser, che si mangia una fascia uguale lungo tutto il perimetro"><input type="radio" name="tileSheetGrowth" value="band" checked /> <span data-i18n="tileSheet.modal.growth.band">a fascia</span></label>
+            <label style="cursor: pointer" data-i18n-title="tileSheet.modal.growth.proportional.tooltip" title="La tessera si ingrandisce come in fotocopia: la base cresce della compensazione, l'altezza in proporzione (come il lucchetto delle proporzioni di LightBurn)"><input type="radio" name="tileSheetGrowth" value="proportional" /> <span data-i18n="tileSheet.modal.growth.proportional">in proporzione</span></label>
+          </div>
+        </div>
+        <div style="display: flex; gap: 26px; flex-wrap: wrap; margin-bottom: 10px; font-size: 13px">
+          <div data-i18n-title="tileSheet.modal.outlines.tooltip" title="Con linguetta: per ogni famiglia anche un file …_linguette.svg, con un taglietto aperto su ogni tessera che la tiene attaccata alla lastra">
+            <div style="opacity: 0.75; margin-bottom: 4px" data-i18n="tileSheet.modal.outlines.label">Contorni</div>
+            <label style="margin-right: 12px; cursor: pointer"><input type="radio" name="tileSheetOutlines" value="both" checked /> <span data-i18n="tileSheet.modal.outlines.both">chiusi + con linguetta</span></label>
+            <label style="cursor: pointer"><input type="radio" name="tileSheetOutlines" value="closed" /> <span data-i18n="tileSheet.modal.outlines.closed">solo chiusi</span></label>
+          </div>
+          <label data-i18n-title="tileSheet.modal.tab.tooltip" title="Quanto è lunga l'apertura della linguetta. Sta al centro del lato dritto sulla base della tessera, mai sulla curva; nei cerchi nel punto più basso. Il ponticello che resta è il taglietto meno lo spessore del raggio laser.">
+            <div style="opacity: 0.75; margin-bottom: 4px" data-i18n="tileSheet.modal.tab.label">Taglietto (mm)</div>
+            <input type="number" id="tileSheetTab" min="0.05" max="3" step="0.05" value="0.4" style="background: #2a2a2a; color: #eee; border: 1px solid #444; border-radius: 5px; padding: 4px 6px; width: 72px" />
+          </label>
+        </div>
+        <div
+          style="font-size: 12px; margin-bottom: 14px; padding: 8px 10px; background: rgba(255, 179, 71, 0.1); border-left: 3px solid #ffb347; border-radius: 4px"
+          data-i18n="tileSheet.modal.note.noScale">
+          ⚠ I file da taglio sono già cresciuti della compensazione: in LightBurn niente scala e niente Kerf Offset, o la
+          gomma cresce due volte.
+        </div>
+        <!-- Fetta 3: il PDF per il banco (§4.15 della Tavola; cantiere «La Bottega») -->
+        <div style="font-size: 12px; opacity: 0.75; margin: 2px 0 6px; border-top: 1px solid #333; padding-top: 10px" data-i18n="tileSheet.modal.pdf.title">PDF per il banco</div>
+        <div style="display: flex; gap: 26px; flex-wrap: wrap; margin-bottom: 14px; font-size: 13px">
+          <div data-i18n-title="tileSheet.modal.pdf.tooltip" title="Come si disegnano le tessere nelle tavole del PDF: piene del loro colore, o solo il contorno (meno inchiostro). Nel PDF le misure sono sempre quelle vere, stampate 1:1.">
+            <div style="opacity: 0.75; margin-bottom: 4px" data-i18n="tileSheet.modal.pdf.label">Tessere nel PDF</div>
+            <label style="margin-right: 12px; cursor: pointer"><input type="radio" name="tileSheetPdfFill" value="filled" checked /> <span data-i18n="tileSheet.modal.pdf.filled">colorate</span></label>
+            <label style="cursor: pointer"><input type="radio" name="tileSheetPdfFill" value="outline" /> <span data-i18n="tileSheet.modal.pdf.outline">solo contorno</span></label>
+          </div>
+          <!-- Fetta 4: la distinta anche in CSV (§4.15 della Tavola; cantiere «La Bottega»): il riquadro si chiude con la riga che c'era già qui sotto -->
+          <div data-i18n-title="tileSheet.modal.csv.tooltip" title="Accanto al PDF, la distinta come tabella da aprire con Excel o LibreOffice: una riga per ogni colore, forma e misura, con le misure vere al decimo di millimetro. Colonne separate dal punto e virgola e virgola nei decimali: l'Excel italiano la apre così com'è.">
+            <div style="opacity: 0.75; margin-bottom: 4px" data-i18n="tileSheet.modal.csv.label">Distinta</div>
+            <label style="cursor: pointer"><input type="checkbox" id="tileSheetCsv" checked /> <span data-i18n="tileSheet.modal.csv.check">anche in CSV (Excel, LibreOffice)</span></label>
+          </div>
+        </div>
+        <div style="font-size: 12px; opacity: 0.75; margin-bottom: 4px" data-i18n="tileSheet.modal.preview.title">Cosa verrà creato</div>
+        <div
+          id="tileSheetPreview"
+          style="font-size: 13px; background: #181818; border: 1px solid #333; border-radius: 6px; padding: 8px 10px; min-height: 40px; max-height: 220px; overflow: auto"></div>
+        <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end">
+          <button
+            id="tileSheetCancelBtn"
+            style="padding: 9px 18px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer"
+            data-i18n="tileSheet.modal.cancel">
+            Annulla
+          </button>
+          <button
+            id="tileSheetConfirmBtn"
+            style="
+              padding: 9px 22px;
+              background: #2e8b57;
+              border: 0;
+              border-radius: 6px;
+              color: #fff;
+              cursor: pointer;
+              font-weight: 600;
+            "
+            data-i18n="tileSheet.modal.confirm">
+            📁 Scegli la cartella e crea i file
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
          MODALE: Conferma Nuovo Progetto
          ════════════════════════════════════════════════════════ -->
     <div
@@ -3119,7 +3850,7 @@
                   font-size: 12px;
                 "
                 data-i18n="wacom.modal.buttons.calib.reset">
-                🔄 Reset
+                🔄 Azzera
               </button>
             </div>
             <div
@@ -3248,6 +3979,7 @@
     <script src="watercolorStampBrush.js"></script>
     <script src="keyboardShortcuts.js"></script>
     <script src="svgExport.js"></script>
+    <script src="tileSheet.js"></script>
     <script src="saveLoader.js"></script>
     <script src="autoSave.js"></script>
     <script src="mouseObserver.js"></script>
@@ -3255,10 +3987,13 @@
     <script src="lassoBrushSelection.js"></script>
     <script src="wacomTablet.js"></script>
     <script src="freehandTools.js"></script>
+    <script src="freehandClipLens.js"></script>
+    <script src="cloneStampBrush.js"></script>
     <script src="inputMapping.js"></script>
     <script src="updateChecker.js"></script>
     <script src="customShapeBuilder.js"></script>
     <script src="csb-image.js"></script>
+    <script src="selectionTools.js"></script>
 
     <!-- ════════════════════════════════════════════════════════
          BOOT-UI (NUOVO): apre/chiude dropdown, sincronizza Inspector
@@ -3323,10 +4058,20 @@
         // ── Aggiorna l'indicatore calibrazione (factor) in topbar + status bar ──
         function updateCalibIndicators() {
           try {
-            const factor =
-              (typeof window.calibrationFactor === "number" && window.calibrationFactor) ||
-              parseFloat(localStorage.getItem("mosaica_calibration_factor")) ||
-              1;
+            // Il fattore VERO è il `let calibrationFactor` di renderer.js, che
+            // si vede per nome (script classico). window.calibrationFactor non
+            // esiste, e in Electron localStorage non lo scrive nessuno: prima
+            // l'indicatore mostrava 1.000, o il numero lasciato da un'altra
+            // versione di Mosaica (cantiere «La Tavola delle Tessere», 19/09).
+            let factor = 0;
+            try {
+              if (typeof calibrationFactor === "number" && calibrationFactor > 0) factor = calibrationFactor;
+            } catch (e) {}
+            if (!factor)
+              factor =
+                (typeof window.calibrationFactor === "number" && window.calibrationFactor) ||
+                parseFloat(localStorage.getItem("mosaica_calibration_factor")) ||
+                1;
             const ind = document.getElementById("calibFactorIndicator");
             const sc = document.getElementById("statusCalib");
             const txt = factor.toFixed(3);
@@ -3350,6 +4095,12 @@
           const b = document.getElementById("watercolorBtn");
           return !!(b && b.classList.contains("active"));
         }
+        // Pennello Timbro: lo stato lo tiene cloneStampBrush.js, che accende
+        // e spegne da sé la classe .active del suo pulsante.
+        function isStampOn() {
+          const b = document.getElementById("stampBtn");
+          return !!(b && b.classList.contains("active"));
+        }
 
         // ── Toolbar sinistra: aggiorna anche il pulsante "Seleziona" come default
         //    quando nessuno dei 3 strumenti è attivo. freehandDrawing.js gestisce
@@ -3357,7 +4108,7 @@
         function updateToolbarActive() {
           const sel = document.getElementById("selectToolBtn");
           if (sel) {
-            const anyToolOn = isFreehandOn() || isEraserOn() || isWatercolorOn();
+            const anyToolOn = isFreehandOn() || isEraserOn() || isWatercolorOn() || isStampOn();
             sel.classList.toggle("active", !anyToolOn);
           }
         }
@@ -3405,6 +4156,11 @@
             }
 
             // Strumento attivo
+            if (isStampOn()) {
+              const tr = window.i18n && typeof window.i18n.t === "function" ? window.i18n.t("inspector.stamp.subtitle") : "";
+              setInspectorSection("timbro", tr && tr !== "inspector.stamp.subtitle" ? tr : "Strumento: timbro");
+              return;
+            }
             if (isWatercolorOn()) {
               setInspectorSection("acquerello", "Strumento: acquerello");
               return;
@@ -3523,7 +4279,7 @@
           }
 
           // Wrappers leggeri sui bottoni strumento esistenti per refresh UI
-          ["freehandBtn", "eraserBtn", "watercolorBtn"].forEach((id) => {
+          ["freehandBtn", "eraserBtn", "watercolorBtn", "stampBtn"].forEach((id) => {
             const btn = document.getElementById(id);
             if (!btn) return;
             btn.addEventListener("click", () => {

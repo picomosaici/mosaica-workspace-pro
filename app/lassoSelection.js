@@ -658,6 +658,13 @@ function _wireLassoSettingsUI() {
 
 // ================  Init ===========================================
 function initLassoSelection() {
+  // ⚠ UNA VOLTA SOLA (cantiere «La Bottega», 21 settembre 2026, trappola
+  //   206). Questa funzione la chiama renderer.js con un timer e, se il
+  //   timer l'ha mancata, l'avvio di riserva in fondo a questo file: le due
+  //   strade non devono mai sommarsi, o ogni pulsante riceverebbe due
+  //   ascoltatori e un click lo accenderebbe e spegnerebbe insieme.
+  if (window.__mwpAvvioLazo) return;
+  if (document.getElementById("lassoSelectBtn")) window.__mwpAvvioLazo = true;
   const btn = document.getElementById("lassoSelectBtn");
   if (!btn) {
     console.warn("[lassoSelection] #lassoSelectBtn non trovato nel DOM");
@@ -704,3 +711,38 @@ window.toggleLasso = toggleLasso;
 window.isLassoMode = () => isLassoMode;
 window.setLassoThreshold = setLassoThreshold;
 window.getLassoThreshold = getLassoThreshold;
+
+// ════════════════════════════════════════════════════════════════
+//  AVVIO DI RISERVA — cantiere «La Bottega», 21 settembre 2026
+//  renderer.js accende questo modulo con un timer FISSO, contato da
+//  quando renderer.js stesso ha finito di caricarsi. Se in quel momento
+//  questo file non e' ancora arrivato (disco lento, antivirus, un file
+//  grosso caricato prima di lui), il timer salta e non riprova piu':
+//  il pulsante resta morto per tutta la sessione (trappola 206). Qui il
+//  modulo si accende da se', SOLO se il timer lo ha mancato.
+//  165 ms dopo DOMContentLoaded cade sempre DOPO il timer di renderer.js
+//  (che parte prima, a pagina ancora in caricamento) e PRIMA della lente
+//  e del timbro (200 ms): l'ordine degli ascoltatori resta quello di
+//  sempre — come col timer a 160 ms, dopo la penna e prima del pennello selezione.
+// ════════════════════════════════════════════════════════════════
+(function () {
+  let tentativi = 0;
+  function riserva() {
+    if (window.__mwpAvvioLazo) return;
+    if (typeof window.initLassoSelection !== "function") return;
+    tentativi++;
+    console.log("[lassoSelection] avvio di riserva (il timer di renderer.js l'aveva mancato)");
+    let ok = true;
+    try {
+      ok = window.initLassoSelection() !== false;
+    } catch (e) {
+      console.warn("[lassoSelection] avvio di riserva fallito:", e);
+    }
+    if (!ok && !(window.__mwpAvvioLazo) && tentativi < 10) setTimeout(riserva, 200);
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => setTimeout(riserva, 165));
+  } else {
+    setTimeout(riserva, 165);
+  }
+})();

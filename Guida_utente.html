@@ -581,7 +581,7 @@
   <div class="header-inner">
     <div class="logo-badge">
       <div class="logo-dot">🎨</div>
-      Guida Utente · V 07.2026
+      Guida Utente · V 09.2026
     </div>
     <h1>Mosaica<br><em>Workspace Pro</em></h1>
     <p class="header-sub">Guida completa all'uso dell'applicazione per la progettazione di mosaici in scala reale, disegno a mano libera, acquerello digitale ed esportazione per laser CAM.</p>
@@ -601,12 +601,14 @@
     <a href="#disegno">Disegno Libero</a>
     <a href="#acquerello">Acquerello</a>
     <a href="#punte">Punte Pennello</a>
+    <a href="#timbro">Pennello Timbro</a>
     <a href="#sfondo">Sfondo</a>
     <a href="#progetti">Progetti</a>
     <a href="#autosave">Auto-salvataggio</a>
     <a href="#autoopen">Apertura Automatica</a>
     <a href="#fullscreen">Schermo Intero</a>
     <a href="#esporta">Esporta</a>
+    <a href="#tavola">Tavola Tessere</a>
     <a href="#wacom">Tavoletta Wacom</a>
     <a href="#inputmapping">Mappatura Input</a>
     <a href="#scorciatoie">Scorciatoie</a>
@@ -626,11 +628,11 @@
   <div class="ui-diagram">
     <div class="ui-diagram-inner">
       <div class="uib topbar">Top Bar — File · Esporta · Undo/Redo · Zoom · Calibrazione · Schermo intero · Guida</div>
-      <div class="uib bgbar">BG Panel — Caricamento e gestione sfondo (Drop · Contain · Cover · Ruota · Rimuovi)</div>
+      <div class="uib bgbar">BG Panel — Caricamento e gestione sfondo (Drop · Adatta · Riempi · Ruota · Rimuovi)</div>
       <div class="uib texturep">Texture Panel</div>
       <div class="uib lefttool">Left Toolbar</div>
       <div class="uib canvas">Foglio A4 (Workspace)</div>
-      <div class="uib inspector">Inspector contestuale<br>(strumento o forma selezionata)</div>
+      <div class="uib inspector">Ispettore contestuale<br>(strumento o forma selezionata)</div>
       <div class="uib statusbar">Status Bar — Zoom · Coordinate (mm) · Selezione · Auto-save · Calibrazione</div>
     </div>
   </div>
@@ -639,11 +641,11 @@
   <div class="card-grid col2">
   <div class="card-mini">
       <h4>① Top Bar (in alto)</h4>
-      <p>Logo, dropdown <strong>File</strong> (Apri/Salva/Nuovo Progetto + auto-apertura), dropdown <strong>Esporta</strong> (PDF, PNG/SVG, mano libera), pulsanti <strong>Undo/Redo</strong>, controlli <strong>Zoom</strong> (+/−/reset con percentuale live), dropdown <strong>Calibrazione</strong>, toggle <strong>schermo intero</strong> (⛶/🗗), pulsante <strong>📖 Guida</strong>, pulsante <strong>🖊️ Wacom</strong> (impostazioni tavoletta con indicatore di stato connessione) e pulsante <strong>🖱️⌨️ Input</strong> (mappatura personalizzata mouse e tastiera).</p>
+      <p>Logo, dropdown <strong>File</strong> (Apri/Salva/Nuovo Progetto + auto-apertura), dropdown <strong>Esporta</strong> (PDF, PNG/SVG, mano libera), pulsanti <strong>Undo/Redo</strong>, controlli <strong>Zoom</strong> (+/−/reset con percentuale live e <strong>▣ inquadra la selezione</strong>), dropdown <strong>Calibrazione</strong>, toggle <strong>schermo intero</strong> (⛶/🗗), pulsante <strong>📖 Guida</strong>, pulsante <strong>🖊️ Wacom</strong> (impostazioni tavoletta con indicatore di stato connessione) e pulsante <strong>🖱️⌨️ Input</strong> (mappatura personalizzata mouse e tastiera).</p>
     </div>
     <div class="card-mini">
       <h4>② BG Panel (subito sotto)</h4>
-      <p>Barra orizzontale dedicata all'<strong>immagine di sfondo</strong>: area di drop, anteprima miniatura, pulsanti Contain/Cover, rotazione (↶ ↷) e rimozione.</p>
+      <p>Barra orizzontale dedicata all'<strong>immagine di sfondo</strong>: area di drop, anteprima miniatura, pulsanti Adatta/Riempi, rotazione (↶ ↷) e rimozione.</p>
     </div>
     <div class="card-mini">
       <h4>③ Texture Panel (sinistra estrema)</h4>
@@ -654,7 +656,7 @@
       <p>Tutti gli <strong>strumenti</strong>: rotazione canvas (Verticale/Orizzontale), Seleziona (default), Aggiungi forma, Lazo, Penna, Gomma, Acquerello, Lista linee, Cancella tutto.</p>
     </div>
     <div class="card-mini">
-      <h4>⑤ Inspector (a destra)</h4>
+      <h4>⑤ Ispettore (a destra)</h4>
       <p>Pannello <strong>contestuale</strong> che cambia automaticamente in base allo strumento attivo o alla forma selezionata: parametri penna/acquerello, slider angoli del triangolo, controlli trapezio, dimensioni in mm.</p>
     </div>
     <div class="card-mini">
@@ -707,6 +709,14 @@
     </div>
   </div>
 
+  <h3>Inquadra la selezione — il pulsante ▣</h3>
+  <p>Nella barra dello zoom, accanto a <strong>+</strong>, <strong>−</strong> e <strong>⨾</strong>, c'è <strong>▣</strong>: porta zoom e vista sulla <strong>selezione attuale</strong>, in un salto solo. Non c'è da mirare — la selezione finisce in mezzo all'area di lavoro con un po' d'aria intorno, <strong>maniglie comprese</strong>, compresa quella di rotazione che sta sopra il riquadro. È il modo veloce per tornare su un pezzo di mosaico che avevi perso di vista, e per prendere le maniglie di una selezione più grande dello schermo.</p>
+  <ul>
+    <li>Se non c'è niente selezionato, Mosaica te lo dice e la vista non si muove.</li>
+    <li>Se la selezione è talmente grande che nemmeno il <strong>40%</strong> di zoom la contiene, il pulsante fa il possibile e <strong>ti avvisa</strong> che una parte resta fuori: è il limite dello zoom, non un difetto.</li>
+    <li>Zoom e pan non entrano nello storico: un <kbd>Ctrl</kbd>+<kbd>Z</kbd> dopo un'inquadratura non annulla l'inquadratura, annulla l'ultima cosa che hai fatto <em>al mosaico</em>. È il comportamento di sempre.</li>
+  </ul>
+
   <h3>Sensibilità adattiva della rotella</h3>
   <p>Lo zoom da rotella ha una <strong>sensibilità che si adatta alla velocità del gesto</strong>: quando giri la rotella lentamente lo zoom resta preciso, una "tacca" per "tacca"; quando la fai girare velocemente lo zoom accelera in modo naturale per coprire più range in meno tempo, esattamente come negli editor grafici professionali. La velocità è misurata in eventi/secondo e filtrata con una media mobile esponenziale (EMA), con decadimento di circa 250 ms — quindi appena rallenti, lo zoom torna immediatamente preciso. C'è anche un <em>cap di sicurezza</em> sull'intensità dei singoli eventi che protegge da spike anomali di driver o SO.</p>
 
@@ -718,6 +728,7 @@
     <li>Se sei in modalità penna, gomma o acquerello e vuoi tornare a selezionare le forme, clicca <strong>🖱️ Seleziona</strong> nella toolbar a sinistra: disattiva automaticamente tutti gli strumenti modali.</li>
     <li>La <strong>Status Bar</strong> mostra le coordinate in <em>mm reali</em>: usala per posizionamenti precisi al decimo di millimetro. Le coordinate scompaiono quando il mouse esce dal workspace.</li>
     <li>Se perdi la vista del foglio, premi <strong>Ctrl + 0</strong> per tornare allo zoom 100% e centrare il canvas.</li>
+    <li>Se hai selezionato tutto il mosaico e le maniglie sono finite fuori dallo schermo, premi <strong>▣ Inquadra la selezione</strong> nella barra dello zoom: la selezione torna dentro l'area di lavoro con le maniglie prendibili.</li>
     <li>L'app si avvia in <strong>modalità schermo intero</strong>: il pulsante 🗗 in alto a destra (o <strong>ESC</strong>) la fa uscire.</li>
   </ul></div></div>
 </section>
@@ -735,19 +746,19 @@
     <li>
       <div>
         <div class="step-title">Apri il pannello calibrazione</div>
-        <div class="step-body">Clic su <strong>📏 Calibrazione</strong> nella top bar. Si apre un popover con una <strong>striscia grigia</strong> con bordo bianco, lunga esattamente 50 mm teorici.</div>
+        <div class="step-body">Clic su <strong>📏 Calibrazione</strong> nella top bar. Si apre un popover con una <strong>striscia nera</strong>, lunga 50 mm teorici: è quella che misuri.</div>
       </div>
     </li>
     <li>
       <div>
-        <div class="step-title">Verifica zoom OS e browser al 100%</div>
-        <div class="step-body">Prima di misurare assicurati che <strong>zoom del sistema operativo sia al 100%</strong> (scaling display) e che non ci siano filtri attivi.</div>
+        <div class="step-title">Tieni il ridimensionamento di Windows che usi di solito</div>
+        <div class="step-body">Calibra con il <strong>ridimensionamento dello schermo di Windows</strong> (scaling) che usi abitualmente. Se poi lo cambi, ricalibra.</div>
       </div>
     </li>
     <li>
       <div>
         <div class="step-title">Misura la striscia con il calibro</div>
-        <div class="step-body">Appoggia un <strong>calibro digitale</strong> (o un righello metallico rigido) direttamente sullo schermo, sulla striscia con etichetta "50 mm TEORICI". Annota la misura effettiva.</div>
+        <div class="step-body">Appoggia un <strong>calibro digitale</strong> (o un righello metallico rigido) direttamente sullo schermo e misura la <strong>striscia nera</strong> con etichetta "50 mm TEORICI", <strong>da bordo a bordo</strong>. Annota la misura effettiva.</div>
       </div>
     </li>
     <li>
@@ -768,10 +779,12 @@
 
   <p>Il pulsante <strong>Reset calibrazione (1.0)</strong> riporta il fattore a 1.000 (nessuna correzione).</p>
 
+  <div class="callout warning"><div class="callout-icon"></div><div><strong>Il fattore converte anche le misure dei progetti.</strong> Ricalibrare cambia i millimetri delle tessere già disegnate, e Mosaica te lo dice con un avviso che riporta di quanto sono cambiate. Calibra una volta, poi non toccarlo più. Una misura impossibile (per esempio <code>4.785</code> al posto di <code>47.85</code>) viene rifiutata invece di stravolgere il foglio.</div></div>
+
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
     <li>Usa un <strong>calibro digitale</strong> o un righello fisico rigido (metallo o plastica dura) invece di un metro flessibile: la lettura è più precisa al centesimo di millimetro.</li>
     <li>Se cambi monitor, risoluzione o orientamento dello schermo, <strong>ricalibra</strong>: il fattore è legato a quel display specifico.</li>
-    <li>Per verificare la calibrazione, doppio-clic sul foglio per creare un quadrato e controlla che le misure mostrate nell'Inspector e nello <em>status bar</em> corrispondano alla misura del calibro appoggiato sullo schermo.</li>
+    <li>Per verificare la calibrazione, doppio-clic sul foglio per creare un quadrato e controlla che le misure mostrate nell'Ispettore e nello <em>status bar</em> corrispondano alla misura del calibro appoggiato sullo schermo.</li>
     <li>L'indicatore del fattore di calibrazione è sempre visibile sia nel pulsante in topbar sia nella status bar a destra: a colpo d'occhio sai se sei calibrato o se hai un fattore correttivo applicato.</li>
   </ul></div></div>
 </section>
@@ -823,7 +836,7 @@
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
     <li>Prima di ruotare il canvas, posiziona tutte le forme dove desideri: la rotazione avviene attorno al <strong>centro geometrico del foglio A4</strong>.</li>
-    <li>Dopo una rotazione, verifica l'immagine di sfondo: se usavi <strong>Contain</strong> o <strong>Cover</strong>, potrebbe essere necessario riaggiustare la rotazione dello sfondo separatamente (con i pulsanti ↶ Ruota nel BG Panel).</li>
+    <li>Dopo una rotazione, verifica l'immagine di sfondo: se usavi <strong>Adatta</strong> o <strong>Riempi</strong>, potrebbe essere necessario riaggiustare la rotazione dello sfondo separatamente (con i pulsanti ↶ Ruota nel BG Panel).</li>
     <li>La <strong>texture carta</strong> si rigenera automaticamente con l'orientamento corretto: non devi ricaricarla manualmente.</li>
     <li>Undo/Redo funziona normalmente anche dopo il cambio di orientamento, quindi puoi annullare la rotazione se il risultato non ti soddisfa.</li>
   </ul></div></div>
@@ -847,6 +860,8 @@
   <h3>Selezionare e spostare</h3>
   <p>Clicca su una forma per selezionarla. Appariranno le <strong>maniglie di controllo azzurre</strong> ai bordi e agli angoli per ridimensionare, e il simbolo <strong>↻</strong> per ruotare. Trascina la forma per spostarla.</p>
 
+  <div class="callout tip"><div class="callout-icon"></div><div><strong>Le maniglie di una selezione grande si prendono sempre.</strong> Su una tessera piccola le maniglie stanno staccate dalla forma di pochi pixel, in proporzione al suo ingombro. Su una selezione grande quanto il foglio quella proporzione le butterebbe fuori dallo schermo, quindi il distacco ha un <strong>tetto</strong>: si ferma a <strong>40 pixel</strong> di schermo e non cresce più. Il tetto morde solo oltre un ingombro di <strong>circa 7,5 cm</strong>: sotto quella misura non cambia assolutamente niente rispetto a prima. E se la selezione è comunque più grande della finestra, c'è <strong>▣ Inquadra la selezione</strong> nella barra dello zoom.</div></div>
+
   <h3>Selezione multipla</h3>
   <p>Hai quattro modi:</p>
   <ul>
@@ -859,7 +874,7 @@
   <h3>Misure in millimetri</h3>
   <p>Quando una forma è selezionata, sopra di essa compaiono <strong>due etichette</strong> con le misure reali (Larghezza × Altezza) in mm. <strong>Cliccando sull'etichetta L o A</strong> puoi inserire manualmente la dimensione desiderata: digita il valore, premi Invio per applicare o Esc per annullare.</p>
 
-  <p>Inoltre, quando è selezionata una forma singola, nell'<strong>Inspector a destra</strong> in alto vedi il blocco <strong>Dimensioni</strong> con due campi <code>Largh.</code> e <code>Altezza</code> in mm, sempre modificabili.</p>
+  <p>Inoltre, quando è selezionata una forma singola, nell'<strong>Ispettore a destra</strong> in alto vedi il blocco <strong>Dimensioni</strong> con due campi <code>Largh.</code> e <code>Altezza</code> in mm, sempre modificabili.</p>
 
   <h3>Ciclo delle forme</h3>
   <p>Il tasto <strong>🔄 Cambia Forma</strong> del menu radiale cicla attraverso:</p>
@@ -875,16 +890,16 @@
     <span style="background:var(--blue-light);color:var(--blue);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">Triangolo ottusangolo</span>
   </div>
 
-  <h3>Inspector — Triangolo (slider angoli)</h3>
-  <p>Quando selezioni un triangolo, l'Inspector mostra automaticamente la sezione <strong>"Triangolo · Angoli"</strong> con due slider:</p>
+  <h3>Ispettore — Triangolo (slider angoli)</h3>
+  <p>Quando selezioni un triangolo, l'Ispettore mostra automaticamente la sezione <strong>"Triangolo · Angoli"</strong> con due slider:</p>
   <ul>
     <li><strong>α (alfa)</strong> — angolo in basso a sinistra, 1°–178°</li>
     <li><strong>β (beta)</strong> — angolo in basso a destra, 1°–178°</li>
   </ul>
   <p>Il terzo angolo γ si calcola automaticamente (somma = 180°). Le dimensioni visive del triangolo vengono preservate mentre cambi gli angoli. Lo snap è di 0.1°.</p>
 
-  <h3>Inspector — Trapezio</h3>
-  <p>Quando selezioni un trapezio, l'Inspector mostra la sezione dedicata con slider per:</p>
+  <h3>Ispettore — Trapezio</h3>
+  <p>Quando selezioni un trapezio, l'Ispettore mostra la sezione dedicata con slider per:</p>
   <ul>
     <li><strong>Base superiore</strong> (in mm)</li>
     <li><strong>Base inferiore</strong> (in mm)</li>
@@ -956,7 +971,7 @@
   <h4 style="margin:14px 0 6px;">Inserire nel canvas</h4>
   <p>Quando la forma ti soddisfa, premi <strong>✅ Inserisci nel canvas</strong> (oppure <strong>Invio</strong> se sei già in fase editing): il modale si chiude e la forma viene piazzata <em>al centro della porzione di canvas visibile</em> — esattamente con la stessa logica di posizionamento del pulsante <strong>➕ Aggiungi forma</strong>, indipendente da zoom e pan del canvas principale. La forma mantiene le dimensioni del preview a scala 1:1 in mm reali.</p>
 
-  <div class="callout tip"><div class="callout-icon"></div><div>Una volta nel canvas, la forma personalizzata si comporta esattamente come tutte le altre: <strong>menu radiale</strong>, <strong>maniglie azzurre</strong> per ridimensionare e ruotare, <strong>misure in mm</strong> nell'Inspector e nella status bar, applicazione di <strong>colore</strong> e <strong>texture</strong>, <strong>duplicazione</strong>, <strong>group/ungroup</strong>, <strong>selezione lazo</strong>, <strong>undo/redo</strong>, e viene <strong>salvata</strong> nel progetto <code>.msp.json</code> insieme a tutto il resto — comprese le eventuali curve dei lati.</div></div>
+  <div class="callout tip"><div class="callout-icon"></div><div>Una volta nel canvas, la forma personalizzata si comporta esattamente come tutte le altre: <strong>menu radiale</strong>, <strong>maniglie azzurre</strong> per ridimensionare e ruotare, <strong>misure in mm</strong> nell'Ispettore e nella status bar, applicazione di <strong>colore</strong> e <strong>texture</strong>, <strong>duplicazione</strong>, <strong>group/ungroup</strong>, <strong>selezione lazo</strong>, <strong>undo/redo</strong>, e viene <strong>salvata</strong> nel progetto <code>.msp.json</code> insieme a tutto il resto — comprese le eventuali curve dei lati.</div></div>
 
   <h4 style="margin:14px 0 6px;">Foglio di lavoro: formati e unità</h4>
   <p>In alto nel modale scegli il <strong>formato del foglio</strong> su cui disegni: i preset <strong>A5, A4, A3, A2, A1, A0</strong> oppure <strong>Personalizzato</strong> con larghezza e altezza digitate a mano. L'unità dei campi è selezionabile tra <strong>mm</strong>, <strong>cm</strong> e <strong>pollici</strong> (la conversione è automatica). Accanto vedi sempre dimensione e <strong>area</strong> del foglio aggiornate in tempo reale; righelli e griglia si riadattano subito al nuovo formato.</p>
@@ -998,12 +1013,12 @@
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
     <li>Dopo aver creato un rettangolo, usa <strong>🔄 Cambia Forma</strong> nel menu radiale per trasformarlo immediatamente in cerchio, trapezio o triangolo preservando posizione, colore e dimensioni.</li>
-    <li>Per dimensioni precise al decimo di millimetro usa i campi <strong>Largh./Altezza</strong> dell'Inspector: digita il valore e premi Invio.</li>
-    <li>Per i <strong>triangoli</strong>, modifica prima gli angoli α e β dall'Inspector: la forma preserva automaticamente le dimensioni visive mentre cambi la geometria.</li>
+    <li>Per dimensioni precise al decimo di millimetro usa i campi <strong>Largh./Altezza</strong> dell'Ispettore: digita il valore e premi Invio.</li>
+    <li>Per i <strong>triangoli</strong>, modifica prima gli angoli α e β dall'Ispettore: la forma preserva automaticamente le dimensioni visive mentre cambi la geometria.</li>
     <li>Per i <strong>trapezi</strong>, lo slider <strong>Offset</strong> cambia la "categoria" della forma; gli slider delle basi preservano invece gli angoli esistenti.</li>
     <li>Dopo aver ridimensionato una forma con le maniglie azzurre, il sistema esegue automaticamente il <em>bake</em> della scala nei punti: i campi in mm restano sempre coerenti con ciò che vedi a schermo.</li>
     <li>Per dividere un cerchio in settori indipendenti, selezionalo e usa <strong>◔ Dividi</strong>: click normale per 4 quarti, <strong>Alt + click</strong> per 2 metà.</li>
-    <li>Per <strong>forme irregolari</strong> (stelle, frecce, petali, sagome di tessere) usa il builder <strong>✏️➕ Crea forma personalizzata</strong>: i <strong>righelli mm</strong> intorno all'area di disegno e l'indicatore in tempo reale della posizione del cursore ti permettono di disegnare a misura, mentre <strong>zoom</strong> e <strong>pan</strong> dedicati ti danno la precisione che serve sulle maniglie. Dopo aver chiuso la forma puoi <strong>curvare singoli lati</strong> trascinando la maniglia rotonda azzurra al loro centro — utile per <strong>petali</strong>, <strong>foglie</strong>, <strong>onde</strong> e qualunque sagoma con bordi morbidi. Una volta inserita nel canvas, puoi sempre ridimensionarla con le maniglie azzurre o digitare le misure in mm nell'Inspector.</li>
+    <li>Per <strong>forme irregolari</strong> (stelle, frecce, petali, sagome di tessere) usa il builder <strong>✏️➕ Crea forma personalizzata</strong>: i <strong>righelli mm</strong> intorno all'area di disegno e l'indicatore in tempo reale della posizione del cursore ti permettono di disegnare a misura, mentre <strong>zoom</strong> e <strong>pan</strong> dedicati ti danno la precisione che serve sulle maniglie. Dopo aver chiuso la forma puoi <strong>curvare singoli lati</strong> trascinando la maniglia rotonda azzurra al loro centro — utile per <strong>petali</strong>, <strong>foglie</strong>, <strong>onde</strong> e qualunque sagoma con bordi morbidi. Una volta inserita nel canvas, puoi sempre ridimensionarla con le maniglie azzurre o digitare le misure in mm nell'Ispettore.</li>
   </ul></div></div>
 </section>
 
@@ -1012,6 +1027,8 @@
   <div class="section-label">05</div>
   <h2>Menu Radiale</h2>
   <p>Quando selezioni uno o più oggetti, attorno ad essi appare un <strong>cerchio di pulsanti</strong>. È il menu radiale: contiene tutte le azioni disponibili per la selezione. I pulsanti si dispongono a cerchio intorno all'oggetto, a distanza proporzionale alla dimensione (puoi affinare il raggio con uno slider che appare sotto le misure W/H).</p>
+
+  <div class="callout tip"><div class="callout-icon"></div><div><strong>Quando il cerchio non ci sta, i pulsanti si mettono in colonna.</strong> Con lo <strong>zoom alto</strong>, con una forma molto grande, o in <strong>multi-selezione</strong>, un cerchio abbastanza largo da contenere tutti i pulsanti finirebbe fuori dallo schermo o sotto le barre. In quel caso il menu si dispone da solo come una <strong>colonna compatta</strong> accanto alla forma. Non cambia niente di quello che i pulsanti fanno: cambia solo dove si mettono, e tornano in cerchio appena c'è spazio. Le misure <strong>L</strong> e <strong>A</strong> e il cursore del raggio seguono la colonna e <strong>restano sempre dentro l'area visibile</strong>.</div></div>
 
   <div class="radial-grid">
     <div class="radial-item">
@@ -1097,6 +1114,33 @@
         <div class="radial-desc">Visibile su gruppi. Riporta le forme allo stato singolo, mantenendo posizioni e orientamenti.</div>
       </div>
     </div>
+    <div class="radial-item">
+      <div class="radial-icon">⬚</div>
+      <div>
+        <div class="radial-label">Deseleziona tutto</div>
+        <div class="radial-desc">Lascia andare la selezione senza toccare le forme. Comodo quando hai preso tutto il mosaico e non c'è un pezzo di foglio vuoto dove cliccare per liberarlo.</div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon">◨</div>
+      <div>
+        <div class="radial-label">Specchia — asse verticale</div>
+        <div class="radial-desc">
+          <strong>Sinistra ↔ destra.</strong> La linea che divide il quadratino dell'icona <em>è</em> l'asse dello specchio.<br>
+          Le misure non cambiano di un decimo di millimetro.
+        </div>
+      </div>
+    </div>
+    <div class="radial-item">
+      <div class="radial-icon">⬓</div>
+      <div>
+        <div class="radial-label">Specchia — asse orizzontale</div>
+        <div class="radial-desc">
+          <strong>Alto ↔ basso.</strong> Stessa regola dell'altro: il nome dice l'<em>asse</em>, non il movimento.<br>
+          Le misure non cambiano di un decimo di millimetro.
+        </div>
+      </div>
+    </div>
   </div>
 
   <h3>Rotazione e Scala fine — il dettaglio</h3>
@@ -1120,6 +1164,23 @@
 
   <div class="callout tip"><div class="callout-icon"></div><div>Con <strong>più oggetti selezionati</strong> appaiono i pulsanti <strong>⎇ Raggruppa</strong> e <strong>⎆ Separa</strong> in verde. Un gruppo si sposta, ridimensiona e ruota come un'unità sola.</div></div>
 
+  <h3>Lo specchio — ◨ e ⬓</h3>
+  <p><strong>La regola, in due righe.</strong> Lo specchio è il gesto di girare la tessera fra le dita: la tessera si rovescia e resta larga e alta <em>esattamente</em> come prima. Non è la maniglia tirata oltre il lato opposto — quella rovescia e insieme ridimensiona, e mezzo millimetro in meno vuol dire una tessera che non entra più nel posto per cui l'avevi tagliata.</p>
+
+  <div class="callout tip"><div class="callout-icon"></div><div><strong>Il nome sta sull'asse, e l'icona lo mostra.</strong> La linea che taglia in due il quadratino <em>è</em> l'asse dello specchio: <strong>◨</strong> ha l'asse <strong>verticale</strong> e scambia sinistra con destra, <strong>⬓</strong> ha l'asse <strong>orizzontale</strong> e scambia alto con basso. Se ti confondi guarda l'icona: la metà piena passa dall'altra parte, e quella è la direzione in cui va la tessera.</div></div>
+
+  <p>Su una <strong>forma sola</strong> l'asse passa per il suo centro: la forma si rovescia e non si sposta di un pixel. Su una <strong>multi-selezione</strong> l'asse passa per il centro dell'intera selezione, quindi si rovescia <strong>la disposizione</strong> — le tessere si scambiano di posto come in uno specchio vero — e il riquadro della selezione resta dov'era e della stessa misura.</p>
+
+  <ul>
+    <li><strong>Un trapezio</strong> con la punta a sinistra: con <strong>◨</strong> la punta passa a destra e le due basi restano dov'erano; con <strong>⬓</strong> le due basi si scambiano e la punta resta a sinistra. I cursori dell'Ispettore mostrano subito i millimetri nuovi.</li>
+    <li><strong>Un triangolo scaleno</strong>: gli angoli α e β si scambiano.</li>
+    <li><strong>Le tessere ruotate</strong> hanno la rotazione <em>rovesciata</em>, non conservata — è quello che fa la differenza fra uno specchio e una forma girata a caso. Si vede a occhio soltanto quando almeno una tessera è inclinata.</li>
+    <li><strong>Il perimetro di contenimento (⬡)</strong> è un attrezzo appoggiato sul foglio, non un pezzo della selezione: non si specchia.</li>
+    <li><strong>Un gesto = un <kbd>Ctrl</kbd>+<kbd>Z</kbd>.</strong> Anche se hai specchiato quattrocento tessere in un colpo solo.</li>
+  </ul>
+
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Il disegno sotto le tessere non si specchia mai.</strong> I tratti a <strong>penna</strong> e ad <strong>acquerello</strong> restano dove sono anche quando sono dentro la selezione — e basta un <kbd>Ctrl</kbd>+<kbd>A</kbd> distratto per portarli dentro. È voluto: l'acquerello è la guida su cui le tessere si posano, e con le mani si gira la tessera, non il foglio. Mosaica te lo dice con un avviso e ti conta quanti tratti ha lasciato fuori.</div></div>
+
   <h3>Applicare il colore</h3>
   <p>Dopo aver cliccato 🎨 appare un pannello con un selettore colore e otto colori rapidi. Il colore si applica immediatamente all'oggetto. Clicca fuori dal pannello per chiuderlo.</p>
 
@@ -1133,9 +1194,11 @@
     <li><strong>🔒 Blocca / Sblocca</strong> → agisce su tutta la selezione. Se anche <em>una sola</em> forma è bloccata, il pulsante mostra <strong>🔓 Sblocca</strong> (arancione) per liberarle tutte.</li>
     <li><strong>🗑️ Elimina</strong> → cancella tutte le forme selezionate (reversibile con <kbd>Ctrl</kbd>+<kbd>Z</kbd>).</li>
     <li><strong>⎇ Raggruppa</strong> → si <strong>attiva</strong> con due o più forme selezionate e le fonde in un gruppo unico. <strong>⎆ Separa</strong> si attiva invece quando hai selezionato un gruppo, e lo riporta a forme singole.</li>
+    <li><strong>⬚ Deseleziona tutto</strong> → lascia andare la selezione. Su un mosaico pieno è più comodo che cercare un punto vuoto del foglio dove cliccare.</li>
+    <li><strong>◨ e ⬓ Specchia</strong> → rovesciano <strong>la disposizione</strong> di tutte le tessere selezionate intorno all'asse che passa per il centro della selezione, senza cambiare di un decimo di millimetro le misure delle tessere. Vedi il paragrafo <em>Lo specchio</em> qui sopra.</li>
     <li><strong>◔ Dividi cerchio</strong> compare solo quando la selezione è un singolo cerchio o ellisse, quindi <strong>non appare</strong> in multi-selezione.</li>
   </ul>
-  <p>In multi-selezione la Status Bar mostra <strong>"N oggetti"</strong> al posto delle misure della singola forma, e il blocco <strong>Dimensioni</strong> dell'Inspector si nasconde (le misure singole non avrebbero senso su più forme). Il menu si àncora accanto all'<strong>ultima forma aggiunta</strong> alla selezione.</p>
+  <p>In multi-selezione la Status Bar mostra <strong>"N oggetti"</strong> al posto delle misure della singola forma, e il blocco <strong>Dimensioni</strong> dell'Ispettore si nasconde (le misure singole non avrebbero senso su più forme). La colonna dei pulsanti si mette <strong>fuori dalla selezione</strong>, appoggiata al bordo del riquadro che racchiude <em>tutte</em> le forme selezionate — così non copre le tessere su cui stai lavorando — mentre in altezza resta all'altezza dell'<strong>ultima forma che hai aggiunto</strong>, cioè di dove stai lavorando. Se il bordo esterno della selezione è fuori dallo schermo, la colonna resta comunque <strong>dentro la finestra</strong>, appoggiata al suo bordo.</p>
 
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
@@ -1143,6 +1206,8 @@
     <li>Con più oggetti selezionati appaiono i pulsanti <strong>⎇ Raggruppa</strong> e <strong>⎆ Separa</strong>: raggruppa per spostare insiemi complessi come un'unica forma.</li>
     <li>Usa <strong>🔒 Blocca</strong> sulle forme finite per evitare di selezionarle per errore mentre disegni a mano libera sopra di esse.</li>
     <li>Per <strong>scalare con precisione di un millimetro intero</strong> usa il pulsante ⤢ Scala senza modificatori; per il <strong>centesimo di mm</strong> tieni Ctrl premuto (passi da 0.35 mm).</li>
+    <li><strong>⬚ Deseleziona tutto</strong> è la via d'uscita quando il foglio è pieno di tessere e non trovi un punto vuoto dove cliccare per liberare la selezione.</li>
+    <li>Prima di specchiare <strong>guarda l'icona</strong>: la linea che divide il quadratino è l'asse. E se hai premuto quello sbagliato, <strong>premilo di nuovo</strong> — due specchi uguali riportano tutto esattamente com'era.</li>
     <li>La <strong>maniglia di rotazione</strong> (↻) mostra la stessa icona del cursore che appare durante la rotazione fine con tasto destro + rotella: è un'anteprima visiva del gesto.</li>
   </ul></div></div>
 </section>
@@ -1209,7 +1274,7 @@
     </li>
   </ol>
 
-  <p>Il bottone <strong>Default (0.20)</strong> nel popover riporta la sensibilità al valore di fabbrica consigliato. Premi <kbd>Esc</kbd> oppure clicca fuori dal popover per chiuderlo senza modifiche aggiuntive.</p>
+  <p>Il bottone <strong>Predefinito (0.20)</strong> nel popover riporta la sensibilità al valore di fabbrica consigliato. Premi <kbd>Esc</kbd> oppure clicca fuori dal popover per chiuderlo senza modifiche aggiuntive.</p>
 
   <div class="callout tip"><div class="callout-icon"></div><div>La soglia viene <strong>fusa</strong> con gli altri campi di <code>calibration.json</code> (come <code>calibrationFactor</code>): regolare la sensibilità del lazo <em>non</em> tocca la calibrazione dello schermo, e viceversa.</div></div>
 
@@ -1274,6 +1339,7 @@
   <div class="section-label">07</div>
   <h2>Disegno a mano libera</h2>
   <p>La <strong>Left Toolbar</strong> contiene tre strumenti di disegno modali: <strong>penna ✏️</strong>, <strong>gomma 🧼</strong> e <strong>acquerello 💧</strong>. Sono mutuamente esclusivi: attivando uno, gli altri si disattivano.</p>
+  <p>Accanto a loro, dopo l'esagono ⬡, c'è il <strong>🖼️ Pennello Timbro</strong>, che copia lo sfondo invece di stendere colore: ha un capitolo suo, <a href="#timbro" style="color:var(--blue);">Pennello Timbro</a>.</p>
 
   <div class="card-grid col3">
     <div class="card-mini">
@@ -1291,15 +1357,15 @@
   </div>
 
   <h3>Attivare uno strumento</h3>
-  <p>Clicca il pulsante dello strumento desiderato nella Left Toolbar. Il pulsante diventa azzurro (attivo) e l'Inspector a destra mostra automaticamente i controlli dedicati. Il cursore cambia. Disegna tenendo premuto il tasto sinistro del mouse. Rilascia per terminare il tratto.</p>
+  <p>Clicca il pulsante dello strumento desiderato nella Left Toolbar. Il pulsante diventa azzurro (attivo) e l'Ispettore a destra mostra automaticamente i controlli dedicati. Il cursore cambia. Disegna tenendo premuto il tasto sinistro del mouse. Rilascia per terminare il tratto.</p>
 
   <h3>Tornare a selezionare</h3>
   <p>Clicca <strong>🖱️ Seleziona</strong> nella Left Toolbar (il primo pulsante sotto i due di rotazione canvas). Disattiva istantaneamente penna, gomma e acquerello e torna alla modalità di selezione e manipolazione delle forme.</p>
 
   <div class="callout warning"><div class="callout-icon"></div><div>Mentre sei in modalità disegno <strong>non puoi selezionare le forme geometriche</strong>. Disattiva la modalità disegno prima di tornare a lavorare con le forme.</div></div>
 
-  <h3>Inspector — Penna / Gomma</h3>
-  <p>Quando penna o gomma sono attive, l'Inspector mostra:</p>
+  <h3>Ispettore — Penna / Gomma</h3>
+  <p>Quando penna o gomma sono attive, l'Ispettore mostra:</p>
   <ul>
     <li><strong>Colore corrente</strong> (in alto, blocco condiviso con l'acquerello)</li>
     <li><strong>Larghezza</strong> — slider 1–60 px</li>
@@ -1323,22 +1389,48 @@
     <li>Per cancellare tratti specifici senza toccare gli altri, apri il modale <strong>📋 Lista linee</strong>: mostra un'anteprima di ogni tratto e permette la cancellazione selettiva con checkbox.</li>
     <li>I tratti freehand (penna e acquerello) sono sempre renderizzati <strong>sotto le forme geometriche</strong>: se hai bisogno di un disegno sopra una forma, crea la forma prima del tratto.</li>
     <li>Quando hai finito di disegnare, clicca <strong>🖱️ Seleziona</strong> per tornare a lavorare con le forme.</li>
-    <li>Il <strong>colore corrente</strong> mostrato nell'Inspector è condiviso tra penna e acquerello: cambiandolo da uno cambia anche per l'altro.</li>
+    <li><strong>Lo specchio delle tessere non tocca il tuo disegno.</strong> Se fai <kbd>Ctrl</kbd>+<kbd>A</kbd> e premi ◨ o ⬓, le tessere si rovesciano e i tratti a penna e ad acquerello restano dove sono: Mosaica ti avvisa e ti conta quanti ne ha lasciati fuori. L'acquerello è la guida sotto le tessere — con le mani si gira la tessera, non il foglio.</li>
+    <li>Il <strong>colore corrente</strong> mostrato nell'Ispettore è condiviso tra penna e acquerello: cambiandolo da uno cambia anche per l'altro.</li>
   </ul></div></div>
 
   <h3>Perimetro di contenimento (⬡)</h3>
-  <p>Quando colori le <strong>fughe</strong> a mano libera o dipingi ad acquerello dentro un mosaico, è facile sbordare oltre l'area del lavoro. Il <strong>Perimetro di contenimento</strong> risolve il problema: definisci una volta un'area chiusa e da quel momento <strong>penna e acquerello colorano solo dentro</strong> di essa; ciò che esce viene tagliato via, esattamente come fa il bordo del foglio.</p>
+  <p>Quando colori le <strong>fughe</strong> a mano libera o dipingi ad acquerello dentro un mosaico, è facile sbordare oltre l'area del lavoro. Il <strong>Perimetro di contenimento</strong> risolve il problema: definisci una volta un'area chiusa e da quel momento <strong>penna, acquerello e timbro colorano solo dentro</strong> di essa; ciò che esce viene tagliato via, esattamente come fa il bordo del foglio.</p>
 
   <h3>Come si disegna il perimetro</h3>
-  <p>Il pulsante è l'esagono <strong>⬡</strong> nella Left Toolbar. È uno strumento unico che combina due modi di tracciare, anche mescolandoli nello stesso perimetro:</p>
+  <p>Il pulsante è l'esagono <strong>⬡</strong> nella Left Toolbar: apre la <strong>modalità perimetro</strong>, che funziona qualunque sia lo strumento che hai in mano. Se un perimetro non c'è ancora, lo tracci combinando due modi, anche mescolandoli nello stesso perimetro:</p>
   <ul>
     <li><strong>Tap</strong> (click singolo) → aggiunge un <strong>vertice</strong>: perfetto per appoggiarsi agli spigoli esterni delle tessere di bordo.</li>
-    <li><strong>Trascina</strong> → traccia <strong>a mano libera</strong>, come il pennello selezione.</li>
+    <li><strong>Trascina</strong> → traccia <strong>a mano libera</strong>, come il pennello selezione. Se invece premi su un punto già messo e trascini, <strong>sposti quel punto</strong>.</li>
     <li><kbd>Invio</kbd>, <strong>doppio-click</strong> o <strong>tap vicino al primo vertice</strong> → <strong>chiude</strong> il perimetro.</li>
     <li><kbd>Backspace</kbd> → rimuove l'<strong>ultimo punto</strong> messo.</li>
-    <li><kbd>Esc</kbd> → <strong>annulla</strong> la sessione in corso (non cancella un perimetro già confermato).</li>
+    <li><kbd>Esc</kbd> → esce dalla modalità: un tracciato non ancora chiuso si <strong>annulla</strong> (un perimetro già impostato non si tocca).</li>
   </ul>
-  <p>Servono almeno <strong>3 punti</strong> per chiudere. Una volta confermato, vedi il contorno del perimetro come guida tratteggiata mentre lavori a mano libera.</p>
+  <p>Servono almeno <strong>3 punti</strong> per chiudere. Chiudendo, il perimetro è <strong>impostato</strong> e non esci dalla modalità: restano le sue <strong>maniglie</strong>, così lo aggiusti subito.</p>
+
+  <h3>Le maniglie: correggere il perimetro</h3>
+  <p>Un clic su <strong>⬡</strong> quando un perimetro c'è già lo <strong>riapre con le sue maniglie</strong>. Dentro la modalità:</p>
+  <ul>
+    <li><strong>Trascina</strong> una maniglia → la sposti. La presa non cambia con lo zoom, e il gesto parte solo dopo qualche pixel: un tocco leggero resta un click.</li>
+    <li><strong>Doppio-click su un lato</strong> → aggiunge un punto, appoggiato proprio sul lato.</li>
+    <li><strong>Click</strong> su una maniglia → la selezioni (diventa <strong>ciano</strong>); <kbd>Canc</kbd> o <kbd>Backspace</kbd> la tolgono. Un perimetro non scende mai sotto i 3 punti.</li>
+    <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> → annulla un passo di <strong>forma</strong> del perimetro. Quando non ce ne sono più, il tasto torna all'annulla normale di Mosaica.</li>
+    <li><kbd>Invio</kbd>, <kbd>Esc</kbd>, un altro clic su <strong>⬡</strong> o un altro strumento → escono dalla modalità; il perimetro resta.</li>
+  </ul>
+
+  <div class="callout success"><div class="callout-icon"></div><div>Spostando, aggiungendo o togliendo una maniglia, i tratti già disegnati dentro il perimetro <strong>seguono la forma nuova</strong>: allargandolo ricompare quello che era nascosto, stringendolo si nasconde. Il ritaglio si ricalcola quando <strong>rilasci</strong> la maniglia.</div></div>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>Con il <strong>lazo</strong> o il <strong>pennello selezione</strong> accesi la modalità perimetro <strong>non si apre</strong>, e te lo dice: usano lo stesso strato di disegno. Chiudili prima. Il perimetro impostato si vede come guida tratteggiata con uno strumento a mano libera in mano e dentro la modalità perimetro; in selezione normale resta invisibile.</div></div>
+
+  <h3>La lente mirino</h3>
+  <p>Dentro la modalità perimetro, sotto il cursore compare una <strong>lente</strong> che ingrandisce quello che c'è sotto, con un <strong>reticolo in millimetri reali</strong>: serve a mettere i punti a distanze precise dalle tessere, non solo a vederci meglio. Il <strong>pallino ciano</strong> al centro del reticolo è esattamente il punto dove il click mette il vertice o la maniglia.</p>
+  <ul>
+    <li>Il passo del reticolo si adatta all'ingrandimento, da un quarto di millimetro a 50 mm; ogni cinque passi c'è una tacca con la quota in mm.</li>
+    <li><strong>Ferma il puntatore</strong> un attimo: attorno alla lente compare un anello di comandi con due slider, <strong>⌀ diametro</strong> (90–460 px, di partenza 190) e <strong>🔍 ingrandimento</strong> (1,5×–12×, di partenza 4×), più il pulsante <strong>⊘</strong> che la spegne.</li>
+    <li><kbd>L</kbd> accende e spegne la lente, solo dentro la modalità perimetro.</li>
+    <li>Diametro, ingrandimento e lente accesa o spenta si <strong>ricordano</strong> fra una sessione e l'altra.</li>
+  </ul>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Nella lente l'<strong>acquerello</strong> (e il timbro) si vedono <strong>ammorbiditi</strong>: sono immagini, non disegni vettoriali, e ingrandite perdono nitidezza. Non è un difetto. Tessere e tratti di penna restano nitidi a qualunque ingrandimento.</div></div>
 
   <div class="callout tip"><div class="callout-icon"></div><div>Per <strong>cancellare</strong> un perimetro già impostato, fai <strong>click destro</strong> sul pulsante ⬡ (stessa logica del pennello selezione). Il taglio applicato ai tratti disegnati mentre il perimetro era attivo <strong>resta comunque</strong>: rimuovere il perimetro non scuce i tratti già contenuti.</div></div>
 
@@ -1349,7 +1441,7 @@
 <section id="acquerello">
   <div class="section-label">08</div>
   <h2>Controlli Acquerello</h2>
-  <p>La modalità acquerello ha un set di parametri avanzati per simulare il comportamento reale della pittura ad acquerello. Tutti i controlli sono nell'<strong>Inspector a destra</strong> quando lo strumento è attivo. Ogni parametro agisce su un aspetto diverso del tratto.</p>
+  <p>La modalità acquerello ha un set di parametri avanzati per simulare il comportamento reale della pittura ad acquerello. Tutti i controlli sono nell'<strong>Ispettore a destra</strong> quando lo strumento è attivo. Ogni parametro agisce su un aspetto diverso del tratto.</p>
 
   <div class="card" style="padding: 8px 0;">
     <div class="wc-control">
@@ -1410,7 +1502,7 @@
       </div>
     </div>
     <div class="wc-control">
-      <div class="wc-name">Layers</div>
+      <div class="wc-name">Livelli</div>
       <div class="wc-desc">
         <strong>Numero di strati sovrapposti per timbro.</strong> Ogni timbro è composto da N strati con leggere variazioni. Più layers = tratto più ricco e complesso ma più lento.
         <div><span class="wc-range">1 – 38</span></div>
@@ -1424,7 +1516,7 @@
       </div>
     </div>
     <div class="wc-control" style="border-bottom:none;">
-      <div class="wc-name">Mixing</div>
+      <div class="wc-name">Miscelazione</div>
       <div class="wc-desc">
         <strong>Modalità di fusione con il canvas.</strong>
         <ul style="margin:6px 0 0 16px;font-size:12px;color:var(--muted);">
@@ -1436,25 +1528,28 @@
     </div>
   </div>
 
+  <h3>L'anello attorno al cursore</h3>
+  <p>Con penna, gomma e acquerello un <strong>anello tratteggiato</strong> attorno al cursore mostra quanto sarà largo il tratto. Per l'acquerello l'anello è <strong>misurato sulla punta caricata</strong>: mostra la larghezza tipica del tratto, fin dove il colore scende a metà dell'intensità del centro, e si aggiorna quando cambi punta o larghezza. Il tratto cade <strong>centrato sul cursore</strong>; qualche timbro può uscire dall'anello per la dispersione del <strong>Jitter pos.</strong>, che sparpaglia di traverso al tratto.</p>
+
   <h3>Modale Selettore Punte Pennello</h3>
-  <p>Il pulsante <strong>Punta</strong> nell'Inspector apre un modale a griglia con tutte le texture disponibili nella cartella <code>textures/brush/</code>. Cliccando su una punta essa viene attivata immediatamente e il valore di Rotaz. iniziale specifico di quella punta viene caricato nello slider.</p>
+  <p>Il pulsante <strong>Punta</strong> nell'Ispettore apre un modale a griglia con tutte le texture disponibili nella cartella <code>textures/brush/</code>. Cliccando su una punta essa viene attivata immediatamente e il valore di Rotaz. iniziale specifico di quella punta viene caricato nello slider.</p>
 
   <div class="callout tip">
     <div class="callout-icon"></div>
     <div><strong>Persistenza automatica</strong><br>
-    Tutti i valori degli slider (Larghezza, Opacità, Tono, Rotaz. iniz., Distanza, Jitter pos., Rotazione, Sbavatura, Layers e Punta) vengono salvati automaticamente in <code>localStorage</code> e nel progetto <code>.msp.json</code>. All'apertura dell'app o di un progetto, tutti gli slider si impostano automaticamente sugli ultimi valori usati.</div>
+    Tutti i valori degli slider (Larghezza, Opacità, Tono, Rotaz. iniz., Distanza, Jitter pos., Rotazione, Sbavatura, Livelli e Punta) vengono salvati automaticamente in <code>localStorage</code> e nel progetto <code>.msp.json</code>. All'apertura dell'app o di un progetto, tutti gli slider si impostano automaticamente sugli ultimi valori usati.</div>
   </div>
 
   <div class="callout tip">
     <div class="callout-icon"></div>
-    <div>Per un effetto acquerello realistico consigliato: <strong>Opacità 60-80%</strong>, <strong>Sbavatura 2-5</strong>, <strong>Layers 18-24</strong>, <strong>Mixing: Multiply</strong> oppure <strong>Overlay</strong>. Inizia con questi valori e regola a piacere.</div>
+    <div>Per un effetto acquerello realistico consigliato: <strong>Opacità 60-80%</strong>, <strong>Sbavatura 2-5</strong>, <strong>Livelli 18-24</strong>, <strong>Mixing: Multiply</strong> oppure <strong>Overlay</strong>. Inizia con questi valori e regola a piacere.</div>
   </div>
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
-    <li>Per un effetto realistico partendo da zero: <strong>Opacità 60-80%</strong>, <strong>Sbavatura 2-5</strong>, <strong>Layers 18-24</strong>, <strong>Mixing Overlay</strong>. Questi valori bilanciano qualità e fluidità.</li>
-    <li>Se il PC rallenta durante pennellate lunghe, <strong>riduci i Layers a 12-16</strong>: il rendering alleggerirà il carico mantenendo un buon effetto visivo.</li>
+    <li>Per un effetto realistico partendo da zero: <strong>Opacità 60-80%</strong>, <strong>Sbavatura 2-5</strong>, <strong>Livelli 18-24</strong>, <strong>Miscelazione</strong> su <strong>Overlay</strong>. Questi valori bilanciano qualità e fluidità.</li>
+    <li>Se il PC rallenta durante pennellate lunghe, <strong>riduci i Livelli a 12-16</strong>: il rendering alleggerirà il carico mantenendo un buon effetto visivo.</li>
     <li>La <strong>Distanza</strong> influenza molto il carattere del tratto: 0.25×-0.65× dà copertura densa e uniforme; valori sopra 1.0× creano un effetto "staccato" molto artistico.</li>
-    <li>Il <strong>Mixing Overlay</strong> è generalmente preferibile a Multiply quando sovrapponi colori diversi: Multiply tende a generare nero per via dei limiti matematici del blend mode.</li>
+    <li>La <strong>Miscelazione</strong> su <strong>Overlay</strong> è generalmente preferibile a <strong>Multiply</strong> quando sovrapponi colori diversi: Multiply tende a generare nero per via dei limiti matematici del blend mode.</li>
     <li>Usa la <strong>Rotaz. iniziale</strong> per orientare pennelli piatti o asimmetrici: il valore è salvato <em>per ogni singola punta</em>, quindi puoi avere angoli diversi per ogni texture.</li>
     <li>La densità dei timbri si adatta automaticamente alla <strong>velocità del tratto</strong>: muovendo il mouse velocemente il pennello si "allarga" e sfuma, lentamente si compatta.</li>
   </ul></div></div>
@@ -1511,9 +1606,149 @@
   </ul></div></div>
 </section>
 
+<!-- ── PENNELLO TIMBRO ── -->
+<section id="timbro">
+  <div class="section-label">10</div>
+  <h2>Pennello Timbro</h2>
+  <p>Il <strong>Pennello Timbro 🖼️</strong> copia un pezzo dello <strong>sfondo</strong> — l'immagine che hai caricato o la carta — e lo ridipinge dove passi il pennello. Serve a portarti la carta, la venatura o un pezzo d'immagine dentro le fughe e sulle zone da raccordare, senza uscire da Mosaica e senza perdere i millimetri: tutte le misure del timbro sono in <strong>millimetri reali</strong>, come quelle delle tessere.</p>
+  <p>Il pulsante è <strong>🖼️</strong> nella Left Toolbar, subito dopo l'esagono ⬡. Il timbro copia lo sfondo <strong>come si vede sul foglio</strong>, e il suo tratto sta <strong>sopra lo sfondo e sotto penna e acquerello</strong> (e, come tutti i tratti, sotto le tessere).</p>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>Se non c'è niente da copiare — né un'immagine di sfondo né la carta — il timbro non si accende e te lo dice. Non si accende nemmeno con il <strong>lazo</strong> o il <strong>pennello selezione</strong> accesi: usano lo stesso strato di disegno. Chiudili prima.</div></div>
+
+  <h3>La sorgente: da dove copi</h3>
+  <p>Attorno al cursore vedi due anelli tratteggiati uniti da una riga: quello della <strong>punta</strong> (dove dipingi) e quello <strong>ciano</strong> della <strong>sorgente</strong> (da dove copi). Si vedono subito, prima ancora di scegliere la sorgente, e hanno la forma vera della punta.</p>
+  <div class="card-grid col2">
+    <div class="card-mini">
+      <h4>🔗 Agganciata</h4>
+      <p>La sorgente <strong>segue la punta</strong> alla Distanza e all'Angolo impostati: mentre dipingi copi una striscia continua. È il modo di partenza, con la sorgente 20 mm a sinistra della punta.</p>
+    </div>
+    <div class="card-mini">
+      <h4>📌 Fissa</h4>
+      <p>La sorgente <strong>resta ferma</strong> sul pezzo scelto e non segue il pennello: ogni impronta copia sempre da lì.</p>
+    </div>
+  </div>
+  <p>Per scegliere il pezzo da copiare hai due strade, e tutte e due mettono la sorgente su <strong>Fissa</strong>:</p>
+  <ul>
+    <li><kbd>Ctrl</kbd>+<strong>Click</strong> sul foglio → quel punto diventa la sorgente fissa.</li>
+    <li><strong>⊕ Prendi sorgente</strong> nell'Ispettore (il contagocce) → il click dopo sul foglio sceglie il pezzo. Finché è armato, l'anello della sorgente si posa su quello della punta: ti mostra che il click prende proprio da lì. <kbd>Esc</kbd> o un secondo click sul pulsante lo annullano.</li>
+    <li>Per liberare la sorgente fissa, clicca <strong>Agganciata</strong> nell'Ispettore.</li>
+  </ul>
+
+  <div class="callout tip"><div class="callout-icon"></div><div>Se l'anello della sorgente diventa <strong>rosso</strong>, la sorgente è uscita dal foglio, anche solo in parte: lì non c'è sfondo da copiare.</div></div>
+
+  <h3>La punta: forma, misura e movimento</h3>
+  <div class="card" style="padding: 8px 0;">
+    <div class="wc-control">
+      <div class="wc-name">Dimensione</div>
+      <div class="wc-desc">
+        <strong>Larghezza della punta</strong> in millimetri reali: il diametro se è tonda, il lato maggiore se è libera. È anche la misura del pezzo copiato: un comando solo per tutti e due.
+        <div><span class="wc-range">1 – 60 mm · di partenza 12 mm</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Forma</div>
+      <div class="wc-desc">
+        <strong>Sei punte:</strong> tonda (di partenza), quadrata, rettangolare, triangolare, ovale e <strong>libera</strong>. La libera resta spenta finché non ne hai disegnata una (vedi sotto). Con la tonda il timbro lavora esattamente come prima delle forme.
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Proporzione</div>
+      <div class="wc-desc">
+        <strong>L'altezza della punta</strong> in parti della larghezza: 100% la fa alta quanto è larga. Si vede solo con rettangolo, ovale e triangolo, e ogni forma ricorda la sua: rettangolo e ovale partono al 50%, il triangolo parte <strong>equilatero</strong> (87%).
+        <div><span class="wc-range">10% – 200%</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Rotazione</div>
+      <div class="wc-desc">
+        <strong>Gira la punta</strong>: il <strong>+</strong> in senso orario, come la rotazione delle tessere e la Rotaz. iniziale dell'acquerello.
+        <div><span class="wc-range">−180° – +180°</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Direzione</div>
+      <div class="wc-desc">
+        <strong>☑ segue il tratto</strong> (acceso di partenza): la punta si gira nella direzione in cui va la mano, come le punte piatte dell'acquerello, e la Rotazione si somma. Spento, la punta resta ferma: con gli spigoli vivi il bordo esce più pulito, perché il tremolio della mano non lo frastaglia.
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Spaziatura</div>
+      <div class="wc-desc">
+        <strong>Distanza fra un'impronta e l'altra</strong>, in parti della punta. Poca = tratto continuo; sopra 1× le impronte si staccano.
+        <div><span class="wc-range">0.05× – 2× · di partenza 0.25×</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Distanza</div>
+      <div class="wc-desc">
+        <strong>Quanto sta lontana la sorgente agganciata</strong> dalla punta: a sinistra del centro dello slider = dalla parte sinistra, a destra = dalla parte destra. Con la sorgente fissa vale quando torni ad Agganciata.
+        <div><span class="wc-range">−100 – +100 mm · di partenza 20 mm a sinistra</span></div>
+      </div>
+    </div>
+    <div class="wc-control" style="border-bottom:none;">
+      <div class="wc-name">Angolo</div>
+      <div class="wc-desc">
+        <strong>Inclina la sorgente agganciata</strong> rispetto alla punta: + verso l'alto, − verso il basso; a ±90° sta proprio sopra o sotto la punta.
+        <div><span class="wc-range">−90° – +90°</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>Con <strong>«segue il tratto»</strong> acceso la <strong>prima impronta aspetta</strong>: quando premi, la direzione non esiste ancora. L'impronta cade dove hai premuto appena la mano si è mossa di circa un quarto della larghezza della punta. Un <strong>click secco</strong> stampa con la sola Rotazione. Con la punta tonda non si aspetta niente.</div></div>
+
+  <h3>La forma libera</h3>
+  <p>Premi <strong>✏️ Disegna la forma…</strong>: si apre il <strong>costruttore delle forme</strong> (quello della palladiana) in modo punta, anche col pennello in mano. Disegna la forma che vuoi, chiudila con <kbd>Invio</kbd> e premi <strong>✔️ Usa come punta</strong>, che prende il posto del solito «Inserisci nel canvas»: nel mosaico non viene inserito niente.</p>
+  <ul>
+    <li>La forma arriva in <strong>millimetri veri, 1:1</strong>: la Dimensione prende il suo lato maggiore. Se supera i 60 mm viene ridotta, e te lo dice. Poi la scali con lo slider come le altre.</li>
+    <li>Il sesto pulsante della Forma si accende, e la punta libera resta salvata anche chiudendo Mosaica.</li>
+    <li>Una forma aperta, senza superficie o minuscola non può fare la punta: viene rifiutata e il costruttore resta aperto per sistemarla.</li>
+  </ul>
+
+  <h3>I colori del pezzo copiato</h3>
+  <div class="card" style="padding: 8px 0;">
+    <div class="wc-control">
+      <div class="wc-name">Luminosità</div>
+      <div class="wc-desc">
+        <strong>Schiarisce o scurisce</strong> il pezzo copiato. Al centro: com'è.
+        <div><span class="wc-range">−100 – +100</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Tono</div>
+      <div class="wc-desc">
+        <strong>Gira la tinta</strong> sulla ruota dei colori, senza cambiarne luce e saturazione. Al centro: com'è.
+        <div><span class="wc-range">−180° – +180°</span></div>
+      </div>
+    </div>
+    <div class="wc-control">
+      <div class="wc-name">Trasparenza</div>
+      <div class="wc-desc">
+        <strong>Quanto il tratto lascia vedere</strong> quello che ha sotto. A zero è pieno.
+        <div><span class="wc-range">0% – 90%</span></div>
+      </div>
+    </div>
+    <div class="wc-control" style="border-bottom:none;">
+      <div class="wc-name">Colori</div>
+      <div class="wc-desc">
+        <strong>Come vengono i colori:</strong> Originali, Scala di grigi, Invertiti, Negativo (controluce) e <strong>CMY — una lastra</strong>, cioè il pezzo come lo stamperebbe il solo inchiostro ciano, magenta o giallo.
+      </div>
+    </div>
+  </div>
+  <p><strong>↺ Colori originali</strong> riporta tutto com'è nello sfondo. I colori valgono per i tratti che dipingi da quel momento e <strong>non si salvano</strong>: alla riapertura di Mosaica ripartono originali. Le impostazioni della punta e della sorgente (dimensione, forma, proporzioni, rotazione, direzione, spaziatura, distanza, angolo e la forma libera) invece si ricordano.</p>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li><strong>Ogni tratto è una cosa sola:</strong> forma, proporzione, rotazione, direzione e colori si fissano all'inizio del tratto. Se muovi uno slider mentre dipingi, vale per il tratto dopo.</li>
+    <li>Il tratto del timbro è una <strong>fotografia</strong> di quello che ha copiato: se poi cambi la carta o l'immagine di sfondo, le zone timbrate tengono quella di prima.</li>
+    <li>Per togliere un tratto usa <kbd>Ctrl</kbd>+<kbd>Z</kbd> oppure <strong>📋 Lista linee</strong>: lì il timbro ha la sua miniatura e l'etichetta «(timbro)».</li>
+    <li>Il <strong>perimetro ⬡</strong> vale anche per il timbro: dentro un perimetro il timbro dipinge solo dentro.</li>
+    <li>La Dimensione è <strong>un comando solo</strong> per tutte le forme: scegliendo una forma libera da 35 mm, anche la tonda e le altre diventano da 35 mm.</li>
+    <li>Anche con uno sfondo grande (una foto di molti MB) il timbro resta fluido: lavora in un processo a parte, come l'acquerello.</li>
+  </ul></div></div>
+</section>
+
 <!-- ── SFONDO ── -->
 <section id="sfondo">
-  <div class="section-label">10</div>
+  <div class="section-label">11</div>
   <h2>Immagine di Sfondo</h2>
   <p>Il <strong>BG Panel</strong> (la barra orizzontale subito sotto la top bar) è dedicato all'immagine di sfondo. Puoi caricare una foto di riferimento, un disegno o un progetto fotografato per tracciare sopra il tuo mosaico.</p>
 
@@ -1533,11 +1768,11 @@
   <p>Dopo aver caricato un'immagine, accanto alla miniatura appaiono i pulsanti:</p>
   <div class="card-grid col2">
     <div class="card-mini">
-      <h4>Contain</h4>
+      <h4>Adatta</h4>
       <p>Mostra l'immagine intera dentro il foglio (possibili bande laterali, nessun ritaglio).</p>
     </div>
     <div class="card-mini">
-      <h4>Cover</h4>
+      <h4>Riempi</h4>
       <p>Copre tutto il foglio (possibili ritagli ai bordi, nessuna banda).</p>
     </div>
     <div class="card-mini">
@@ -1553,7 +1788,7 @@
   <div class="callout warning"><div class="callout-icon"></div><div>L'immagine di sfondo è <strong>non selezionabile e non modificabile</strong> direttamente sul canvas. Usa i pulsanti nel BG Panel per cambiarla. Lo sfondo viene salvato nel progetto <code>.msp.json</code> e ripristinato all'apertura.</div></div>
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
-    <li>Per tracciare sopra una foto di riferimento, usa <strong>Contain</strong> per vedere l'intera immagine senza ritagli; passa a <strong>Cover</strong> solo se vuoi che riempia tutto il foglio accettando qualche ritaglio ai bordi.</li>
+    <li>Per tracciare sopra una foto di riferimento, usa <strong>Adatta</strong> per vedere l'intera immagine senza ritagli; passa a <strong>Riempi</strong> solo se vuoi che riempia tutto il foglio accettando qualche ritaglio ai bordi.</li>
     <li>Se lo sfondo è troppo saturo e distrae, ricorda che i tratti a mano libera restano <strong>sopra lo sfondo ma sotto le forme geometriche</strong>: puoi usare le forme per "mascherare" aree del disegno.</li>
     <li>Rimuovendo lo sfondo, la <strong>texture carta torna visibile automaticamente</strong>: non serve riattivarla manualmente.</li>
     <li>Se carichi un'immagine in verticale, usa i pulsanti <strong>↶ Ruota</strong> nel BG Panel prima di iniziare a disegnare, per avere il riferimento orientato correttamente.</li>
@@ -1562,7 +1797,7 @@
 
 <!-- ── PROGETTI ── -->
 <section id="progetti">
-  <div class="section-label">11</div>
+  <div class="section-label">12</div>
   <h2>Salvare e aprire progetti</h2>
   <p>I progetti Mosaica si salvano come file <strong>.msp.json</strong>. Contengono tutte le forme, i tratti freehand, gli acquerelli, i colori, le texture applicate, l'immagine di sfondo, l'orientamento del canvas (portrait/landscape) e i parametri correnti di penna e acquerello. La cartella predefinita è:</p>
 
@@ -1601,7 +1836,7 @@
 
 <!-- ── AUTO-SAVE ── -->
 <section id="autosave">
-  <div class="section-label">12</div>
+  <div class="section-label">13</div>
   <h2>Auto-salvataggio</h2>
   <p>Mosaica salva automaticamente il tuo lavoro <strong>in background</strong> ogni minuto e quando chiudi l'app. Nessuna interazione richiesta: succede da solo.</p>
 
@@ -1680,7 +1915,7 @@
 
 <!-- ── AUTO-OPEN ── -->
 <section id="autoopen">
-  <div class="section-label">13</div>
+  <div class="section-label">14</div>
   <h2>Apertura automatica dell'ultimo progetto</h2>
   <p>Mosaica può aprire automaticamente l'ultimo progetto salvato ogni volta che lanci l'app. La preferenza si configura dal dropdown <strong>File</strong> in topbar.</p>
 
@@ -1736,7 +1971,7 @@
 
 <!-- ── FULLSCREEN ── -->
 <section id="fullscreen">
-  <div class="section-label">14</div>
+  <div class="section-label">15</div>
   <h2>Modalità schermo intero</h2>
   <p>Mosaica si avvia <strong>sempre in modalità schermo intero</strong> per massimizzare lo spazio di lavoro. Puoi uscire ed entrare in qualsiasi momento.</p>
 
@@ -1760,9 +1995,9 @@
 
 <!-- ── ESPORTA ── -->
 <section id="esporta">
-  <div class="section-label">15</div>
+  <div class="section-label">16</div>
   <h2>Esportare il lavoro</h2>
-  <p>Il dropdown <strong>Esporta</strong> in topbar offre tre voci, ciascuna con un modale dedicato per scegliere il contenuto da esportare.</p>
+  <p>Il dropdown <strong>Esporta</strong> in topbar offre quattro voci, ciascuna con un modale dedicato. Le prime tre sono qui sotto; la quarta, <strong>🧩 Tavola delle tessere (laser)</strong>, prepara i file per tagliare le tessere col laser e ha un capitolo suo: <a href="#tavola" style="color:var(--blue);">Tavola delle Tessere</a>.</p>
 
   <div class="card-grid col3">
     <div class="card-mini">
@@ -1775,7 +2010,7 @@
     </div>
     <div class="card-mini">
       <h4>✏️ Mano libera</h4>
-      <p>Esporta solo i tratti freehand e acquerello, come SVG vettoriale o PNG ad alta risoluzione, in un file unico o separati.</p>
+      <p>Esporta solo i tratti freehand, acquerello e timbro, come SVG vettoriale o PNG ad alta risoluzione, in un file unico o separati.</p>
     </div>
   </div>
 
@@ -1841,9 +2076,92 @@
   </ul></div></div>
 </section>
   
+<!-- ── TAVOLA DELLE TESSERE ── -->
+<section id="tavola">
+  <div class="section-label">17</div>
+  <h2>Tavola delle Tessere — i file per il laser</h2>
+  <p>Dal dropdown <strong>Esporta</strong> → <strong>🧩 Tavola delle tessere (laser)</strong> Mosaica prepara in un colpo solo i file per <strong>tagliare le tessere in gomma col laser</strong> e per lavorarle al banco. <strong>Sul mosaico non si muove niente</strong>: l'ordinamento, la rotazione azzerata e la distinta vivono solo dentro i file esportati.</p>
+
+  <div class="card-grid col3">
+    <div class="card-mini">
+      <h4>🧩 SVG per il laser</h4>
+      <p>Un file A4 per ogni <strong>famiglia di colore</strong> (tutti i rossi insieme, tutti i blu insieme…) e dentro una matrice per ogni <strong>colore esatto</strong>. Solo i contorni, in millimetri veri.</p>
+    </div>
+    <div class="card-mini">
+      <h4>📄 PDF per il banco</h4>
+      <p>Le stesse tavole stampabili <strong>1:1</strong>, la <strong>tabella dei colori</strong> con HEX e RGB per comprare la gomma, e la <strong>distinta</strong> delle tessere.</p>
+    </div>
+    <div class="card-mini">
+      <h4>📊 Distinta in CSV</h4>
+      <p>La distinta come <strong>tabella</strong> da aprire con Excel o LibreOffice, da ordinare e filtrare.</p>
+    </div>
+  </div>
+
+  <h3>Come vengono messe in tavola le tessere</h3>
+  <ul>
+    <li>Ogni tessera con la <strong>rotazione azzerata</strong> attorno al suo centro e la <strong>base orizzontale</strong>.</li>
+    <li>Raggruppate per colore, con una <strong>riga nuova a ogni colore</strong>. Due colori quasi uguali restano <strong>separati</strong>, ognuno con la sua matrice.</li>
+    <li>In griglia sulla <strong>scatola vera</strong> della forma, con lo spazio che scegli fra una tessera e l'altra. Un <strong>gruppo</strong> è un pezzo unico.</li>
+    <li>Restano fuori i tratti (penna, acquerello, timbro), lo sfondo e gli oggetti nascosti: l'anteprima ti dice quanti.</li>
+  </ul>
+
+  <h3>Le scelte del modale</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Scelta</th><th>Cosa fa</th></tr></thead>
+    <tbody>
+      <tr><td>Solo le tessere selezionate</td><td>Mette in tavola solo le tessere selezionate sul foglio. Si accende da sola se apri il modale con <strong>almeno due</strong> tessere selezionate.</td></tr>
+      <tr><td>Foglio A4</td><td>Verticale (di partenza) o orizzontale.</td></tr>
+      <tr><td>Tessere allineate</td><td><strong>In basso</strong> (di partenza: le basi in fila, si vede subito se una tessera è rimasta storta) o in alto.</td></tr>
+      <tr><td>Spazio fra le tessere</td><td>Di partenza <strong>2 mm</strong>, in orizzontale e in verticale.</td></tr>
+      <tr><td>Stacco fra le matrici</td><td>Di partenza <strong>10 mm</strong>, minimo 6: in Beam Studio le matrici si separano senza prendere pezzi di quella accanto.</td></tr>
+      <tr><td>Margine del foglio</td><td>Di partenza <strong>5 mm</strong>: nessuna tessera tocca il bordo.</td></tr>
+      <tr><td>Compensazione del taglio</td><td>Di partenza <strong>0,3 mm</strong>; 0 la spegne (vedi sotto).</td></tr>
+      <tr><td>Crescita</td><td><strong>A fascia</strong> (di partenza) o in proporzione.</td></tr>
+      <tr><td>Contorni</td><td><strong>Chiusi + con linguetta</strong> (di partenza) o solo chiusi.</td></tr>
+      <tr><td>Taglietto</td><td>La lunghezza dell'apertura della linguetta: di partenza <strong>0,4 mm</strong>.</td></tr>
+      <tr><td>Tessere nel PDF</td><td><strong>Colorate</strong> (di partenza) o solo contorno, che consuma meno inchiostro.</td></tr>
+      <tr><td>Distinta: anche in CSV</td><td>Accesa di partenza.</td></tr>
+    </tbody>
+  </table>
+  <p>Prima di confermare, il riquadro <strong>Cosa verrà creato</strong> ti dice per ogni famiglia quante tessere, matrici e fogli A4 ci sono, quanti file nasceranno e quali tessere restano fuori. Con <strong>📁 Scegli la cartella e crea i file</strong> scegli dove scriverli; se ci sono già file con lo stesso nome, Mosaica chiede prima di sovrascriverli. Le scelte si ricordano per la volta dopo, tranne «solo le tessere selezionate», che si decide ogni volta dalla selezione.</p>
+
+  <h3>La compensazione del taglio e le linguette</h3>
+  <p>Sulla gomma EVA il laser si mangia una fascia di materiale lungo tutto il contorno. La <strong>compensazione</strong> la recupera: ogni misura della tessera cresce del valore scelto <strong>solo nei file da taglio</strong>. Con 0,3 mm larghezza, altezza e diametro crescono di 0,3 mm, cioè 0,15 mm per lato. Il PDF e la distinta restano con le <strong>misure vere</strong>.</p>
+  <ul>
+    <li><strong>A fascia</strong>: ogni lato si sposta in fuori di metà compensazione, come fa il laser.</li>
+    <li><strong>In proporzione</strong>: la tessera si ingrandisce come in fotocopia, come il lucchetto delle proporzioni di LightBurn.</li>
+    <li>Con le linguette, accanto a ogni file nasce il suo gemello <strong>…_linguette.svg</strong>, identico nelle posizioni, con un taglietto aperto su ogni tessera che la tiene attaccata alla lastra. Il taglietto sta al centro del lato dritto della base, <strong>mai sulla curva</strong>; nei cerchi, nel punto più basso.</li>
+    <li>Se una forma non si può allargare, o non ha un lato dritto abbastanza lungo per la linguetta, l'anteprima te lo dice e quella tessera resta com'è.</li>
+  </ul>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>I file da taglio sono <strong>già cresciuti</strong> della compensazione: in <strong>LightBurn niente scala e niente Kerf Offset</strong>, o la gomma cresce due volte. E negli SVG non c'è nessuna scritta: il laser taglierebbe anche quella.</div></div>
+
+  <h3>Il PDF per il banco</h3>
+  <p>Un solo PDF con le tavole disegnate <strong>1:1, uguali agli SVG</strong> ma con le misure vere, la <strong>tabella dei colori</strong> (quadrato, HEX, RGB, famiglia e numero di tessere) per comprare la gomma, e la <strong>distinta</strong> con le misure al decimo di millimetro.</p>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>Stampalo <strong>al 100%</strong> («dimensione effettiva», senza adattamento alla pagina) e misura col calibro la <strong>barra nera di 100 mm</strong> stampata sulla prima pagina: se non misura 100 mm, la stampa è stata scalata. Qualche decimo di differenza dipende dalla stampante.</div></div>
+
+  <p>Il PDF si ferma a <strong>20 pagine</strong>: oltre, si creano solo gli SVG, e l'anteprima lo dice prima. Una tavola si ferma a 80 file.</p>
+
+  <h3>La distinta in CSV</h3>
+  <p>Accanto al PDF nasce la distinta come tabella: una riga per ogni colore, forma e misura, con nove colonne — Famiglia, HEX, RGB, Forma, Larghezza (mm), Altezza (mm), Quantità, Misure in più, Note. Non c'è una riga dei totali: le somme le fa il foglio di calcolo.</p>
+  <ul>
+    <li><strong>Excel</strong>: si apre con un doppio clic, con le colonne già separate.</li>
+    <li><strong>LibreOffice</strong>: nella finestra «Importa testo» scegli <strong>Punto e virgola</strong> come separatore e la codifica <strong>UTF-8</strong>.</li>
+    <li>Il formato segue la lingua di Mosaica: in italiano punto e virgola fra le colonne e virgola nei decimali; in inglese virgola e punto.</li>
+  </ul>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li><strong>Salva il progetto</strong> prima di esportare: i nomi dei file nascono dal nome del progetto, così li riconosci nella cartella.</li>
+    <li>L'Ispettore conta in più un contorno di 1 px che sul taglio non c'è, quindi può dire qualche decimo in più: fanno fede il PDF e la distinta.</li>
+    <li>Le misure in millimetri dipendono dalla <a href="#calibrazione" style="color:var(--blue);">calibrazione</a> dello schermo: calibra una volta e poi non toccarla più.</li>
+    <li>Una tessera troppo grande per un A4 coi margini scelti resta fuori da tavole e SVG, ma è contata nella distinta.</li>
+  </ul></div></div>
+</section>
+
 <!-- ── TAVOLETTA WACOM ── -->
 <section id="wacom">
-  <div class="section-label">16</div>
+  <div class="section-label">18</div>
   <h2>Tavoletta Wacom — pressione, inclinazione, tasti penna</h2>
   <p>Mosaica integra un sistema completo per tavolette grafiche Wacom (e qualsiasi altra tavoletta che esponga <code>PointerEvent.pressure</code>). La pressione è <strong>vera, punto-per-punto</strong>: ogni segmento del tratto memorizza la propria pressione, viene serializzato nei progetti <code>.msp.json</code>, esportato in SVG, e partecipa a Undo/Redo come qualsiasi altro oggetto Fabric.</p>
 
@@ -1977,7 +2295,7 @@
 
 <!-- ── MAPPATURA MOUSE & TASTIERA ── -->
 <section id="inputmapping">
-  <div class="section-label">17</div>
+  <div class="section-label">19</div>
   <h2>Mappatura Mouse &amp; Tastiera</h2>
   <p>Le scorciatoie classiche di Mosaica (Ctrl+Z/C/V/X, Delete, Ctrl+/−, frecce, Ctrl+R, doppio click) sono <strong>protette e sempre attive</strong>. Il modulo Mappatura Input ti permette di aggiungere <em>oltre</em> a queste:</p>
   <ul>
@@ -2064,7 +2382,7 @@
     <div class="card-mini"><h4>↪️ Ripeti</h4><p>Equivalente a Ctrl+Shift+Z / Ctrl+Y.</p></div>
     <div class="card-mini"><h4>📋 Copia / 📌 Incolla / ✂️ Taglia</h4><p>Stessa logica di Ctrl+C/V/X, anche per la selezione multipla.</p></div>
     <div class="card-mini"><h4>🗑️ Elimina selezione</h4><p>Cancella oggetto o selezione attiva (Delete/Backspace).</p></div>
-    <div class="card-mini"><h4>🔍➕ Zoom in / 🔍➖ Zoom out / 🔍⤾ Reset</h4><p>Zoom verso il centro dello schermo. Reset = Ctrl+0.</p></div>
+    <div class="card-mini"><h4>🔍➕ Aumenta lo zoom / 🔍➖ Riduci lo zoom / 🔍⤾ Azzera lo zoom</h4><p>Zoom verso il centro dello schermo. Reset = Ctrl+0.</p></div>
     <div class="card-mini"><h4>⭕ Toggle Lazo / ✏️ Penna / 💧 Acquerello / 🧼 Gomma / 🖱️ Selezione</h4><p>Cinque toggle per gli strumenti della left toolbar.</p></div>
     <div class="card-mini"><h4>✋ Pan canvas (tieni premuto)</h4><p>Mentre tieni premuto il tasto/combo, il drag fa pan come Alt+drag.</p></div>
     <div class="card-mini"><h4>⚡ Doppio click</h4><p>Sintetizza un dblclick sul punto del cursore — utile per creare rettangoli rapidi col mouse o con tasti laterali.</p></div>
@@ -2102,7 +2420,7 @@
     <li>Se hai un mouse con i tasti laterali, lascia i default <strong>X1→Annulla, X2→Ripeti</strong>: è il setup più produttivo per chi disegna mosaici, dove sbagliare e correggere è continuo.</li>
     <li>Una combinazione comoda è <strong>Sinistro+Destro → Deseleziona tutto</strong>: con due dita "spegni" qualunque oggetto attivo senza dover cliccare altrove.</li>
     <li>Per disegnatori che usano <strong>la tastiera con la sinistra</strong>: mappa <kbd>F1</kbd> → Penna, <kbd>F2</kbd> → Acquerello, <kbd>F3</kbd> → Gomma, <kbd>F4</kbd> → Lazo. Cambio strumento senza alzare lo sguardo.</li>
-    <li>Se una scorciatoia non funziona, controlla se sei dentro un <strong>campo di testo</strong> (Inspector, dimensioni W/H, calibrazione): i mapping tastiera sono sospesi quando un input è focalizzato — esattamente come le scorciatoie hardcoded.</li>
+    <li>Se una scorciatoia non funziona, controlla se sei dentro un <strong>campo di testo</strong> (Ispettore, dimensioni W/H, calibrazione): i mapping tastiera sono sospesi quando un input è focalizzato — esattamente come le scorciatoie hardcoded.</li>
     <li>Se aggiungi un chord che include il tasto destro, ricordati che il sistema <strong>blocca anche la rotazione fine</strong> di mouseObserver quando il chord scatta: scegli combinazioni che non interferiscano col tuo workflow di rotazione.</li>
     <li>Per debug, apri la <strong>console DevTools</strong> (Ctrl+Shift+I): i due moduli stampano i mapping caricati all'avvio (<code>[InputMapping] modulo inizializzato — prefs: …</code> e <code>[Wacom] Modulo inizializzato — prefs: …</code>).</li>
   </ul></div></div>
@@ -2110,7 +2428,7 @@
 
 <!-- ── SCORCIATOIE ── -->
 <section id="scorciatoie">
-  <div class="section-label">18</div>
+  <div class="section-label">20</div>
   <h2>Scorciatoie da tastiera</h2>
 
   <h3>Cronologia e appunti</h3>
@@ -2162,6 +2480,21 @@
     </tbody>
   </table>
 
+  <h3>Disegno: perimetro, lente e timbro</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Tasto</th><th>Azione</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Invio</kbd></td><td>⬡ Chiude il perimetro che stai tracciando; con le maniglie, esce dalla modalità</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>⬡ Esce dalla modalità perimetro (un tracciato non chiuso si annulla)</td></tr>
+      <tr><td><kbd>Backspace</kbd></td><td>⬡ Toglie l'ultimo punto tracciato, o la maniglia selezionata</td></tr>
+      <tr><td><kbd>Canc</kbd></td><td>⬡ Toglie la maniglia selezionata</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>⬡ Dentro la modalità perimetro annulla un passo di forma del perimetro</td></tr>
+      <tr><td><kbd>L</kbd></td><td>🔍 Accende e spegne la lente mirino (solo dentro la modalità perimetro)</td></tr>
+      <tr><td><kbd>Ctrl</kbd> + Click</td><td>🖼️ Pennello Timbro: sceglie la sorgente fissa</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>🖼️ Pennello Timbro: annulla il contagocce «Prendi sorgente»</td></tr>
+    </tbody>
+  </table>
+
   <h3>Fullscreen, modali, altro</h3>
   <table class="shortcut-table">
     <thead><tr><th>Tasto</th><th>Azione</th></tr></thead>
@@ -2172,12 +2505,12 @@
     </tbody>
   </table>
 
-  <div class="callout tip"><div class="callout-icon"></div><div>Le scorciatoie <strong>non funzionano</strong> quando il cursore è dentro un campo di testo (es. il valore della calibrazione, dimensioni W/H nell'Inspector, valore inline delle misure). Clicca fuori dal campo per riattivare le scorciatoie.</div></div>
+  <div class="callout tip"><div class="callout-icon"></div><div>Le scorciatoie <strong>non funzionano</strong> quando il cursore è dentro un campo di testo (es. il valore della calibrazione, dimensioni W/H nell'Ispettore, valore inline delle misure). Clicca fuori dal campo per riattivare le scorciatoie.</div></div>
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
     <li><strong>Tasto destro + rotella</strong> sulla forma è il modo più rapido per ruotare con precisione senza usare le maniglie: 0.25° di default, 0.5° con Shift, 1° con Ctrl.</li>
     <li>Se il cursore è dentro un campo di testo o uno slider, le scorciatoie sono disabilitate: premi <strong>Esc</strong> o clicca sul canvas per riattivarle.</li>
-    <li>Le <strong>frecce direzionali</strong> spostano l'oggetto selezionato di 1 px (10 px con Shift); se nessuna forma è selezionata, eseguono il pan della vista.</li>
+    <li>Le <strong>frecce direzionali</strong> spostano l'oggetto selezionato di 0.1 mm (1 mm con Shift, 0.01 mm con Ctrl); se nessuna forma è selezionata, eseguono il pan della vista.</li>
     <li><strong>Ctrl + R</strong> riavvia l'applicazione: utile se noti rallentamenti dopo molte operazioni di undo/redo o esportazioni pesanti. L'autosave parte prima della chiusura, non perdi il lavoro.</li>
     <li>Per duplicare rapidamente una forma, selezionala e premi <strong>Ctrl + C</strong> poi <strong>Ctrl + V</strong>: la copia viene incollata con un offset di 25 px.</li>
     <li>Il tasto <kbd>Esc</kbd> ha priorità intelligente: prima chiude modali, poi dropdown, infine esce dal fullscreen — premendolo ripetutamente in sequenza è il "back button" universale.</li>
@@ -2186,7 +2519,7 @@
 
 <!-- ── SICUREZZA & AGGIORNAMENTI ── -->
 <section id="sicurezza">
-  <div class="section-label">19</div>
+  <div class="section-label">21</div>
   <h2>Sicurezza &amp; Aggiornamenti online</h2>
   <p>Mosaica Workspace Pro è un'<strong>applicazione di disegno offline</strong>: l'unica cosa che fa in rete è <strong>controllare se esiste una nuova versione</strong> sul repository GitHub ufficiale e, su tua richiesta, scaricarne l'installer. Tutto il resto del programma non parla con internet. Questa sezione spiega come funzionano gli aggiornamenti e quali protezioni sono sempre attive.</p>
 
@@ -2248,7 +2581,7 @@
 <!-- ════════════════════════════════ FOOTER ════════════════════════════════ -->
 <footer>
   <strong>Mosaica Workspace Pro</strong> · Guida Utente · By Pico Mosaici<br>
-  <span style="margin-top:6px;display:block;">Aggiornata alla versione · V 07.2026</span>
+  <span style="margin-top:6px;display:block;">Aggiornata alla versione · V 09.2026</span>
   <span style="margin-top:6px;display:block;">© 2026 Pico Mosaici® di Pietro Coraggio | Venafro (IS) | Tutti i diritti riservati</span>
 </footer>
 

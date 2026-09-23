@@ -175,7 +175,7 @@ function __it(key, params, fallback) {
     },
 
     "zoom-in": {
-      label: __it("im.action.zoomIn", null, "Zoom in"),
+      label: __it("im.action.zoomIn", null, "Aumenta lo zoom"),
       icon: "🔍➕",
       exec: () => {
         if (typeof window.zoomByFactor === "function") {
@@ -184,7 +184,7 @@ function __it(key, params, fallback) {
       }
     },
     "zoom-out": {
-      label: __it("im.action.zoomOut", null, "Zoom out"),
+      label: __it("im.action.zoomOut", null, "Riduci lo zoom"),
       icon: "🔍➖",
       exec: () => {
         if (typeof window.zoomByFactor === "function") {
@@ -193,7 +193,7 @@ function __it(key, params, fallback) {
       }
     },
     "zoom-reset": {
-      label: __it("im.action.zoomReset", null, "Reset zoom"),
+      label: __it("im.action.zoomReset", null, "Azzera lo zoom"),
       icon: "🔍⤾",
       exec: () => {
         if (typeof window.resetZoomAndPan === "function") window.resetZoomAndPan();
@@ -426,7 +426,7 @@ function __it(key, params, fallback) {
       case 2: return __it("im.button.right",  null, "Destro");
       case 3: return __it("im.button.x1",     null, "X1 (laterale Back)");
       case 4: return __it("im.button.x2",     null, "X2 (laterale Forward)");
-      default: return __it("im.button.generic", { code: code }, `Button ${code}`);
+      default: return __it("im.button.generic", { code: code }, `Pulsante ${code}`);
     }
   }
 

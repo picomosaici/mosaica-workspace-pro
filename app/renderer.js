@@ -400,68 +400,174 @@ function computeQualityScale(viewScale) {
 fabric.devicePixelRatio = currentQualityScale;
 
 // ============== STRISCIA CALIBRAZIONE DINAMICA ==============
-const REFERENCE_MM = 50; // lunghezza teorica della striscia grigia
+// Riscritta il 19 settembre 2026 (cantiere «La Tavola delle Tessere»,
+// eccezione al patto dei cinque file voluta da Mirko: la calibrazione si
+// ripara qui, nel suo file, una volta per tutte).
+//
+// COME SI CALCOLA IL FATTORE. La striscia è larga mm2px(50) px CSS col
+// fattore IN USO. Mirko la misura col calibro e scrive il numero. Il
+// fattore giusto è
+//     fattore = (larghezza VERA della striscia, in px CSS) / (base_MM_TO_PX × misura)
+// cioè quanti px CSS stanno davvero in un mm dello schermo, diviso quelli
+// teorici. Prima si faceva «50 / misura»: giusto SOLO se la striscia era
+// disegnata col fattore 1.0. In ogni sessione successiva (striscia già
+// calibrata, misura ≈ 50) riportava il fattore a ≈ 1.0, e dopo un Reset
+// senza riavvio (striscia rimasta larga col fattore vecchio) sbagliava
+// esattamente del fattore vecchio. Il conto nuovo legge la larghezza
+// della striscia così com'è disegnata: non dipende dal fattore di prima,
+// né dagli arrotondamenti, né dal tetto max-width del pannello.
+//
+// ⚠ IL FATTORE CONVERTE ANCHE LE MISURE DEI PROGETTI. Le tessere sono
+// salvate in px del canvas, e i mm dell'inspector, del PDF e degli SVG si
+// ricavano dividendo per il fattore. Cambiarlo cambia i mm di tutto ciò
+// che è già disegnato (e il foglio A4, ricalcolato dai mm, cambia rispetto
+// alle tessere). Per questo il toast lo dice quando succede. Tenerlo fermo
+// dentro il progetto è lavoro per un cantiere suo.
+const REFERENCE_MM = 50; // lunghezza teorica della striscia
+// Fuori da qui la misura scritta è un errore di battitura (4,708 invece
+// di 47,08), non uno schermo: si rifiuta invece di stravolgere il foglio.
+const CALIB_FACTOR_MIN = 0.25;
+const CALIB_FACTOR_MAX = 4;
+let calibStripDrawnPx = 0; // larghezza (px CSS) assegnata alla striscia l'ultima volta
 
 function updateCalibStrip() {
   const strip = document.getElementById("calibStrip");
   if (!strip) return;
 
-  const targetPx = Math.round(mm2px(REFERENCE_MM)); // sempre esattamente 50 mm teorici
+  // Niente arrotondamento: un px CSS frazionario è legittimo, e comunque
+  // applyCalibration misura la larghezza vera, non questa.
+  const targetPx = mm2px(REFERENCE_MM); // sempre 50 mm teorici col fattore in uso
   strip.style.width = `${targetPx}px`;
   strip.style.maxWidth = "100%";
   strip.style.margin = "0 auto";
+  calibStripDrawnPx = targetPx;
+}
+
+// La larghezza (px CSS) della parte SCURA della striscia, cioè di quello
+// che si misura col calibro: il riquadro meno gli eventuali bordi. Se il
+// pannello è chiuso (larghezza 0) vale quella assegnata l'ultima volta.
+function _calibStripMeasuredPx() {
+  const strip = document.getElementById("calibStrip");
+  let w = 0;
+  if (strip && typeof strip.getBoundingClientRect === "function") {
+    try {
+      const r = strip.getBoundingClientRect();
+      const cs = typeof window.getComputedStyle === "function" ? window.getComputedStyle(strip) : null;
+      const bl = cs ? parseFloat(cs.borderLeftWidth) || 0 : 0;
+      const br = cs ? parseFloat(cs.borderRightWidth) || 0 : 0;
+      w = r.width - bl - br;
+    } catch (e) {
+      w = 0;
+    }
+  }
+  return w > 0 ? w : calibStripDrawnPx;
+}
+
+// Salva: MERGE non distruttivo per non perdere altri campi
+// (es. lassoContainmentThreshold scritto da lassoSelection.js).
+async function _saveCalibrationFactor(factor) {
+  if (window.calibrationAPI?.save) {
+    try {
+      const existing = (window.calibrationAPI.load ? await window.calibrationAPI.load() : null) || {};
+      await window.calibrationAPI.save({ ...existing, calibrationFactor: factor });
+    } catch (e) {
+      window.calibrationAPI.save({ calibrationFactor: factor });
+    }
+  } else {
+    localStorage.setItem("mosaica_calibration_factor", factor);
+  }
+}
+
+// Dopo ogni cambio di fattore: foglio, vista, e la striscia RIDISEGNATA
+// col fattore nuovo (prima restava larga col vecchio: dopo un Reset la si
+// misurava sbagliata). Il campo torna a 50: premere di nuovo «Applica»
+// senza rimisurare non cambia niente.
+function _calibRefreshUI() {
+  setPaperSizeFromMM();
+  applyTransform();
+  updateCalibStrip();
+  if (measuredInput) measuredInput.value = REFERENCE_MM.toFixed(2);
+  if (miniValue) miniValue.textContent = `${REFERENCE_MM} mm`;
+}
+
+// Se sul foglio c'è del lavoro (un progetto aperto o più della tessera di
+// partenza), dice di quanto sono cambiate le misure in mm. Stringa vuota
+// se non è cambiato niente o se non c'è niente da avvisare.
+function _calibScaleWarning(oldFactor, newFactor) {
+  if (!(oldFactor > 0) || !(newFactor > 0)) return "";
+  const ratio = oldFactor / newFactor; // una tessera di L px: da L/(b·vecchio) a L/(b·nuovo) mm
+  if (Math.abs(ratio - 1) < 0.0005) return "";
+  let lavoro = false;
+  try {
+    let bg = null;
+    let pp = null;
+    if (typeof backgroundImageObject !== "undefined") bg = backgroundImageObject;
+    if (typeof paperTextureObject !== "undefined") pp = paperTextureObject;
+    const n = canvas
+      .getObjects()
+      .filter((o) => o && o !== bg && o !== pp && !o.__isBackground && !o.excludeFromExport).length;
+    lavoro = !!currentProjectPath || n > 1;
+  } catch (e) {
+    lavoro = false;
+  }
+  if (!lavoro) return "";
+  const pct = (ratio - 1) * 100;
+  const txt = (pct > 0 ? "+" : "−") + Math.abs(pct).toFixed(1);
+  return (
+    " " +
+    __t(
+      "toast.calib.projectScaled",
+      { pct: txt },
+      `⚠ Le misure in mm delle tessere già disegnate sono cambiate del ${txt}%.`
+    )
+  );
 }
 
 async function applyCalibration() {
   const measured = parseFloat(measuredInput.value);
-  if (isNaN(measured) || measured <= 0) {
+  if (!isFinite(measured) || measured <= 0) {
     flashToast(__t("toast.calib.invalidValue", null, "❌ Inserisci un valore valido (> 0)"));
     return;
   }
-  updateCalibStrip();
-  calibrationFactor = REFERENCE_MM / measured;
-
-  // Salva: MERGE non distruttivo per non perdere altri campi
-  // (es. lassoContainmentThreshold scritto da lassoSelection.js).
-  if (window.calibrationAPI?.save) {
-    try {
-      const existing = (window.calibrationAPI.load ? await window.calibrationAPI.load() : null) || {};
-      await window.calibrationAPI.save({ ...existing, calibrationFactor });
-    } catch (e) {
-      window.calibrationAPI.save({ calibrationFactor });
-    }
-  } else {
-    localStorage.setItem("mosaica_calibration_factor", calibrationFactor);
+  const stripPx = _calibStripMeasuredPx();
+  const newFactor = stripPx / (base_MM_TO_PX * measured);
+  if (!isFinite(newFactor) || newFactor < CALIB_FACTOR_MIN || newFactor > CALIB_FACTOR_MAX) {
+    flashToast(
+      __t(
+        "toast.calib.outOfRange",
+        { mm: measured },
+        `❌ ${measured} mm non è una misura possibile della striscia: rimisurala e riprova`
+      ),
+      { duration: 5000 }
+    );
+    return;
   }
 
-  setPaperSizeFromMM();
-  applyTransform();
+  const oldFactor = calibrationFactor;
+  calibrationFactor = newFactor;
+  _calibRefreshUI();
+  await _saveCalibrationFactor(calibrationFactor);
 
-  if (miniValue) miniValue.textContent = `${REFERENCE_MM} mm`;
-  flashToast(__t("toast.calib.applied", { factor: calibrationFactor.toFixed(4) }, `✅ Calibrazione applicata! Fattore = ${calibrationFactor.toFixed(4)}`));
+  flashToast(
+    __t(
+      "toast.calib.applied",
+      { factor: calibrationFactor.toFixed(4) },
+      `✅ Calibrazione applicata! Fattore = ${calibrationFactor.toFixed(4)}`
+    ) + _calibScaleWarning(oldFactor, calibrationFactor),
+    { duration: 7000 }
+  );
 }
 
 async function resetCalibration() {
+  const oldFactor = calibrationFactor;
   calibrationFactor = 1;
+  _calibRefreshUI();
+  await _saveCalibrationFactor(1);
 
-  // Salva: MERGE non distruttivo (stesso ragionamento di applyCalibration).
-  if (window.calibrationAPI?.save) {
-    try {
-      const existing = (window.calibrationAPI.load ? await window.calibrationAPI.load() : null) || {};
-      await window.calibrationAPI.save({ ...existing, calibrationFactor: 1 });
-    } catch (e) {
-      window.calibrationAPI.save({ calibrationFactor: 1 });
-    }
-  } else {
-    localStorage.setItem("mosaica_calibration_factor", 1);
-  }
-
-  measuredInput.value = "50.00";
-  setPaperSizeFromMM();
-  applyTransform();
-
-  if (miniValue) miniValue.textContent = `${REFERENCE_MM} mm`;
-  flashToast(__t("toast.calib.reset", null, "🔄 Calibrazione resettata a 1.0"));
+  flashToast(
+    __t("toast.calib.reset", null, "🔄 Calibrazione resettata a 1.0") + _calibScaleWarning(oldFactor, 1),
+    { duration: 7000 }
+  );
 }
 
 updateCalibStrip();
@@ -1675,6 +1781,24 @@ let redoStack = [];
 let isApplyingSnapshot = false;
 let _pushDebounceTimer = null;
 
+// ── Fetta 5: UNA VOCE DI ANNULLA PER GESTO ────────────────────────────────
+// Un ridimensionamento di più forme insieme finiva nella storia DUE volte:
+// la prima quando l'utente rilascia il mouse (object:modified → fotografia
+// ritardata di 400 ms, con la scala ancora addosso ai figli), la seconda
+// quando scioglie la selezione e la cottura riscrive i punti. I due stati
+// sono IDENTICI A VEDERSI e diversi solo nei dati, così il primo Ctrl+Z
+// sembrava non fare niente e ne serviva un secondo.
+//
+// Rimedio: la cottura differita non si guadagna una voce sua, si INNESTA su
+// quella del gesto che l'ha causata.
+//   _pushDebouncePending → la fotografia del gesto è programmata ma non è
+//     ancora scattata: si ferma il timer e si scatta adesso, a cottura fatta.
+//   _tipCoalescable → la fotografia c'è già ed è quella "cruda": si riscrive
+//     la cima della pila invece di aggiungerne una seconda.
+// Fuori da questi due casi si registra una voce nuova, come sempre.
+let _pushDebouncePending = false;
+let _tipCoalescable = false;
+
 // ── Helper: esclude SEMPRE la texture carta dai snapshot ──
 function getUndoJSON() {
   return canvas.toJSON([
@@ -1731,6 +1855,10 @@ function pushState() {
     undoStack.push(snap);
     if (undoStack.length > UNDO_LIMIT) undoStack.shift();
     redoStack = [];
+    // Fetta 5: una voce appena nata è "sua" e non va riscritta da nessuno.
+    // Solo chi la crea (pushStateDebounced / pushStateCoalesced) la marca
+    // come innestabile, subito dopo.
+    _tipCoalescable = false;
     enableHistoryButtons();
   } catch (e) {
     console.warn("pushState error", e);
@@ -1739,10 +1867,66 @@ function pushState() {
 
 function pushStateDebounced() {
   clearTimeout(_pushDebounceTimer);
-  _pushDebounceTimer = setTimeout(pushState, 400);
+  _pushDebouncePending = true;
+  _pushDebounceTimer = setTimeout(() => {
+    _pushDebouncePending = false;
+    pushState();
+    // È la fotografia di FINE GESTO: se subito dopo arriva una cottura
+    // differita (che non cambia niente a vedersi), quella si innesta qui
+    // invece di aggiungere un secondo passo di annullamento.
+    _tipCoalescable = true;
+  }, 400);
+}
+
+// ── Fetta 5: fotografia che si INNESTA sul gesto appena concluso ──────────
+// La chiama la cottura differita dei trapezi/triangoli allo scioglimento
+// di una selezione multipla: deve restare UNA voce sola col gesto appena
+// concluso, e per questo, dopo aver scritto, si rimarca la cima come
+// ancora innestabile.
+//
+// Non duplica la lista delle proprietà da salvare: si appoggia a
+// pushState(), che resta il punto unico. Toccare quella lista qui dentro
+// creerebbe una decima lista di serializzazione, cioè esattamente la
+// trappola che questo progetto ha già pagato una volta.
+function pushStateCoalesced() {
+  if (isApplyingSnapshot) return;
+  if (isRestoringProject) return;
+
+  // Caso 1 — il gesto ha programmato la sua fotografia ma non è ancora
+  // scattata: la si ferma e si scatta ADESSO, a cottura fatta.
+  if (_pushDebouncePending) {
+    clearTimeout(_pushDebounceTimer);
+    _pushDebounceTimer = null;
+    _pushDebouncePending = false;
+    pushState();
+    _tipCoalescable = true;
+    return;
+  }
+
+  // Caso 2 — la fotografia del gesto c'è già ed è quella "cruda": si toglie
+  // e si lascia che pushState() riscriva quella cotta al suo posto. Se
+  // pushState() non scrive (una guardia lo ferma), si rimette com'era: la
+  // storia non perde mai un passo.
+  if (_tipCoalescable && undoStack.length > 0) {
+    const previous = undoStack.pop();
+    const before = undoStack.length;
+    pushState();
+    if (undoStack.length === before) undoStack.push(previous);
+    _tipCoalescable = true;
+    return;
+  }
+
+  // Caso 3 — non c'è niente su cui innestarsi: voce nuova, come sempre.
+  pushState();
+  _tipCoalescable = true;
 }
 
 async function applySnapshot(jsonStr, pushCurrentToRedo = true) {
+  // Fetta 5: dopo un annulla o un ripristino la cima della pila è uno stato
+  // in cui l'utente è TORNATO, non la coda di un gesto appena fatto. Una
+  // cottura che arrivasse dopo deve guadagnarsi una voce sua, non riscrivere
+  // un passo di storia che l'utente sta ancora attraversando.
+  _tipCoalescable = false;
   try {
     if (pushCurrentToRedo && !isApplyingSnapshot) {
       // toJSON salta automaticamente gli oggetti excludeFromExport=true
@@ -2888,8 +3072,9 @@ function updateMeasureOverlay() {
     return;
   }
 
-  const wPx = active.getScaledWidth ? active.getScaledWidth() : active.width || 0;
-  const hPx = active.getScaledHeight ? active.getScaledHeight() : active.height || 0;
+  let wPx = active.getScaledWidth ? active.getScaledWidth() : active.width || 0;
+  let hPx = active.getScaledHeight ? active.getScaledHeight() : active.height || 0;
+
   const wMm = px2mm(wPx).toFixed(1);
   const hMm = px2mm(hPx).toFixed(1);
 
@@ -2939,9 +3124,28 @@ function updateMeasureOverlay() {
   //  call-site di updateMeasureOverlay sono già preceduti da positionRadial
   //  o _scheduleRadialUpdate, che gestiscono il radial direttamente.)
 
+  // ── CLAMP DELL'OVERLAY DENTRO L'AREA LIBERA ─────────────────────────────
+  // L/A e il cursore del raggio sono ancorati 35 px sotto il menu radiale.
+  // Quando il radiale ripiega a colonna — multi-selezione da sempre, e da
+  // dopo la Fetta 1 anche a selezione singola con lo zoom alto — quella
+  // colonna è alta e l'ancoraggio finisce sotto la status bar o fuori
+  // finestra: i numeri ci sono ma non si leggono.
+  // L'area la dà getRadialFreeArea(), la stessa che il radiale usa per
+  // decidere dove stare, quindi i due non possono divergere. Il display si
+  // accende PRIMA di misurare: a display:none offsetWidth è zero e il clamp
+  // lavorerebbe su un rettangolo largo nulla.
+  overlay.style.display = "flex";
+  const oArea = getRadialFreeArea();
+  const oW = overlay.offsetWidth || 0;
+  const oH = overlay.offsetHeight || 0;
+  const OVERLAY_MARGIN = 8;
+  // Math.max per ULTIMO: se l'area fosse più stretta dell'overlay vince il
+  // bordo sinistro/alto, cioè si vede l'inizio dei numeri invece della fine.
+  overlayX = Math.max(oArea.left + OVERLAY_MARGIN, Math.min(overlayX, oArea.right - oW - OVERLAY_MARGIN));
+  overlayY = Math.max(oArea.top + OVERLAY_MARGIN, Math.min(overlayY, oArea.bottom - oH - OVERLAY_MARGIN));
+
   overlay.style.left = `${Math.round(overlayX)}px`;
   overlay.style.top = `${Math.round(overlayY)}px`;
-  overlay.style.display = "flex";
 
   // ── PROPAGAZIONE LIVE: status bar + pannello dimensioni inspector ──
   // Risolve il problema delle misure non aggiornate durante scaling/rotazione,
@@ -3166,7 +3370,17 @@ if (document.readyState === "loading") {
 }
 
 // ============== TOOLTIP RADIALE ==============
-const radialTooltip = document.createElement("div");
+// Fetta 5 — l'elemento si RIUSA se c'è già.
+// index.html contiene un `<div id="radialTooltip">` vuoto (riga ~1651) con
+// una regola CSS che dice "posizionato e mostrato da JS". Qui però se ne
+// creava un SECONDO con lo stesso id e lo si appendeva al body: due
+// elementi con lo stesso identificativo, HTML non valido, e un
+// `getElementById("radialTooltip")` che restituiva quello vuoto invece di
+// quello che l'app scrive davvero. Non si vedeva perché il div di troppo
+// resta trasparente e non intercetta il mouse, ma bastava che un domani
+// qualcuno cercasse il tooltip per id per trovarne uno morto.
+// Difetto preesistente, trovato dall'harness della Fetta 5.
+const radialTooltip = document.getElementById("radialTooltip") || document.createElement("div");
 radialTooltip.id = "radialTooltip";
 radialTooltip.style.cssText = `
   position: absolute;
@@ -3182,13 +3396,34 @@ radialTooltip.style.cssText = `
   opacity: 0;
   transition: opacity .15s;
 `;
-document.body.appendChild(radialTooltip);
+if (!radialTooltip.parentNode) document.body.appendChild(radialTooltip);
 
+// Fetta 5 — il testo si legge AL PASSAGGIO DEL MOUSE, non all'avvio.
+//
+// Prima il testo veniva letto una volta sola, qui dentro, e tenuto in una
+// variabile. Quando l'utente cambiava lingua a caldo, i18n.js riscriveva
+// l'attributo `data-tooltip` di ogni pulsante — cosa che fa tuttora, ed è
+// giusta — ma il testo congelato all'avvio restava quello di prima: il
+// radiale continuava a spiegarsi nella lingua di partenza fino al riavvio.
+// Difetto preesistente, valido per tutti i pulsanti del radiale, 2D compresi.
+//
+// Ora l'attributo si rilegge a ogni `mouseenter`: la lingua corrente arriva
+// da sola, senza che i18n.js debba avvisare nessuno. È esattamente il
+// funzionamento che i18n.js dava già per scontato nel suo commento.
 function initRadialTooltips() {
   document.querySelectorAll(".radial-btn").forEach((btn) => {
-    const text = btn.dataset.tooltip;
-    if (!text) return;
+    // Guardia contro il doppio aggancio: se un domani questa funzione
+    // venisse richiamata (per esempio dopo aver aggiunto pulsanti nuovi),
+    // i pulsanti già serviti non si ritrovano due ascoltatori addosso.
+    if (btn.__radialTipWired) return;
+    btn.__radialTipWired = true;
+
     btn.addEventListener("mouseenter", (e) => {
+      const text = btn.dataset.tooltip;
+      if (!text) {
+        radialTooltip.style.opacity = "0";
+        return;
+      }
       radialTooltip.textContent = text;
       radialTooltip.style.opacity = "1";
       radialTooltip.style.left = e.clientX + 24 + "px";
@@ -3512,8 +3747,16 @@ canvas.on("selection:cleared", (e) => {
 
       if (didBake) {
         canvas.requestRenderAll();
-        // Singolo pushState che cattura lo stato finale post-bake
-        if (typeof pushState === "function" && !isApplyingSnapshot && !isRestoringProject) {
+        // Fetta 5 — una sola voce di annulla per l'intero gesto.
+        // Prima qui c'era un pushState() secco: siccome il rilascio del
+        // mouse aveva già programmato la SUA fotografia, la storia si
+        // ritrovava con due passi consecutivi identici a vedersi, e il
+        // primo Ctrl+Z sembrava non fare niente. pushStateCoalesced()
+        // scrive lo stato cotto SOPRA quello del gesto, quando è lo
+        // stesso gesto, e ne apre uno nuovo solo quando non lo è.
+        if (typeof pushStateCoalesced === "function" && !isApplyingSnapshot && !isRestoringProject) {
+          pushStateCoalesced();
+        } else if (typeof pushState === "function" && !isApplyingSnapshot && !isRestoringProject) {
           pushState();
         }
       }
@@ -5248,8 +5491,8 @@ function updateTextureGrainPanel() {
 // ============== TEXTURE: APPLICA A TUTTE LE TESSERE (selettore globale) ======
 // "Tutte le tessere" del canvas principale = tutte le forme che NON sono
 // penna/acquerello (isWatercolorOrFreehand) e NON sono sfondo (__isBackground):
-// stesso identico criterio usato negli export. NON tocca Palladiana né 3D
-// (builder separati col proprio canvas). Tutto Canvas2D + fabric.Pattern →
+// stesso identico criterio usato negli export. NON tocca la Palladiana
+// (builder separato col proprio canvas). Tutto Canvas2D + fabric.Pattern →
 // valido da Fabric 5.1.0 a 5.3.0.
 
 // Lista texture per il selettore globale (popolata da loadTexturePanel: stesse
@@ -6020,7 +6263,7 @@ function applyProjectData(data, filename, filePath = null) {
         if (typeof window.__loaderSubProgress === "function") {
           try { window.__loaderSubProgress(1, "Progetto"); } catch (e) {}
         }
-
+        
         flashToast(__t("toast.project.loaded", { filename: filename || "" }, "Progetto caricato: " + (filename || "")));
         console.log("[applyProjectData] ✓ completato regolarmente");
       } catch (err) {
@@ -6182,7 +6425,7 @@ if (saveProjectBtn) {
         })(),
         // Perimetro di contenimento del disegno a mano libera (coord. logiche).
         freehandClipPolygon:
-          typeof window.getFreehandClipPolygon === "function" ? window.getFreehandClipPolygon() : null
+          typeof window.getFreehandClipPolygon === "function" ? window.getFreehandClipPolygon() : null,
       };
 
       const json = JSON.stringify(projectData);
@@ -6841,11 +7084,206 @@ if (radial) {
 }
 
 // ============== MENU RADIALE ==============
+// Fetta 1 del cantiere "Calibrazioni e rifiniture" — il radiale non esce più
+// dallo schermo, e con quindici pulsanti non si accavalla.
+//
+// Tre cose, in ordine di quando si vedono:
+//
+// 1. RAGGIO MINIMO CALCOLATO SUI PULSANTI VISIBILI. Perché due pulsanti
+//    adiacenti non si tocchino, la corda fra i loro centri deve valere almeno
+//    quanto il pulsante più un filo d'aria: 48 + 5 = 53 px. Su un cerchio di N
+//    pulsanti quella corda vale 2·r·sin(180°/N), da cui il raggio minimo.
+//    Con UNDICI pulsanti la formula restituisce 95 px tondi, che è
+//    esattamente il vecchio clamp: non cambia un pixel. Con più pulsanti
+//    il raggio cresce da solo, ed è la fine delle sovrapposizioni.
+//
+// 2. IL CERCHIO RESTA DENTRO L'AREA LIBERA DEL CANVAS. Il margine per le
+//    maniglie (0,55 × diametro + 30) non aveva nessun tetto: scavalcava il
+//    clamp a 280 e cresceva con la forma a schermo senza mai guardare i bordi.
+//    A 800% una tessera da 10 mm porta il cerchio a 608 px di ingombro: ci sta
+//    nell'area libera (936 px in altezza su uno schermo 1080p) solo se la
+//    tessera è nel terzo centrale. Ora il raggio viene tirato indietro fino a
+//    quello che ci sta, e il CENTRO del cerchio scivola quel tanto che basta
+//    perché nessun pulsante esca. Se la forma sta larga lo scivolamento è
+//    zero, e il risultato è identico a prima pixel per pixel.
+//
+// 3. QUANDO IL CERCHIO È IMPOSSIBILE, DOCK. Da una certa grandezza in poi non
+//    esiste nessun cerchio che stia insieme FUORI dalla forma (per non
+//    coprirla) e DENTRO l'area libera. Succede quando millimetri × zoom supera
+//    circa 193 su uno schermo 1080p — una tessera da 25 mm a 800% — e già a
+//    118 su un portatile 1366×768. Lì il menu diventa la colonna verticale che
+//    la multi-selezione usa da sempre: compatta, di fianco alla forma, mai
+//    sopra.
+//
+// ⚠ PERCHÉ NON SI STRINGE AD ARCO. La lunghezza d'arco che serve a quindici
+// pulsanti è costante — circa 742 px — quindi stringendo l'apertura il raggio
+// deve crescere in proporzione inversa: 128 px a cerchio pieno, 159 a 270°,
+// 237 a mezzaluna, 709 px a 60°. Il cerchio pieno è la disposizione che
+// impacchetta i pulsanti nel rettangolo più piccolo possibile: l'arco fa
+// uscire il menu di più, non di meno. E a zoom alto non aiuta comunque, perché
+// lì il vincolo non arriva dai bordi dello schermo ma dalla forma, che vuole i
+// pulsanti lontani in tutte le direzioni.
+
+const RADIAL_MIN_RADIUS = 95; // pavimento storico: undici pulsanti, sei px d'aria
+const RADIAL_MAX_RADIUS = 280; // tetto storico del ramo proporzionale
+const RADIAL_BTN_AIR = 5; // aria fra due pulsanti adiacenti sulla corda
+const RADIAL_SCREEN_MARGIN = 12; // stacco minimo dai bordi dell'area libera
+const RADIAL_DOCK_HYSTERESIS = 24; // banda morta cerchio→dock→cerchio
+
+// Ricorda se l'ULTIMA disposizione su selezione singola è finita a dock.
+// Serve solo alla banda morta: la soglia dipende dalla grandezza della forma a
+// schermo e dalla finestra, non da dove si trova la forma, quindi il menu non
+// balla mentre si sposta o si panna — ma zoomando pian piano sul confine
+// potrebbe sfarfallare, e la banda morta lo impedisce.
+let _radialWasDock = false;
+
+// ── Area libera del canvas: la finestra meno le barre fisse ────────────────
+// Il radiale ha z-index 9998 e sta SOPRA i pannelli: un pulsante finito sulla
+// barra degli strumenti resta cliccabile, ma copre proprio i comandi che si
+// stanno usando (i cursori dell'ispettore). Quindi il cerchio
+// si tiene dentro l'area di lavoro vera.
+// Solo DOM, nessuna dipendenza da Fabric: compatibile 5.1.0 → 5.3.0 e più in
+// là. Un pannello nascosto ha rettangolo di area zero e viene saltato da solo;
+// se il conto venisse degenere si ripiega sulla finestra intera.
+// Le sei letture si fanno PRIMA di qualunque scrittura di stile, accanto alla
+// getBoundingClientRect di `paper` che già oggi forza il reflow: a layout
+// pulito costano quanto niente e non aggiungono un solo passaggio di calcolo.
+function getRadialFreeArea() {
+  const W = window.innerWidth || 0;
+  const H = window.innerHeight || 0;
+  const area = { left: 0, top: 0, right: W, bottom: H };
+
+  const bite = (id, side) => {
+    const el = document.getElementById(id);
+    if (!el || typeof el.getBoundingClientRect !== "function") return;
+    let r;
+    try {
+      r = el.getBoundingClientRect();
+    } catch (err) {
+      return;
+    }
+    if (!r || r.width <= 0 || r.height <= 0) return;
+    // Si morde solo il pannello che è DAVVERO appoggiato a quel bordo: un
+    // pannello spostato altrove (o traslato fuori vista) non ruba spazio.
+    if (side === "top" && r.top <= area.top + 2) area.top = Math.min(r.bottom, H);
+    else if (side === "bottom" && r.bottom >= area.bottom - 2) area.bottom = Math.max(r.top, 0);
+    else if (side === "left" && r.left <= area.left + 2) area.left = Math.min(r.right, W);
+    else if (side === "right" && r.right >= area.right - 2) area.right = Math.max(r.left, 0);
+  };
+
+  // L'ordine conta: bgPanel sta sotto topBar, leftToolbar a destra di
+  // texturePanel. Si mordono a catena, dal bordo verso l'interno.
+  bite("topBar", "top");
+  bite("bgPanel", "top");
+  bite("statusBar", "bottom");
+  bite("texturePanel", "left");
+  bite("leftToolbar", "left");
+  bite("historyPanel", "right");
+
+  if (area.right - area.left < 200 || area.bottom - area.top < 200) {
+    return { left: 0, top: 0, right: W, bottom: H };
+  }
+  return area;
+}
+
+// ── Raggio minimo perché N pulsanti non si tocchino ────────────────────────
+// corda = 2·r·sin(π/N) ≥ lato pulsante + aria.
+// N = 11 → 95 px, identico al vecchio clamp. N = 15 → 128 px.
+// Sotto i tre pulsanti la formula degenera (sin(π/1) è zero in virgola
+// mobile): si torna al pavimento storico senza fare divisioni.
+function radialMinRadiusForCount(count, btnSize) {
+  const n = Math.max(0, Math.floor(count || 0));
+  if (n < 3) return RADIAL_MIN_RADIUS;
+  const chord = (btnSize > 0 ? btnSize : 48) + RADIAL_BTN_AIR;
+  const r = Math.ceil(chord / (2 * Math.sin(Math.PI / n)));
+  return Math.max(RADIAL_MIN_RADIUS, r);
+}
+
+// ── Il cuore della fetta: decide regime, raggio e centro ───────────────────
+// Funzione PURA: niente DOM, niente Fabric, niente canvas. Prende numeri,
+// restituisce numeri. È qui che l'harness può bombardare la matematica senza
+// simulare mezza applicazione.
+//
+//   o.diameter   lato maggiore della forma A SCHERMO (px)
+//   o.count      pulsanti visibili
+//   o.btn        lato del pulsante (px)
+//   o.sliderPct  0..30, lo slider sotto gli indicatori L/A
+//   o.area       { left, top, right, bottom } area libera del canvas
+//   o.anchorX/Y  dove vorremmo il centro del cerchio (px schermo)
+//   o.wasDock    l'ultima volta eravamo a dock? (banda morta)
+//
+// Ritorna { mode: "dock" } oppure { mode: "circle", radius, cx, cy }.
+function solveRadialLayout(o) {
+  const btn = o && o.btn > 0 ? o.btn : 48;
+  const area = (o && o.area) || { left: 0, top: 0, right: 0, bottom: 0 };
+  const diameter = Math.max(0, (o && o.diameter) || 0);
+
+  // Rettangolo in cui può stare il CENTRO di un pulsante: l'area libera
+  // rientrata di mezzo pulsante più il margine.
+  const inset = btn / 2 + RADIAL_SCREEN_MARGIN;
+  const cLeft = area.left + inset;
+  const cRight = area.right - inset;
+  const cTop = area.top + inset;
+  const cBottom = area.bottom - inset;
+  const availW = Math.max(0, cRight - cLeft);
+  const availH = Math.max(0, cBottom - cTop);
+
+  // I due minimi, di natura diversa:
+  //  · rTouch = non coprire la forma (è il vecchio "margine maniglie")
+  //  · rApart = non accavallare i pulsanti fra loro
+  const rTouch = Math.ceil(diameter * 0.55 + 30);
+  const rApart = radialMinRadiusForCount(o && o.count, btn);
+  const rNeed = Math.max(rTouch, rApart);
+
+  // Il cerchio più grande che l'area libera può contenere.
+  const rMaxBox = Math.floor(Math.min(availW, availH) / 2);
+
+  // Regime. La soglia guarda solo la grandezza della forma a schermo e la
+  // finestra: non dipende da DOVE si trova la forma, quindi spostare e pannare
+  // non cambiano mai layout. La banda morta serve solo allo zoom.
+  const guard = o && o.wasDock ? RADIAL_DOCK_HYSTERESIS : 0;
+  if (rMaxBox < rNeed + guard) return { mode: "dock" };
+
+  // Raggio: identico alla vecchia sequenza, con il pavimento che ora dipende
+  // dai pulsanti visibili e un tetto nuovo che è quello che ci sta.
+  let radius = Math.round(diameter * 1.35);
+  radius = Math.max(rApart, Math.min(RADIAL_MAX_RADIUS, radius));
+  radius = Math.max(radius, rTouch);
+  radius = Math.round(radius * (1 + ((o && o.sliderPct) || 0) / 100));
+  radius = Math.min(radius, rMaxBox);
+  radius = Math.max(radius, rNeed);
+
+  // Centro: quello voluto, fatto scivolare dentro i limiti. Se la forma sta
+  // larga lo scivolamento è zero e i quattro valori inline sono quelli di
+  // sempre.
+  const anchorX = o && Number.isFinite(o.anchorX) ? o.anchorX : (cLeft + cRight) / 2;
+  const anchorY = o && Number.isFinite(o.anchorY) ? o.anchorY : (cTop + cBottom) / 2;
+  const cx = Math.min(Math.max(anchorX, cLeft + radius), cRight - radius);
+  const cy = Math.min(Math.max(anchorY, cTop + radius), cBottom - radius);
+
+  return { mode: "circle", radius: radius, cx: cx, cy: cy };
+}
+
+// ── Centro della porzione VISIBILE di un segmento ──────────────────────────
+// Se la forma è tutta dentro l'area libera si restituisce il centro vero, così
+// com'era: nessuna aritmetica in mezzo, nessun pixel di differenza. Se invece
+// sborda (finestra piccola, panning, zoom alto) ci si àncora a quello che si
+// vede — la stessa idea che il dock della multi-selezione usa dalla sua
+// nascita.
+function radialVisibleCenter(a, b, lo, hi, fallback) {
+  if (a >= lo && b <= hi) return fallback;
+  const l = Math.max(a, lo);
+  const r = Math.min(b, hi);
+  if (r > l) return (l + r) / 2;
+  return Math.min(Math.max(fallback, lo), hi);
+}
+
 function positionRadial() {
   if (!radial) return;
 
   const active = canvas.getActiveObject();
   if (!active) {
+    _radialWasDock = false;
     hideRadial();
     return;
   }
@@ -6854,12 +7292,24 @@ function positionRadial() {
   // Il layout circolare insegue il bounding box della selezione e con molte
   // forme (anche a zoom basso) usciva dallo schermo. Il dock è compatto,
   // sempre dentro la finestra, indipendente da zoom e numero di forme.
+  // Chiamata SENZA area: si comporta esattamente come prima della Fetta 1.
   if (active.type === "activeSelection") {
     positionRadialDockVertical(active);
     updateMeasureOverlay();
     return;
   }
 
+  // ⚠ Il radiale va acceso PRIMA di contare i pulsanti: `offsetParent` è null
+  // per tutti i figli finché il contenitore è display:none, e la conta
+  // tornerebbe zero — cioè il pavimento del raggio sparirebbe proprio al primo
+  // click su una tessera. Le due guardie sull'uguaglianza servono al reflow:
+  // se il radiale è già acceso non si scrive niente, e tutte le letture qui
+  // sotto restano un unico ricalcolo di layout, come prima della Fetta 1.
+  if (radial.style.display !== "block") radial.style.display = "block";
+  if (radial.style.opacity !== "1") radial.style.opacity = "1";
+
+  // ── LETTURE, tutte insieme e prima delle scritture ───────────────────────
+  const area = getRadialFreeArea();
   const center = getSelectionCenterPoint();
   const screen = canvasToScreen(center);
 
@@ -6868,40 +7318,62 @@ function positionRadial() {
   const h = active.getScaledHeight ? active.getScaledHeight() : active.height || 0;
   const shapeDiameter = Math.max(w, h) * view.scale;
 
-  let desiredRadius = Math.round(shapeDiameter * 1.35);
-  desiredRadius = Math.max(95, Math.min(280, desiredRadius));
+  const buttons = Array.from(radial.querySelectorAll(".radial-btn")).filter((b) => b.offsetParent !== null);
+  if (!_radialBtnSize && buttons.length) {
+    const first = buttons[0];
+    _radialBtnSize = { w: first.offsetWidth || 48, h: first.offsetHeight || 48 };
+  }
+  const btnSize = _radialBtnSize ? Math.max(_radialBtnSize.w, _radialBtnSize.h) : 48;
 
-  // Margine di sicurezza per maniglie
-  const minimal = Math.ceil(shapeDiameter * 0.55 + 30);
-  desiredRadius = Math.max(desiredRadius, minimal);
+  const halfW = (w * view.scale) / 2;
+  const halfH = (h * view.scale) / 2;
+  const anchorX = radialVisibleCenter(screen.x - halfW, screen.x + halfW, area.left, area.right, screen.x);
+  const anchorY = radialVisibleCenter(screen.y - halfH, screen.y + halfH, area.top, area.bottom, screen.y);
 
-  // ── Moltiplicatore slider (0%..+30%) ─────────────────────────────────────
-  // Applicato DOPO i clamp così l'utente può spingere oltre i 280px anche a
-  // zoom alto, dove altrimenti il raggio resterebbe bloccato.
-  const _sliderMul = 1 + (radialSizeOffsetPct || 0) / 100;
-  desiredRadius = Math.round(desiredRadius * _sliderMul);
+  const layout = solveRadialLayout({
+    diameter: shapeDiameter,
+    count: buttons.length,
+    btn: btnSize,
+    sliderPct: radialSizeOffsetPct || 0,
+    area: area,
+    anchorX: anchorX,
+    anchorY: anchorY,
+    wasDock: _radialWasDock
+  });
+
+  // ── Cerchio impossibile → dock, come per la multi-selezione ──────────────
+  if (layout.mode === "dock") {
+    _radialWasDock = true;
+    positionRadialDockVertical(active, area);
+    updateMeasureOverlay();
+    return;
+  }
+  _radialWasDock = false;
 
   // Applica subito
-  radial.style.setProperty("--radial-radius", `${desiredRadius}px`);
-  radial.style.width = `${desiredRadius * 2}px`;
-  radial.style.height = `${desiredRadius * 2}px`;
-  radial.style.left = `${Math.round(screen.x - desiredRadius)}px`;
-  radial.style.top = `${Math.round(screen.y - desiredRadius)}px`;
-  radial.style.display = "block";
-  radial.style.opacity = "1";
+  radial.style.setProperty("--radial-radius", `${layout.radius}px`);
+  radial.style.width = `${layout.radius * 2}px`;
+  radial.style.height = `${layout.radius * 2}px`;
+  radial.style.left = `${Math.round(layout.cx - layout.radius)}px`;
+  radial.style.top = `${Math.round(layout.cy - layout.radius)}px`;
 
   void radial.offsetHeight; // forza reflow
 
-  arrangeRadialButtonsDynamic(desiredRadius);
+  arrangeRadialButtonsDynamic(layout.radius, buttons);
   updateMeasureOverlay();
 }
 
 // ============== DOCK VERTICALE PER MULTI-SELEZIONE ==============
-const DOCK_BTN_GAP = 8;         // spazio tra i pulsanti
+const DOCK_BTN_GAP = 8; // spazio tra i pulsanti
 const DOCK_GAP_FROM_SHAPE = 22; // distanza dal bordo della forma àncora
-const DOCK_SCREEN_MARGIN = 12;  // margine minimo dai bordi finestra
+const DOCK_SCREEN_MARGIN = 12; // margine minimo dai bordi finestra
 
-function positionRadialDockVertical(active) {
+// `freeArea` è FACOLTATIVA e in coda, come `senzaStoria` in bindPair: chi non
+// la passa — cioè la multi-selezione, che chiama come ha sempre chiamato — si
+// comporta esattamente come prima, con i bordi della finestra intera. La
+// selezione singola della Fetta 1 le passa l'area libera del canvas, così la
+// colonna non finisce sopra le barre.
+function positionRadialDockVertical(active, freeArea) {
   if (!radial) return;
 
   radial.style.display = "block";
@@ -6910,6 +7382,11 @@ function positionRadialDockVertical(active) {
   const buttons = Array.from(radial.querySelectorAll(".radial-btn")).filter((b) => b.offsetParent !== null);
   const n = buttons.length;
   if (n === 0) return;
+
+  const area =
+    freeArea && Number.isFinite(freeArea.left) && freeArea.right > freeArea.left && freeArea.bottom > freeArea.top
+      ? freeArea
+      : { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight };
 
   // Riusa la cache dimensioni pulsante di arrangeRadialButtonsDynamic
   if (!_radialBtnSize) {
@@ -6920,8 +7397,8 @@ function positionRadialDockVertical(active) {
   const bh = _radialBtnSize.h;
 
   // ── Di norma 1 colonna; si spezza in più colonne SOLO se la colonna
-  //    intera non entra nell'altezza della finestra ──
-  const availH = Math.max(bh, window.innerHeight - DOCK_SCREEN_MARGIN * 2);
+  //    intera non entra nell'altezza disponibile ──
+  const availH = Math.max(bh, area.bottom - area.top - DOCK_SCREEN_MARGIN * 2);
   const fullColH = n * bh + (n - 1) * DOCK_BTN_GAP;
   const cols = Math.max(1, Math.ceil(fullColH / availH));
   const rows = Math.ceil(n / cols);
@@ -6974,9 +7451,9 @@ function positionRadialDockVertical(active) {
 
   // ── Lato: a destra della forma se c'è spazio, altrimenti a sinistra;
   //    se nessuno dei due basta (zoom altissimo, forma larga quanto lo
-  //    schermo) il clamp finale lo tiene comunque dentro la finestra ──
-  const spaceRight = window.innerWidth - DOCK_SCREEN_MARGIN - (sRight + DOCK_GAP_FROM_SHAPE);
-  const spaceLeft = sLeft - DOCK_GAP_FROM_SHAPE - DOCK_SCREEN_MARGIN;
+  //    schermo) il clamp finale lo tiene comunque dentro ──
+  const spaceRight = area.right - DOCK_SCREEN_MARGIN - (sRight + DOCK_GAP_FROM_SHAPE);
+  const spaceLeft = sLeft - DOCK_GAP_FROM_SHAPE - (area.left + DOCK_SCREEN_MARGIN);
 
   let left;
   if (spaceRight >= dockW || spaceRight >= spaceLeft) {
@@ -6984,20 +7461,27 @@ function positionRadialDockVertical(active) {
   } else {
     left = sLeft - DOCK_GAP_FROM_SHAPE - dockW;
   }
-  left = Math.min(Math.max(left, DOCK_SCREEN_MARGIN), Math.max(DOCK_SCREEN_MARGIN, window.innerWidth - DOCK_SCREEN_MARGIN - dockW));
+  left = Math.min(
+    Math.max(left, area.left + DOCK_SCREEN_MARGIN),
+    Math.max(area.left + DOCK_SCREEN_MARGIN, area.right - DOCK_SCREEN_MARGIN - dockW)
+  );
 
   // ── Verticale: centrato sulla parte VISIBILE della forma àncora.
   //    A zoom alto la forma può essere più alta dello schermo: il suo
   //    centro geometrico finirebbe fuori vista e il dock con lui. Quindi
-  //    prima limitiamo il centro-àncora alla finestra, poi centriamo. ──
-  const visTop = Math.max(sTop, 0);
-  const visBottom = Math.min(sTop + sH, window.innerHeight);
-  const anchorCy = visBottom > visTop
-    ? (visTop + visBottom) / 2                       // forma (in parte) visibile
-    : Math.min(Math.max(sTop + sH / 2, 0), window.innerHeight); // forma del tutto fuori vista
+  //    prima limitiamo il centro-àncora all'area, poi centriamo. ──
+  const visTop = Math.max(sTop, area.top);
+  const visBottom = Math.min(sTop + sH, area.bottom);
+  const anchorCy =
+    visBottom > visTop
+      ? (visTop + visBottom) / 2 // forma (in parte) visibile
+      : Math.min(Math.max(sTop + sH / 2, area.top), area.bottom); // forma del tutto fuori vista
 
   let top = anchorCy - dockH / 2;
-  top = Math.min(Math.max(top, DOCK_SCREEN_MARGIN), Math.max(DOCK_SCREEN_MARGIN, window.innerHeight - DOCK_SCREEN_MARGIN - dockH));
+  top = Math.min(
+    Math.max(top, area.top + DOCK_SCREEN_MARGIN),
+    Math.max(area.top + DOCK_SCREEN_MARGIN, area.bottom - DOCK_SCREEN_MARGIN - dockH)
+  );
 
   // Stessi 4 valori inline letti da updateMeasureOverlay → gli indicatori
   // L/A si agganciano da soli sotto il dock, senza modifiche all'overlay.
@@ -7022,9 +7506,16 @@ window.addEventListener("resize", () => {
   _radialBtnSize = null;
 });
 
-function arrangeRadialButtonsDynamic(currentRadius) {
+// `buttonsOpt` è FACOLTATIVA e in coda: positionRadial ha già interrogato il
+// DOM per contare i pulsanti visibili e passa la lista, così non la si cerca
+// due volte per frame. Chi chiama senza argomento (o con una lista vuota) fa
+// la ricerca da sé, esattamente come prima.
+function arrangeRadialButtonsDynamic(currentRadius, buttonsOpt) {
   if (!radial) return;
-  const buttons = Array.from(radial.querySelectorAll(".radial-btn")).filter((b) => b.offsetParent !== null);
+  const buttons =
+    Array.isArray(buttonsOpt) && buttonsOpt.length
+      ? buttonsOpt
+      : Array.from(radial.querySelectorAll(".radial-btn")).filter((b) => b.offsetParent !== null);
   const num = buttons.length;
   if (num === 0) return;
   const centerOffset = currentRadius;
@@ -8270,6 +8761,7 @@ window.initFreehandManager = initFreehandManager;
 
 // Esposizione per freehandManager
 window.pushState = pushState;
+window.pushStateCoalesced = pushStateCoalesced;
 
 // 4. exportFreehandLines — VERSIONE FEDELE AL CANVAS (+ FIX BLEND OVERLAY)
 async function exportFreehandLines(selectedPaths, format, mode) {
@@ -8382,18 +8874,17 @@ async function exportFreehandLines(selectedPaths, format, mode) {
       return svgStr;
     }
 
-    // 1) Inietta mix-blend-mode + opacity sui <g> acquerello
+    // 1) Inietta mix-blend-mode sui <g> acquerello
     objsInSVG.forEach((obj, i) => {
       if (!obj.__isWatercolor) return;
       const blend = obj.globalCompositeOperation || "overlay";
-      const op = typeof obj.opacity === "number" ? obj.opacity : 1;
       const g = directGroups[i];
       const existing = (g.getAttribute("style") || "").trim();
       const sep = existing && !existing.endsWith(";") ? "; " : existing ? " " : "";
-      let extra = `mix-blend-mode: ${blend};`;
-      // L'opacity dello stamp NON viene esportata da Fabric sull'<image>
-      // (resta a 1) — la riapplichiamo qui sul <g> wrapper.
-      if (op < 0.999) extra += ` opacity: ${op};`;
+      // Solo il blend. L'opacity NON si rimette qui: Fabric 5.1.0 / 5.2.4 / 5.3.0
+      // la scrive gia' sull'<image>, e rimetterla anche sul <g> la elevava al
+      // quadrato (82% -> 67%). Cantiere del Pennello Timbro, Fetta 3-bis.
+      const extra = `mix-blend-mode: ${blend};`;
       g.setAttribute("style", existing + sep + extra);
     });
 
@@ -8897,7 +9388,6 @@ function rotateCanvasContent(degrees) {
 
   allObjects.forEach((obj) => {
     if (obj.__isBackground === true) return;
-
     if (obj.__isWatercolor === true) {
       watercolorToReplace.push(obj);
       return;

@@ -16,7 +16,7 @@
  *   • package.json       (version, artifactName, uninstallDisplayName)
  *   • build/installer.nsh (!define DISPLAY_VERSION)
  *   • Guida_utente.html  (logo-badge + footer)
- *   • Guida_utente_EN.html (logo-badge)
+ *   • Guida_utente_EN.html (logo-badge + footer)
  *
  * COSA NON TOCCA (apposta):
  *   • build/CHANGELOG.txt → contiene narrativa per ogni release,
@@ -137,13 +137,20 @@ function patchGuidaEN(v) {
   const rel = "Guida_utente_EN.html";
   if (!exists(rel)) return note(rel, false, "file non trovato");
   const raw = read(rel);
+  let out = raw;
   let hits = 0;
+
   // logo-badge: "User Guide · V MM.YYYY"
-  const out = raw.replace(/(User Guide · V )\d{1,2}\.\d{4}/, (m, a) => {
+  out = out.replace(/(User Guide · V )\d{1,2}\.\d{4}/, (m, a) => {
     hits++; return `${a}${v.mmYYYY}`;
   });
+  // footer: "Updated to version · V MM.YYYY"
+  out = out.replace(/(Updated to version · V )\d{1,2}\.\d{4}/, (m, a) => {
+    hits++; return `${a}${v.mmYYYY}`;
+  });
+
   if (out !== raw) { write(rel, out); note(rel, true, `${hits} occorrenze sostituite`); }
-  else             { note(rel, false, "header non trovato nel formato atteso"); }
+  else             { note(rel, false, "header/footer non trovati nei formati attesi"); }
 }
 
 function checkChangelog(v) {
@@ -189,7 +196,7 @@ La versione verrà propagata in:
   - package.json (version, artifactName, uninstallDisplayName)
   - build/installer.nsh (DISPLAY_VERSION)
   - Guida_utente.html (header + footer)
-  - Guida_utente_EN.html (header)
+  - Guida_utente_EN.html (header + footer)
 
 Il file build/CHANGELOG.txt NON viene modificato (contiene narrativa
 specifica della release): lo script controlla solo che esista una
