@@ -61,24 +61,11 @@ jobs:
           body: |
             ## 🎨 Mosaica Workspace Pro ${{ github.ref_name }}
 
-            Grande aggiornamento: dalla tavola al taglio laser.
+            Aggiornamento grafico: nuova icona dell'applicazione.
 
-            ### ✨ Novità
+            ### ✨ Miglioramenti
 
-            - 🔪 **Tavola delle Tessere** (menu Esporta) — prepara i file per il taglio laser: SVG separati per famiglia di colore, compensazione del taglio e linguette, PDF per il banco di lavoro e distinta delle tessere in CSV
-            - 🖼️ **Pennello Timbro** — copia una zona del lavoro e la ristampa dove dipingi; punta con forma, misura, spaziatura e rotazione regolabili, anche con una forma libera disegnata col costruttore della palladiana
-            - ⬚ **Comandi della selezione** nel menu radiale — deseleziona, ▣ inquadra la selezione, ◨ ⬓ specchio orizzontale e verticale (anche sulle tessere ruotate, senza mai cambiare le misure)
-            - ⬡ **Perimetro di contenimento** — ora si corregge con le maniglie, e la lente mirino (tasto **L**) aiuta a piazzare i vertici con precisione
-            - 🖌️ **Nuove punte pennello**
-
-            ### 🛠️ Miglioramenti e correzioni
-
-            - 💧 Acquerello: l'anello attorno al cursore è misurato sulla punta vera
-            - 🎯 Menu radiale in colonna quando non c'è spazio; misure L/A sempre visibili
-            - 🖱️ Tasto destro in multi-selezione: prende sempre la forma giusta a qualsiasi zoom
-            - 📏 Calibrazione dello schermo: ripeterla dà sempre il fattore giusto
-            - 🚀 Ogni strumento si accende al primo clic
-            - 📦 Installazioni nuove: pennelli e carta dell'acquerello di nuovo inclusi nell'installer
+            - 🖼️ **Nuova icona** — ridisegnata e ottimizzata per Windows: nitida a tutte le dimensioni e della stessa grandezza delle altre icone. Aggiornate anche le icone di installer e disinstallatore
 
             ### 📥 Installazione
 
@@ -86,9 +73,11 @@ jobs:
             2. Eseguilo (se Windows mostra *"Editore sconosciuto"*, clicca **Ulteriori informazioni → Esegui comunque**)
             3. Segui l'installer — puoi scegliere la lingua all'avvio
 
-            > 💡 Tavole salvate, calibrazioni e preferenze vengono **conservate** durante l'aggiornamento. I progetti salvati con le versioni precedenti si aprono normalmente.
+            > 💡 Tavole salvate, calibrazioni e preferenze vengono **conservate** durante l'aggiornamento.
+
+            > 🔄 Se dopo l'aggiornamento vedi ancora la vecchia icona, è la cache di Windows: riavvia il PC e comparirà quella nuova.
 
             ### 📝 Note tecniche
 
-            - Versione interna: `9.2026.0`
-            - Electron 41 · Fabric.js 5.1.0 → 5.3.0 · 900 chiavi di traduzione simmetriche IT + EN
+            - Versione interna: `9.2026.1`
+            - Nessuna modifica al codice dell'applicazione

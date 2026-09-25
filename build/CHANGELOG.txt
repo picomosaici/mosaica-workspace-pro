@@ -1,4 +1,18 @@
 ------------------------------------------------------------
+Versione 09.2026.1  (Settembre 2026)
+------------------------------------------------------------
+
+MIGLIORAMENTI:
+  * Nuova icona dell'applicazione: ridisegnata e ottimizzata
+    per Windows, nitida a tutte le dimensioni (barra delle
+    applicazioni, desktop, menu Start, Esplora risorse) e
+    della stessa grandezza visiva delle altre icone.
+    Aggiornate anche le icone di installer e disinstallatore
+
+NOTE TECNICHE:
+  - Versione interna: 9.2026.1
+  - Nessuna modifica al codice dell'applicazione
+------------------------------------------------------------
 Versione 09.2026  (Settembre 2026)
 ------------------------------------------------------------
 
