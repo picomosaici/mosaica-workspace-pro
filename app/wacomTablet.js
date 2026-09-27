@@ -73,6 +73,19 @@ function __wt(key, params, fallback) {
 //     comporta come un PencilBrush ordinario (width uniforme).
 //
 //  PERSISTENZA: localStorage "mosaica_wacom_settings".
+//
+//  LA PRESSIONE ONESTA (cantiere «Le Punte», Fetta 3-bis, 27/09/2026):
+//   • A20 — il tratto decide AL CLICK se ha la pressione: solo se la
+//     tocca una PENNA e le preferenze lo chiedono. Un tratto col mouse
+//     nasce con __pressureEnabled = false: anteprima, tratto finito e
+//     anello tutti a fattore 1, cioè la Larghezza dello slider.
+//   • A19 — con la penna ogni punto registra la pressione GIÀ passata
+//     per la curva e la sensibilità delle preferenze (lo stesso numero
+//     dell'anello, wacomGetWidthFactor). Il PressurePath la usa com'è, e
+//     l'anteprima tonda usa la formula del PressurePath: la curva conta
+//     una volta sola, e il tratto non cambia spessore al rilascio.
+//   • I tratti già fatti non cambiano: i loro punti e il loro
+//     __pressureEnabled sono salvati nel progetto.
 // =====================================================================
 
 (function () {
@@ -1352,6 +1365,13 @@ function __wt(key, params, fallback) {
         const halfW = (this.width + baseW) / 2;
         const halfH = (this.height + baseW) / 2;
 
+        // === PUNTA PNG (cantiere «Le Punte», Fetta 2) ===
+        // Un tratto con la punta (__tip) si disegna timbrando la PNG tinta
+        // lungo i punti (penTips.js). Se la punta non è ancora arrivata o
+        // su questo computer non c'è, penTips risponde false e il tratto si
+        // disegna TONDO qui sotto, come ogni tratto senza punta.
+        if (this.__tip && window.penTips && window.penTips.disegnaTratto(ctx, this, halfW, halfH)) return;
+
         ctx.save();
         ctx.strokeStyle = this.stroke || "#000";
         ctx.lineCap = this.strokeLineCap || "round";
@@ -1392,7 +1412,7 @@ function __wt(key, params, fallback) {
 
       toObject(propertiesToInclude) {
         const base = super.toObject(propertiesToInclude);
-        return Object.assign(base, {
+        const out = Object.assign(base, {
           type: "PressurePath",
           points: (this.points || []).map((p) => ({ x: p.x, y: p.y, pressure: p.pressure })),
           __pressureMinFactor: this.__pressureMinFactor,
@@ -1401,11 +1421,36 @@ function __wt(key, params, fallback) {
           stroke: this.stroke,
           strokeWidth: this.strokeWidth
         });
+        // La punta (cantiere «Le Punte», Fetta 2, §5.3): i suoi campi si
+        // scrivono SOLO se il tratto ne ha una. Un tratto tondo si salva
+        // byte per byte come prima. fromObject non va toccato: passa tutti
+        // i campi al costruttore, che li mette sull'oggetto.
+        if (this.__tip) {
+          const punta = window.penTips
+            ? window.penTips.campiDaSalvare(this)
+            : {
+                __tip: this.__tip,
+                __tipSpacing: this.__tipSpacing,
+                __tipRotationDeg: this.__tipRotationDeg,
+                __tipFollow: this.__tipFollow,
+                __tipAngles: this.__tipAngles
+              };
+          if (punta) Object.assign(out, punta);
+        }
+        return out;
       }
 
       _toSVG() {
         const pts = this.points;
         if (!pts || pts.length < 1) return [""];
+
+        // Tratto a punta (B3, Mirko rev. 5): nell'SVG va la «foto» del
+        // tratto, come per l'acquerello: uguale a come si vede in Mosaica.
+        // Se la punta non è pronta, le linee di sempre.
+        if (this.__tip && window.penTips && typeof window.penTips.fotoSVG === "function") {
+          const foto = window.penTips.fotoSVG(this);
+          if (foto) return [foto];
+        }
         const enabled = this.__pressureEnabled !== false;
         const minF = this.__pressureMinFactor != null ? this.__pressureMinFactor : 0.2;
         const maxF = this.__pressureMaxFactor != null ? this.__pressureMaxFactor : 1.2;
@@ -1515,18 +1560,148 @@ function __wt(key, params, fallback) {
         super(canvas);
         this.name = "pressure-pencil";
         this._pressurePoints = [];
+        // La punta PNG (cantiere «Le Punte», Fetta 3). La mette
+        // applyBrushSettings (freehandDrawing.js); null = la penna tonda di
+        // sempre, e allora NIENTE di quello che segue entra in gioco.
+        this.__tip = null;
+        this.__tipSpacing = 0.25;
+        this.__tipRotationDeg = 0;
+        this.__tipFollow = false;
+        this._tt = null; // lo stato del tratto a punta in corso
+        // Il tratto in corso ha la pressione? Si decide al click (Fetta 3-bis).
+        this._conPressione = false;
       }
 
+      // ── LA PRESSIONE ONESTA (cantiere «Le Punte», Fetta 3-bis) ──────────
+      // Il tratto ha la pressione solo se lo traccia una PENNA e le
+      // preferenze lo chiedono (Wacom attiva + larghezza modulata). Col
+      // mouse: fattore 1, la Larghezza dello slider (A20, B8 = sì).
+      // Come si riconosce la penna: in Mosaica Fabric riceve eventi MOUSE
+      // (mousedown/mousemove, senza pointerType), e readFromEvent li legge
+      // lasciando currentPointerType vuoto (trappola 236). La pressione
+      // invece la mette il listener dei pointer events, che arriva PRIMA:
+      // è un numero solo se l'ultimo evento è della penna (col mouse è null).
+      _decidiPressione() {
+        if (!prefs.enabled || !prefs.modulateWidth) return false;
+        if (STATE.currentPointerType === "pen") return true;
+        const p = getCurrentPressureRaw();
+        return p != null && Number.isFinite(p);
+      }
+
+      // ── LA PENNA A PUNTE (cantiere «Le Punte», Fetta 3) ─────────────────
+      // Il tratto a punta si decide al click e vale per tutto il tratto.
+      // L'anteprima timbra con la STESSA funzione e gli STESSI numeri del
+      // PressurePath finito (penTips.timbra): larghezza, curva della
+      // pressione del tratto finito, distanza, rotazione, angoli.
+      _tipIniziaTratto() {
+        this._tt = null;
+        if (!this.__tip || !window.penTips) return;
+        const nome = String(this.__tip);
+        const st = window.penTips.chiedi(nome);
+        if (st === "mancante") return; // punta assente: tratto tondo, senza nome (B4)
+        const pressione = this._conPressione === true;
+        this._tt = {
+          nome,
+          pronta: st === "pronta",
+          tinta: st === "pronta" ? window.penTips.tinta(nome, this.color) : null,
+          opzioni: {
+            width: this.width || 1,
+            pressure: pressione,
+            minF: prefs.minWidthFactor,
+            maxF: prefs.maxWidthFactor,
+            spacing: this.__tipSpacing > 0 ? this.__tipSpacing : 0.25,
+            rotationDeg: Number.isFinite(this.__tipRotationDeg) ? this.__tipRotationDeg : 0,
+            follow: this.__tipFollow === true
+          },
+          angoli: [],
+          angoloPrima: null,
+          carry: 0
+        };
+      }
+
+      // «Segue il tratto»: la direzione del tratto, smussata come quella
+      // dell'acquerello, in gradi arrotondati a 0,1° (così anteprima, tratto
+      // finito e progetto riaperto usano lo stesso numero).
+      _tipAngoloNuovo(a, b) {
+        const tt = this._tt;
+        const grezzo = Math.atan2(b.y - a.y, b.x - a.x);
+        if (tt.angoloPrima == null) tt.angoloPrima = grezzo;
+        else {
+          let d = grezzo - tt.angoloPrima;
+          while (d > Math.PI) d -= 2 * Math.PI;
+          while (d < -Math.PI) d += 2 * Math.PI;
+          tt.angoloPrima += d * 0.35;
+        }
+        return Math.round(((tt.angoloPrima * 180) / Math.PI) * 10) / 10;
+      }
+
+      _tipOpzioniDisegno() {
+        const tt = this._tt;
+        return Object.assign({}, tt.opzioni, { angles: tt.opzioni.follow ? tt.angoli : null });
+      }
+
+      // Tutto il tratto da capo sul foglio di sopra (al click, e quando Fabric
+      // ridisegna il foglio di sopra).
+      _tipDisegnaTutto() {
+        const ctx = this.canvas.contextTop;
+        const pts = this._pressurePoints;
+        const tt = this._tt;
+        if (!pts || !pts.length || !tt || !tt.tinta) return;
+        // «Segue il tratto» con un punto solo: l'angolo non si sa ancora, il
+        // primo timbro si posa quando arriva il secondo punto.
+        if (tt.opzioni.follow && pts.length < 2) return;
+        try {
+          this._saveAndTransform(ctx);
+        } catch (_) {
+          ctx.save();
+        }
+        const esito = {};
+        window.penTips.timbra(ctx, pts, tt.tinta, Object.assign(this._tipOpzioniDisegno(), { statoOut: esito }));
+        ctx.restore();
+        tt.carry = esito.carry || 0;
+      }
+
+      // Solo i timbri nuovi, dall'ultimo punto arrivato: i timbri si sommano,
+      // non serve ridisegnare tutto il tratto a ogni movimento (A16).
+      _tipDisegnaPezzo() {
+        const ctx = this.canvas.contextTop;
+        const pts = this._pressurePoints;
+        const tt = this._tt;
+        if (!tt || !tt.tinta || pts.length < 2) return;
+        try {
+          this._saveAndTransform(ctx);
+        } catch (_) {
+          ctx.save();
+        }
+        const esito = {};
+        window.penTips.timbra(
+          ctx,
+          pts,
+          tt.tinta,
+          Object.assign(this._tipOpzioniDisegno(), { primo: pts.length - 1, carry: tt.carry, statoOut: esito })
+        );
+        ctx.restore();
+        tt.carry = esito.carry || 0;
+      }
+
+      // La pressione che si REGISTRA nel punto. Con la pressione attiva è
+      // quella già passata per curva e sensibilità (A19): lo stesso numero
+      // che usa l'anello (getWidthFactor). Altrimenti come prima: la grezza,
+      // o 0,5 se non c'è (il mouse) — il formato del file non cambia.
       _samplePressure() {
         const p = getCurrentPressureRaw();
-        return p != null && Number.isFinite(p) ? clamp(p, 0, 1) : 0.5;
+        if (p == null || !Number.isFinite(p)) return 0.5;
+        if (this._conPressione) return clamp(applyPressureCurve(p, prefs.pressureCurve) * prefs.pressureSensitivity, 0, 1);
+        return clamp(p, 0, 1);
       }
 
+      // Il fattore di larghezza dell'anteprima tonda: la STESSA formula del
+      // PressurePath finito, sulla pressione registrata (la curva c'è già
+      // dentro, non si riapplica). Senza pressione: 1.
       _pressureWidthFactor(pressure) {
-        if (!prefs.enabled || !prefs.modulateWidth) return 1.0;
-        const curved = applyPressureCurve(pressure, prefs.pressureCurve) * prefs.pressureSensitivity;
-        const p01 = clamp(curved, 0, 1);
-        return prefs.minWidthFactor + (prefs.maxWidthFactor - prefs.minWidthFactor) * p01;
+        if (!this._conPressione) return 1.0;
+        const pr = pressure != null && Number.isFinite(pressure) ? pressure : 0.5;
+        return prefs.minWidthFactor + (prefs.maxWidthFactor - prefs.minWidthFactor) * clamp(pr, 0, 1);
       }
 
       onMouseDown(pointer, ev) {
@@ -1536,6 +1711,21 @@ function __wt(key, params, fallback) {
         // freschi anche se il listener globale non si è ancora attivato.
         readFromEvent(ev && ev.e);
         super.onMouseDown(pointer, ev);
+        // Dopo super: il click di Fabric chiama _reset(), che azzera lo stato
+        // della punta. Il beginPath evita il tracciato fantasma (vedi
+        // _finalizeAndAddPath). La pressione si decide qui, prima della punta
+        // e del primo punto (Fetta 3-bis).
+        this._conPressione = this._decidiPressione();
+        this._tipIniziaTratto();
+        if (this._tt) {
+          // Il tratto a punta parte su un foglio di sopra PULITO: non lo
+          // ricancella più fino al rilascio (A16), quindi l'anello
+          // dell'hover disegnato prima del click resterebbe fermo lì come
+          // un cerchio fantasma (trappola 241). La penna tonda lo cancella
+          // da sé, ridisegnando tutto a ogni movimento.
+          this.canvas.clearContext(this.canvas.contextTop);
+          this.canvas.contextTop.beginPath();
+        }
         this._pressurePoints = [
           {
             x: pointer.x,
@@ -1543,6 +1733,7 @@ function __wt(key, params, fallback) {
             pressure: this._samplePressure()
           }
         ];
+        if (this._tt) this._tipDisegnaTutto();
       }
 
       onMouseMove(pointer, ev) {
@@ -1561,6 +1752,17 @@ function __wt(key, params, fallback) {
             y: newP.y,
             pressure: this._samplePressure()
           });
+          const tt = this._tt;
+          if (tt) {
+            const pts = this._pressurePoints;
+            if (tt.opzioni.follow) {
+              const ang = this._tipAngoloNuovo(pts[pts.length - 2], pts[pts.length - 1]);
+              tt.angoli.push(ang);
+              if (pts.length === 2) tt.angoli.unshift(ang); // il primo punto prende la direzione del primo segmento
+            }
+            if (tt.opzioni.follow && pts.length === 2) this._tipDisegnaTutto();
+            else this._tipDisegnaPezzo();
+          }
         }
       }
 
@@ -1578,12 +1780,27 @@ function __wt(key, params, fallback) {
       //     non viene mai letto. Risultato: niente più "anteprima
       //     agganciata" alla fine del tratto precedente.
       needsFullRender() {
+        // Penna a punte: niente ridisegno completo a ogni movimento, i timbri
+        // nuovi li posa onMouseMove (_tipDisegnaPezzo). Penna tonda: come prima.
+        if (this._tt) return false;
         return true;
+      }
+
+      // Col ridisegno a pezzi, Fabric chiede un segmento per volta: per la
+      // penna a punte non si disegna niente qui (i timbri li posa
+      // _tipDisegnaPezzo), si ritorna solo il punto di mezzo che Fabric usa.
+      _drawSegment(ctx, p1, p2) {
+        if (this._tt) return p1.midPointFrom ? p1.midPointFrom(p2) : { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+        return super._drawSegment(ctx, p1, p2);
       }
 
       // Override del rendering live: disegna ogni segmento con width
       // modulata dalla pressione del rispettivo punto.
       _render() {
+        if (this._tt && this._tt.tinta) {
+          this._tipDisegnaTutto();
+          return;
+        }
         const ctx = this.canvas.contextTop;
         const pts = this._pressurePoints;
         if (!pts || pts.length < 1) return;
@@ -1660,8 +1877,24 @@ function __wt(key, params, fallback) {
           strokeLineJoin: "round",
           __pressureMinFactor: prefs.minWidthFactor,
           __pressureMaxFactor: prefs.maxWidthFactor,
-          __pressureEnabled: prefs.enabled && prefs.modulateWidth
+          __pressureEnabled: this._conPressione === true // deciso al click (Fetta 3-bis)
         });
+
+        // La punta del tratto (Fetta 3): il nome e i suoi numeri, gli stessi
+        // dell'anteprima. Un tratto tondo resta com'era, senza campi in più.
+        const tt = this._tt;
+        if (tt) {
+          path.__tip = tt.nome;
+          path.__tipSpacing = tt.opzioni.spacing;
+          path.__tipRotationDeg = tt.opzioni.rotationDeg;
+          path.__tipFollow = tt.opzioni.follow;
+          if (tt.opzioni.follow) {
+            const ang = tt.angoli.slice(0, points.length);
+            while (ang.length < points.length) ang.push(ang.length ? ang[ang.length - 1] : 0);
+            path.__tipAngles = ang;
+          }
+          path.dirty = true;
+        }
 
         // Applica opacità modulata da Wacom (se attiva)
         if (prefs.enabled && prefs.modulateOpacity) {
@@ -1701,6 +1934,8 @@ function __wt(key, params, fallback) {
         // viene poi creato con i valori corretti.
         super._reset();
         this._pressurePoints = [];
+        this._tt = null;
+        this._conPressione = false;
         // Reset difensivo di oldEnd: con needsFullRender()=true il ramo
         // incrementale di Fabric non viene piu' eseguito e quindi oldEnd non
         // viene letto, ma pulirlo qui ci copre se in futuro qualcuno (o una

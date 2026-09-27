@@ -99,6 +99,17 @@ contextBridge.exposeInMainWorld("brushAPI", {
    listBrushes: () => ipcRenderer.invoke("brushes:list")
 });
 
+/* ===============================
+   🖊️ PUNTE DELLA PENNA (cantiere «Le Punte», Fetta 4)
+   Una punta per volta (penTips.js usa readTip), solo i nomi
+   per l'elenco, e la cartella da aprire per metterci le proprie.
+================================ */
+contextBridge.exposeInMainWorld("penTipsAPI", {
+   list: () => ipcRenderer.invoke("pentips:list"),
+   readTip: (nome) => ipcRenderer.invoke("pentips:read", nome),
+   openFolder: () => ipcRenderer.invoke("pentips:openFolder")
+});
+
 /* =============================== 
    🖼️ PAPER TEXTURE (carta.png)
 ================================ */

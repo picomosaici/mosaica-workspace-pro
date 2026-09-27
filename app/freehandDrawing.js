@@ -19,6 +19,27 @@ let currentWatercolorLayers = 22; // ← aggiornato
 // === NUOVO: DISTANZA TRA I TIMBRI ===
 let currentStampSpacing = 0.48; // 0.25 = molto denso, 2.0 = molto sparso
 let currentTipInitialRotationDeg = 0; // ← NUOVA
+// === LA PUNTA DELLA PENNA (cantiere «Le Punte», Fette 3 e 4) ===
+// "" = la penna tonda di sempre. Altrimenti il nome di una PNG delle punte
+// della penna (penTips.js, cartella textures/penna/). Si sceglie
+// dall'inspector «Penna · Gomma» (Fetta 4), e si salva con le altre
+// impostazioni (penTip, penTipSpacing, penTipRotationDeg, penTipFollow).
+let currentPenTip = "";
+let currentPenTipSpacing = 0.25; // distanza fra i timbri, in frazioni della Larghezza
+let currentPenTipRotationDeg = 0; // oraria col +
+let currentPenTipFollow = false; // «Segue il tratto»
+const _FD_PEN_DISTANZA_MIN = 0.05; // Distanza: da 5 % della Larghezza…
+const _FD_PEN_DISTANZA_MAX = 2; // …a 200 %
+let _fdPenModaleGiro = 0; // modale della penna: cambia a ogni apertura, le miniature vecchie si fermano
+
+// Testi tradotti (cantiere «Le Punte», Fetta 1, A11): passano da __t di
+// renderer.js, che ricade sul testo italiano se la chiave manca.
+function _fdT(key, params, fallback) {
+  if (typeof __t === "function") return __t(key, params, fallback);
+  let s = String(fallback != null ? fallback : key);
+  if (params) s = s.replace(/\{(\w+)\}/g, (m, k) => (k in params ? String(params[k]) : m));
+  return s;
+}
 // ==================== PAPER TEXTURE PERMANENTE ====================
 let paperTextureDataURL = null;
 let paperTextureObject = null;
@@ -737,6 +758,16 @@ function applyBrushSettings() {
     brush.width = currentLineWidth;
     brush.color = currentStrokeColor;
     brush.globalCompositeOperation = "source-over";
+    // La punta della penna (Fetta 3): solo il pennello della penna vera la
+    // conosce; la gomma resta tonda. La punta si chiede subito, così al
+    // primo tratto è già pronta.
+    if (window.PressurePencilBrush && brush instanceof window.PressurePencilBrush) {
+      brush.__tip = currentPenTip || null;
+      brush.__tipSpacing = currentPenTipSpacing;
+      brush.__tipRotationDeg = currentPenTipRotationDeg;
+      brush.__tipFollow = currentPenTipFollow;
+      if (currentPenTip && window.penTips) window.penTips.chiedi(currentPenTip);
+    }
     canvas.freeDrawingBrush = brush;
     canvas.freeDrawingCursor = PEN_CURSOR;
   }
@@ -790,7 +821,7 @@ function lockAllFreehandPaths() {
     }
   });
   canvas.renderAll();
-  if (count > 0) flashToast(`✅ ${count} linee (penna + acquerello) bloccate sullo sfondo`);
+  if (count > 0) flashToast(_fdT("toast.freehand.locked", { count }, `✅ ${count} linee (penna + acquerello) bloccate sullo sfondo`));
 }
 
 // ==================== TOGGLE MODALITÀ ====================
@@ -818,13 +849,13 @@ function toggleFreehandMode() {
         keepPaperTextureBehindEverything();
         applyBrushSettings();
         if (typeof window.reorderCanvasLayers === "function") window.reorderCanvasLayers();
-        flashToast("✏️ Modalità disegno attivo");
+        flashToast(_fdT("toast.freehand.drawingOn", null, "✏️ Modalità disegno attivo"));
       })
       .catch((err) => {
         console.error("[PaperTexture] Errore caricamento carta.png", err);
         applyBrushSettings();
         if (typeof window.reorderCanvasLayers === "function") window.reorderCanvasLayers();
-        flashToast("✏️ Modalità disegno attivo");
+        flashToast(_fdT("toast.freehand.drawingOn", null, "✏️ Modalità disegno attivo"));
       });
   } else {
     btn.classList.remove("active");
@@ -839,7 +870,7 @@ function toggleFreehandMode() {
       window.clearFreehandStrokeCircle();
     }
 
-    flashToast("Disegno terminato — linee fissate sullo sfondo");
+    flashToast(_fdT("toast.freehand.drawingOff", null, "Disegno terminato — linee fissate sullo sfondo"));
   }
 }
 
@@ -857,7 +888,11 @@ function toggleEraser() {
   }
 
   applyBrushSettings();
-  flashToast(isEraserMode ? "🧼 Gomma attivata" : "✏️ Pennello ripristinato");
+  flashToast(
+    isEraserMode
+      ? _fdT("toast.freehand.eraserOn", null, "🧼 Gomma attivata")
+      : _fdT("toast.freehand.penRestored", null, "✏️ Pennello ripristinato")
+  );
 }
 
 function toggleWatercolor() {
@@ -887,7 +922,38 @@ function toggleWatercolor() {
     brush: canvas.freeDrawingBrush?.constructor?.name
   });
 
-  flashToast(isWatercolorMode ? "💧 Acquerello attivato" : "✏️ Pennello ripristinato");
+  flashToast(
+    isWatercolorMode
+      ? _fdT("toast.freehand.watercolorOn", null, "💧 Acquerello attivato")
+      : _fdT("toast.freehand.penRestored", null, "✏️ Pennello ripristinato")
+  );
+
+  // A2: accendendo l'acquerello la sua punta dev'essere quella scelta.
+  if (isWatercolorMode) _fdAccertaPuntaAcquerello();
+}
+
+// ── Cantiere «Le Punte», Fetta 1 (A1, A2) ─────────────────────────────
+// Carica la punta scelta per l'acquerello. Se la PNG non c'è, il pennello
+// usa da solo la punta di base (watercolorStampBrush.js, con un avviso).
+// Se non c'è nemmeno quella, l'acquerello si spegne e lo dice: con la
+// punta mancante i tratti sarebbero invisibili.
+function _fdAccertaPuntaAcquerello() {
+  if (typeof window.loadWatercolorStamp !== "function") return Promise.resolve(null);
+  return window.loadWatercolorStamp(currentBrushTip).catch((err) => {
+    console.warn("[Watercolor] nessuna punta disponibile:", err);
+    if (!isWatercolorMode) return null;
+    isWatercolorMode = false;
+    document.getElementById("watercolorBtn")?.classList.remove("active");
+    if (canvas && canvas.isDrawingMode) applyBrushSettings();
+    flashToast(
+      _fdT(
+        "toast.watercolor.noTip",
+        null,
+        "❌ Su questo computer non c'è nessuna punta per l'acquerello: l'acquerello resta spento"
+      )
+    );
+    return null;
+  });
 }
 
 // ==================== INIZIALIZZAZIONE ====================
@@ -927,6 +993,10 @@ function initFreehandDrawing() {
   if (tipRotationSlider) {
     tipRotationSlider.addEventListener("input", () => {
       currentTipInitialRotationDeg = parseFloat(tipRotationSlider.value);
+      // A5: la rotazione vale per QUESTA punta, e si ritrova al riavvio.
+      if (freehandPersistentSettings && freehandPersistentSettings.perTipInitialRotation && currentBrushTip) {
+        freehandPersistentSettings.perTipInitialRotation[currentBrushTip] = currentTipInitialRotationDeg;
+      }
       if (tipRotationValue) {
         tipRotationValue.textContent = currentTipInitialRotationDeg.toFixed(1) + "°";
       }
@@ -1056,6 +1126,24 @@ function initFreehandDrawing() {
     });
   }
 
+  // A5: ogni cambio degli slider e del colore si salva, dopo 400 ms di
+  // quiete (trascinando uno slider non si scrive a ogni scatto).
+  [
+    "lineWidthSlider",
+    "watercolorWidthSlider",
+    "tipInitialRotationSlider",
+    "stampSpacingSlider",
+    "watercolorFlowSlider",
+    "toneSlider",
+    "positionJitterSlider",
+    "rotationJitterSlider",
+    "bleedSlider",
+    "layersSlider",
+    "strokeColorPicker"
+  ].forEach((id) => {
+    document.getElementById(id)?.addEventListener("input", _fhSalvaPresto);
+  });
+
   // ==================== PATH CREATED — PENNA NORMALE ====================
   // Quando un path della PencilBrush viene finalizzato, applichiamo:
   //  • marker __isFreehand (come prima)
@@ -1126,12 +1214,53 @@ let freehandPersistentSettings = {
     currentRotationJitter: 9.5,
     currentBleed: 3.2,
     currentWatercolorLayers: 22,
-    lastBrushTip: "watercolor-stamp"
+    lastBrushTip: "watercolor-stamp",
+    // La punta della penna (Fetta 4): "" = tonda.
+    penTip: "",
+    penTipSpacing: 0.25,
+    penTipRotationDeg: 0,
+    penTipFollow: false
   },
   perTipInitialRotation: {} // es. { "watercolor-stamp": 0, "dry-brush": 15, ... }
 };
 
+// ── Cantiere «Le Punte», Fetta 1 (A5, trappola 224) ─────────────────────
+// Le impostazioni della penna e dell'acquerello stanno in due posti: le
+// GLOBALI nel localStorage (l'ultima scelta fatta su questo computer) e
+// quelle del PROGETTO dentro il file .msp. Aprendo un progetto,
+// renderer.js mette le sue in freehandPersistentSettings e poi chiama
+// loadFreehandSettings(): fino alla 09.2026 questa rileggeva il
+// localStorage SOPRA, e il progetto non vinceva mai. Ora il localStorage
+// si legge una volta sola, all'avvio, e solo se nessun progetto ha già
+// messo le sue impostazioni.
+const _FH_GENERALI_DI_PARTENZA = Object.assign({}, freehandPersistentSettings.general);
+const _fhOggettoDiPartenza = freehandPersistentSettings;
+let _fhGlobaliLetti = false;
+let _fhSalvaTimer = 0;
+
+// Completa le impostazioni che mancano (progetto vecchio, dati rovinati)
+// coi valori di partenza, senza cambiare quelle che ci sono.
+function _fhCompletaImpostazioni(s) {
+  if (!s || typeof s !== "object") return;
+  const g = s.general && typeof s.general === "object" ? s.general : {};
+  for (const k of Object.keys(_FH_GENERALI_DI_PARTENZA)) {
+    const base = _FH_GENERALI_DI_PARTENZA[k];
+    if (typeof base === "number") {
+      const v = Number(g[k]);
+      g[k] = g[k] != null && Number.isFinite(v) ? v : base;
+    } else if (g[k] == null || g[k] === "") {
+      g[k] = base;
+    }
+  }
+  s.general = g;
+  if (!s.perTipInitialRotation || typeof s.perTipInitialRotation !== "object") s.perTipInitialRotation = {};
+}
+
 function saveFreehandSettings() {
+  clearTimeout(_fhSalvaTimer);
+  _fhSalvaTimer = 0;
+  _fhCompletaImpostazioni(freehandPersistentSettings);
+
   freehandPersistentSettings.general = {
     currentLineWidth,
     currentWatercolorWidth,
@@ -1143,44 +1272,123 @@ function saveFreehandSettings() {
     currentRotationJitter,
     currentBleed,
     currentWatercolorLayers,
-    lastBrushTip: currentBrushTip
+    lastBrushTip: currentBrushTip,
+    penTip: currentPenTip,
+    penTipSpacing: currentPenTipSpacing,
+    penTipRotationDeg: currentPenTipRotationDeg,
+    penTipFollow: currentPenTipFollow
   };
 
-  // salva su localStorage (fallback)
-  localStorage.setItem("mosaica_freehand_settings", JSON.stringify(freehandPersistentSettings));
+  // Le globali, per il prossimo avvio.
+  try {
+    localStorage.setItem("mosaica_freehand_settings", JSON.stringify(freehandPersistentSettings));
+  } catch (e) {
+    console.warn("[freehand] impostazioni non salvate nel localStorage:", e);
+  }
 
-  // se c'è un progetto aperto, salva anche nel progetto (renderer.js lo gestirà)
-  if (typeof window.pushState === "function") window.pushState();
+  // Quelle del progetto le scrivono il salvataggio e il salvataggio
+  // automatico, che leggono freehandPersistentSettings. Qui si segna solo
+  // che il progetto è cambiato. (Fino alla 09.2026 qui c'era pushState():
+  // la fotografia dell'annulla non contiene le impostazioni, quindi ogni
+  // cambio di punta lasciava un Ctrl+Z che non annullava niente.)
+  if (window.autoSave && typeof window.autoSave.markDirty === "function") window.autoSave.markDirty();
+}
+
+function _fhSalvaPresto() {
+  clearTimeout(_fhSalvaTimer);
+  _fhSalvaTimer = setTimeout(saveFreehandSettings, 400);
+}
+
+// Mette negli slider i valori veri (fino alla 09.2026 metà degli slider,
+// al riavvio, mostrava il valore scritto nell'HTML).
+function _fhAllineaSlider() {
+  const metti = (idSlider, valore, idTesto, testo) => {
+    const sl = document.getElementById(idSlider);
+    if (sl) sl.value = valore;
+    const tx = idTesto ? document.getElementById(idTesto) : null;
+    if (tx) tx.textContent = testo;
+  };
+  metti("lineWidthSlider", currentLineWidth, "lineWidthValue", String(currentLineWidth));
+  metti("watercolorWidthSlider", currentWatercolorWidth, "watercolorWidthValue", currentWatercolorWidth.toFixed(1));
+  metti("watercolorFlowSlider", currentWatercolorFlow * 100, "watercolorFlowValue", Math.round(currentWatercolorFlow * 100) + "%");
+  metti("toneSlider", jitterToneControl * 100, "toneValue", Math.round(jitterToneControl * 100) + "%");
+  metti("tipInitialRotationSlider", currentTipInitialRotationDeg, "tipInitialRotationValue", currentTipInitialRotationDeg.toFixed(1) + "°");
+  metti("stampSpacingSlider", currentStampSpacing * 100, "stampSpacingValue", currentStampSpacing.toFixed(2) + "×");
+  metti("positionJitterSlider", currentPositionJitter, "positionJitterValue", String(currentPositionJitter));
+  metti("rotationJitterSlider", currentRotationJitter, "rotationJitterValue", currentRotationJitter.toFixed(1) + "°");
+  metti("bleedSlider", currentBleed, "bleedValue", currentBleed.toFixed(1));
+  metti("layersSlider", currentWatercolorLayers, "layersValue", String(currentWatercolorLayers));
+  const picker = document.getElementById("strokeColorPicker");
+  if (picker && /^#[0-9a-f]{6}$/i.test(currentStrokeColor)) picker.value = currentStrokeColor;
+  const nome = document.getElementById("currentBrushTipName");
+  if (nome) nome.textContent = String(currentBrushTip).replace(/-/g, " ");
+  _fdPenTipAggiornaUI();
 }
 
 function loadFreehandSettings() {
-  const saved = localStorage.getItem("mosaica_freehand_settings");
-  if (saved) {
-    const data = JSON.parse(saved);
-    Object.assign(freehandPersistentSettings, data);
+  if (!freehandPersistentSettings || typeof freehandPersistentSettings !== "object") {
+    freehandPersistentSettings = { general: {}, perTipInitialRotation: {} };
   }
 
-  // applica valori generali
-  currentLineWidth = freehandPersistentSettings.general.currentLineWidth ?? 4;
-  currentWatercolorWidth = freehandPersistentSettings.general.currentWatercolorWidth ?? 24;
-  currentStrokeColor = freehandPersistentSettings.general.currentStrokeColor ?? "#1a1a1a";
-  currentStampSpacing = freehandPersistentSettings.general.currentStampSpacing ?? 0.48;
-  currentWatercolorFlow = freehandPersistentSettings.general.currentWatercolorFlow ?? 0.82;
-  jitterToneControl = freehandPersistentSettings.general.jitterToneControl ?? 0.48;
-  currentPositionJitter = freehandPersistentSettings.general.currentPositionJitter ?? 11;
-  currentRotationJitter = freehandPersistentSettings.general.currentRotationJitter ?? 9.5;
-  currentBleed = freehandPersistentSettings.general.currentBleed ?? 3.2;
-  currentWatercolorLayers = freehandPersistentSettings.general.currentWatercolorLayers ?? 22;
-  currentBrushTip = freehandPersistentSettings.general.lastBrushTip ?? "watercolor-stamp";
+  // Le globali: una volta sola, all'avvio, e solo se nessun progetto ha
+  // già messo le sue (trappola 224).
+  if (!_fhGlobaliLetti) {
+    _fhGlobaliLetti = true;
+    if (freehandPersistentSettings === _fhOggettoDiPartenza) {
+      try {
+        const saved = localStorage.getItem("mosaica_freehand_settings");
+        if (saved) {
+          const data = JSON.parse(saved);
+          if (data && typeof data === "object") Object.assign(freehandPersistentSettings, data);
+        }
+      } catch (e) {
+        console.warn("[freehand] impostazioni globali illeggibili, uso quelle di partenza:", e);
+      }
+    }
+  }
 
-  // aggiorna tutti gli slider (per sicurezza)
-  document.getElementById("lineWidthSlider").value = currentLineWidth;
-  document.getElementById("lineWidthValue").textContent = currentLineWidth;
-  document.getElementById("watercolorWidthSlider").value = currentWatercolorWidth;
-  document.getElementById("watercolorWidthValue").textContent = currentWatercolorWidth.toFixed(1);
-  document.getElementById("stampSpacingSlider").value = currentStampSpacing * 100;
-  document.getElementById("stampSpacingValue").textContent = currentStampSpacing.toFixed(2) + "×";
-  // ... (puoi aggiungere gli altri slider se vuoi)
+  _fhCompletaImpostazioni(freehandPersistentSettings);
+  const g = freehandPersistentSettings.general;
+
+  currentLineWidth = g.currentLineWidth;
+  currentWatercolorWidth = g.currentWatercolorWidth;
+  currentStrokeColor = String(g.currentStrokeColor);
+  currentStampSpacing = g.currentStampSpacing;
+  currentWatercolorFlow = g.currentWatercolorFlow;
+  jitterToneControl = g.jitterToneControl;
+  currentPositionJitter = g.currentPositionJitter;
+  currentRotationJitter = g.currentRotationJitter;
+  currentBleed = g.currentBleed;
+  currentWatercolorLayers = Math.round(g.currentWatercolorLayers);
+  currentBrushTip = String(g.lastBrushTip);
+
+  // La punta della penna (Fetta 4). Il progetto vince sulle globali come il
+  // resto; un progetto vecchio non ne ha e torna alla penna tonda.
+  currentPenTip = g.penTip ? String(g.penTip) : "";
+  const penSp = Number(g.penTipSpacing);
+  currentPenTipSpacing = Number.isFinite(penSp) && penSp > 0 ? clamp(penSp, _FD_PEN_DISTANZA_MIN, _FD_PEN_DISTANZA_MAX) : 0.25;
+  const penRot = Number(g.penTipRotationDeg);
+  currentPenTipRotationDeg = Number.isFinite(penRot) ? clamp(penRot, -180, 180) : 0;
+  currentPenTipFollow = g.penTipFollow === true;
+  // La punta si prepara subito: al primo tratto è pronta, e se manca
+  // l'avviso arriva adesso (una volta per sessione, penTips.js).
+  if (currentPenTip && window.penTips) window.penTips.chiedi(currentPenTip);
+
+  // La «Rotaz. iniz.» è della punta: si rimette quella della punta scelta.
+  const rot = Number(freehandPersistentSettings.perTipInitialRotation[currentBrushTip]);
+  currentTipInitialRotationDeg = Number.isFinite(rot) ? rot : 0;
+
+  _fhAllineaSlider();
+
+  // La punta dell'acquerello si prepara subito (A2). Se manca, qui non si
+  // dice niente: l'avviso arriva quando si accende l'acquerello.
+  if (typeof window.loadWatercolorStamp === "function") {
+    window.loadWatercolorStamp(currentBrushTip).catch(() => {});
+  }
+  // Se si sta già disegnando, il pennello prende i valori nuovi.
+  if (typeof canvas !== "undefined" && canvas && canvas.isDrawingMode && typeof applyBrushSettings === "function") {
+    applyBrushSettings();
+  }
 }
 
 // ====================== MODALE PUNTA PENNELLO ======================
@@ -1190,8 +1398,11 @@ async function showBrushTipModal() {
   const modal = document.getElementById("brushTipModal");
   const container = document.getElementById("brushTipList");
   if (!modal || !container) return;
+  _fdPenModaleGiro++; // ferma le miniature della penna, se arrivavano ancora
+  _fdModalePunteTitolo(false);
 
-  container.innerHTML = '<div style="padding:40px;text-align:center;color:#777;">Caricamento punte...</div>';
+  _fhCompletaImpostazioni(freehandPersistentSettings);
+  container.innerHTML = `<div style="padding:40px;text-align:center;color:#777;">${_fdT("brushTip.modal.loading", null, "Caricamento punte...")}</div>`;
 
   try {
     const brushes = await window.brushAPI.listBrushes();
@@ -1220,7 +1431,7 @@ async function showBrushTipModal() {
       const rotContainer = document.createElement("div");
       rotContainer.style.cssText = "display:flex;align-items:center;gap:6px;width:100%;margin-top:6px;";
       rotContainer.innerHTML = `
-        <span style="font-size:12px;white-space:nowrap;color:#aaa;">Rotaz. iniziale</span>
+        <span style="font-size:12px;white-space:nowrap;color:#aaa;">${_fdT("brushTip.modal.initialRotation", null, "Rotaz. iniziale")}</span>
         <input type="number" value="${freehandPersistentSettings.perTipInitialRotation[brush.filename] ?? 0}" 
                step="0.1" min="-180" max="180" 
                style="flex:1;background:#1b1b1b;color:#fff;border:1px solid #555;border-radius:6px;padding:4px 8px;text-align:center;font-family:monospace;">
@@ -1267,20 +1478,20 @@ async function showBrushTipModal() {
 
         document.getElementById("currentBrushTipName").textContent = brush.filename.replace(/-/g, " ");
 
-        if (isWatercolorMode) {
-          await window.loadWatercolorStamp(currentBrushTip);
-          applyBrushSettings();
-        }
+        // A2: la punta scelta si carica SEMPRE, anche con l'acquerello
+        // spento (prima solo se era acceso: poi si disegnava con la vecchia).
+        await _fdAccertaPuntaAcquerello();
+        if (isWatercolorMode) applyBrushSettings();
 
         saveFreehandSettings();
         modal.style.display = "none";
-        flashToast(`🖌️ Punta cambiata: ${brush.filename.replace(/-/g, " ")}`);
+        flashToast(_fdT("toast.watercolor.tipChanged", { name: brush.filename.replace(/-/g, " ") }, `🖌️ Punta cambiata: ${brush.filename.replace(/-/g, " ")}`));
       });
 
       container.appendChild(item);
     });
   } catch (e) {
-    container.innerHTML = `<div style="padding:40px;text-align:center;color:#f66;">Errore caricamento punte</div>`;
+    container.innerHTML = `<div style="padding:40px;text-align:center;color:#f66;">${_fdT("brushTip.modal.loadError", null, "Errore caricamento punte")}</div>`;
   }
 
   modal.style.display = "flex";
@@ -1339,7 +1550,7 @@ function initWatercolorCompositeSelector() {
   select.addEventListener("change", () => {
     currentWatercolorComposite = select.value;
     localStorage.setItem("watercolorComposite", currentWatercolorComposite);
-    flashToast(`🎨 Mixing cambiato in: ${select.options[select.selectedIndex].text}`);
+    flashToast(_fdT("toast.watercolor.mixingChanged", { mode: select.options[select.selectedIndex].text }, `🎨 Mixing cambiato in: ${select.options[select.selectedIndex].text}`));
   });
 
   console.log("[Watercolor] Selettore mixing inizializzato, composite attivo:", currentWatercolorComposite);
@@ -1349,6 +1560,217 @@ function initWatercolorCompositeSelector() {
 // Questi due init dipendono dal DOM dell'inspector. Il file è caricato
 // in fondo al body in index.html, quindi il DOM è già pronto. Per
 // robustezza tienilo idempotente con un piccolo delay di sicurezza.
+// ════════════════════════════════════════════════════════════════
+//  LA PUNTA DELLA PENNA — l'interfaccia (cantiere «Le Punte», Fetta 4)
+//  Nell'inspector «Penna · Gomma»: il pulsante Punta (apre lo STESSO
+//  modale dell'acquerello, col titolo della penna), e — solo con una
+//  punta PNG — Distanza, Rotaz. iniz. e «segue il tratto». Le punte
+//  arrivano da textures/penna/ una per volta (window.penTipsAPI, A8).
+//  La gomma resta tonda. Nessuna scorciatoia di tastiera.
+// ════════════════════════════════════════════════════════════════
+function _fdPenTipNomeVisibile(nome) {
+  return String(nome).replace(/-/g, " ");
+}
+
+// Mette l'inspector della penna d'accordo coi valori veri.
+function _fdPenTipAggiornaUI() {
+  const conPunta = !!currentPenTip;
+  const tonda = document.getElementById("penTipRoundName");
+  const nome = document.getElementById("currentPenTipName");
+  if (tonda) tonda.style.display = conPunta ? "none" : "";
+  if (nome) {
+    nome.style.display = conPunta ? "" : "none";
+    nome.textContent = conPunta ? _fdPenTipNomeVisibile(currentPenTip) : "";
+  }
+  for (const id of ["penTipSpacingRow", "penTipRotationRow", "penTipFollowRow"]) {
+    const riga = document.getElementById(id);
+    if (riga) riga.style.display = conPunta ? "" : "none";
+  }
+  const perc = Math.round(currentPenTipSpacing * 100);
+  const sp = document.getElementById("penTipSpacingSlider");
+  if (sp) sp.value = perc;
+  const spv = document.getElementById("penTipSpacingValue");
+  if (spv) spv.textContent = perc + "%";
+  const ro = document.getElementById("penTipRotationSlider");
+  if (ro) ro.value = currentPenTipRotationDeg;
+  const rov = document.getElementById("penTipRotationValue");
+  if (rov) rov.textContent = Math.round(currentPenTipRotationDeg) + "°";
+  const chk = document.getElementById("penTipFollowChk");
+  if (chk) chk.checked = currentPenTipFollow === true;
+}
+
+// Il modale delle punte è uno solo: questo sceglie il titolo.
+function _fdModalePunteTitolo(perPenna) {
+  const acq = document.getElementById("brushTipModalTitle");
+  const pen = document.getElementById("penTipModalTitle");
+  if (acq) acq.style.display = perPenna ? "none" : "";
+  if (pen) pen.style.display = perPenna ? "" : "none";
+}
+
+function _fdChiudiModalePunte() {
+  const modal = document.getElementById("brushTipModal");
+  if (modal) modal.style.display = "none";
+  _fdPenModaleGiro++;
+}
+
+// Sceglie la punta della penna ("" = tonda), la salva e lo dice.
+function _fdScegliPuntaPenna(nome) {
+  nome = nome ? String(nome) : "";
+  // Una punta che era «mancante» e ora c'è (messa nella cartella dopo):
+  // si dimentica, così penTips la rilegge.
+  if (nome && window.penTips && typeof window.penTips.stato === "function" && window.penTips.stato(nome) === "mancante") {
+    window.penTips.dimentica(nome);
+  }
+  window.mwpPenTip.imposta({ tip: nome });
+  if (nome && window.penTips) window.penTips.chiedi(nome);
+  saveFreehandSettings();
+  _fdChiudiModalePunte();
+  const visibile = nome ? _fdPenTipNomeVisibile(nome) : _fdT("inspector.penna.tipRound", null, "Tonda (vettoriale)");
+  if (typeof flashToast === "function") flashToast(_fdT("toast.pen.tipChanged", { name: visibile }, `✏️ Punta della penna: ${visibile}`));
+}
+
+async function showPenTipModal() {
+  const modal = document.getElementById("brushTipModal");
+  const container = document.getElementById("brushTipList");
+  if (!modal || !container) return;
+  const giro = ++_fdPenModaleGiro;
+  _fdModalePunteTitolo(true);
+  container.innerHTML = `<div style="padding:40px;text-align:center;color:#777;">${_fdT("brushTip.modal.loading", null, "Caricamento punte...")}</div>`;
+  modal.style.display = "flex";
+
+  const closeBtn = document.getElementById("brushTipModalCloseBtn");
+  const cancelBtn = document.getElementById("brushTipModalCancelBtn");
+  if (closeBtn) closeBtn.onclick = _fdChiudiModalePunte;
+  if (cancelBtn) cancelBtn.onclick = _fdChiudiModalePunte;
+
+  const api = window.penTipsAPI;
+  let nomi = [];
+  try {
+    if (api && typeof api.list === "function") nomi = (await api.list()) || [];
+  } catch (e) {
+    console.warn("[PuntePenna] elenco non disponibile:", e);
+    nomi = [];
+  }
+  if (giro !== _fdPenModaleGiro) return; // riaperto o chiuso nel frattempo
+
+  container.innerHTML = "";
+  const scheda = (valore, etichetta, anteprima) => {
+    const item = document.createElement("div");
+    const scelta = (currentPenTip || "") === valore;
+    item.style.cssText = `display:flex;flex-direction:column;align-items:center;gap:8px;background:#2b2b2b;padding:12px;border-radius:10px;cursor:pointer;border:2px solid ${scelta ? "#00c8ff" : "transparent"};`;
+    const cornice = document.createElement("div");
+    cornice.style.cssText =
+      "width:90px;height:90px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.3);overflow:hidden;";
+    cornice.appendChild(anteprima);
+    const nome = document.createElement("div");
+    nome.textContent = etichetta;
+    nome.style.cssText = "font-size:13px;font-weight:600;text-align:center;";
+    item.append(cornice, nome);
+    item.addEventListener("click", () => _fdScegliPuntaPenna(valore));
+    container.appendChild(item);
+    return item;
+  };
+
+  // In testa: la penna tonda di sempre.
+  const cerchio = document.createElement("div");
+  cerchio.style.cssText = "width:44px;height:44px;border-radius:50%;background:#1a1a1a;";
+  const tonda = scheda("", _fdT("inspector.penna.tipRound", null, "Tonda (vettoriale)"), cerchio);
+  const nota = document.createElement("div");
+  nota.textContent = _fdT("penTip.modal.round.hint", null, "la penna di sempre");
+  nota.style.cssText = "font-size:11px;color:#999;";
+  tonda.appendChild(nota);
+
+  // Le PNG della cartella: le schede subito, le miniature una per volta.
+  const miniature = [];
+  for (const n of nomi) {
+    const img = document.createElement("img");
+    img.alt = _fdPenTipNomeVisibile(n);
+    img.style.cssText = "max-width:84px;max-height:84px;object-fit:contain;";
+    scheda(n, _fdPenTipNomeVisibile(n), img);
+    miniature.push([n, img]);
+  }
+
+  // In fondo: dove si mettono le proprie punte.
+  const piede = document.createElement("div");
+  piede.style.cssText = "grid-column:1/-1;display:flex;flex-direction:column;gap:8px;padding:10px 4px 2px;color:#aaa;font-size:12px;line-height:1.5;";
+  if (!nomi.length) {
+    const vuota = document.createElement("div");
+    vuota.textContent = _fdT("penTip.modal.empty", null, "Nella cartella delle punte della penna non c'è ancora nessuna PNG.");
+    vuota.style.color = "#ddd";
+    piede.appendChild(vuota);
+  }
+  const spiega = document.createElement("div");
+  spiega.textContent = _fdT(
+    "penTip.modal.folderHint",
+    null,
+    "Metti qui le tue punte: PNG su fondo trasparente (conta solo la trasparenza, il colore lo dà la penna). Poi riapri questa finestra."
+  );
+  piede.appendChild(spiega);
+  if (api && typeof api.openFolder === "function") {
+    const apri = document.createElement("button");
+    apri.id = "penTipOpenFolderBtn";
+    apri.textContent = _fdT("penTip.modal.openFolder", null, "📁 Apri la cartella delle punte");
+    apri.style.cssText = "align-self:flex-start;background:#3a3a3a;color:#eee;border:1px solid #555;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;";
+    apri.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      let ok = false;
+      try {
+        ok = await api.openFolder();
+      } catch (_) {
+        ok = false;
+      }
+      if (!ok && typeof flashToast === "function") flashToast(_fdT("toast.pen.folderError", null, "❌ Impossibile aprire la cartella delle punte"));
+    });
+    piede.appendChild(apri);
+  }
+  container.appendChild(piede);
+
+  for (const [n, img] of miniature) {
+    if (giro !== _fdPenModaleGiro) return;
+    let url = null;
+    try {
+      url = api && typeof api.readTip === "function" ? await api.readTip(n) : null;
+    } catch (_) {
+      url = null;
+    }
+    if (giro !== _fdPenModaleGiro) return;
+    if (url) img.src = url;
+    else img.style.opacity = "0.3";
+  }
+}
+
+// Il pulsante e gli slider della punta della penna. Una volta sola.
+function initPenTipSelector() {
+  if (window.__mwpPenTipUI) return;
+  const btn = document.getElementById("penTipModalBtn");
+  if (!btn) return;
+  window.__mwpPenTipUI = true;
+  btn.addEventListener("click", showPenTipModal);
+
+  const sp = document.getElementById("penTipSpacingSlider");
+  if (sp) {
+    sp.addEventListener("input", () => {
+      window.mwpPenTip.imposta({ spacing: parseFloat(sp.value) / 100 });
+      _fhSalvaPresto();
+    });
+  }
+  const ro = document.getElementById("penTipRotationSlider");
+  if (ro) {
+    ro.addEventListener("input", () => {
+      window.mwpPenTip.imposta({ rotationDeg: parseFloat(ro.value) });
+      _fhSalvaPresto();
+    });
+  }
+  const chk = document.getElementById("penTipFollowChk");
+  if (chk) {
+    chk.addEventListener("change", () => {
+      window.mwpPenTip.imposta({ follow: chk.checked });
+      _fhSalvaPresto();
+    });
+  }
+  _fdPenTipAggiornaUI();
+}
+
 function _bootWatercolorInspectorInits() {
   if (typeof initWatercolorCompositeSelector === "function") {
     initWatercolorCompositeSelector();
@@ -1356,12 +1778,72 @@ function _bootWatercolorInspectorInits() {
   if (typeof initBrushTipSelector === "function") {
     initBrushTipSelector();
   }
+  if (typeof initPenTipSelector === "function") {
+    initPenTipSelector();
+  }
 }
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", _bootWatercolorInspectorInits, { once: true });
 } else {
   _bootWatercolorInspectorInits();
 }
+
+// ════════════════════════════════════════════════════════════════
+//  LA GUARDIA DEL FOGLIO — cantiere «Le Punte», Fetta 1-bis (26/09/2026)
+//  Decisione di Mirko: l'orientamento del foglio si sceglie all'inizio,
+//  col soggetto del mosaico, e non si cambia a lavoro iniziato (girarlo
+//  deformava gli acquerelli e spostava le tessere: A4). Da quando il
+//  lavoro è cominciato, «Canvas Verticale» e «Canvas Orizzontale» non
+//  girano il foglio: mostrano un avviso e lasciano tutto com'è.
+//  Lavoro cominciato = sul foglio c'è almeno un tratto (penna, acquerello,
+//  gomma o timbro) oppure almeno DUE tessere: il quadratino con cui nasce
+//  un progetto nuovo non conta. Si guarda al momento del click, quindi
+//  vale anche per un progetto riaperto e dopo un Ctrl+Z.
+//  renderer.js non si tocca: rotateCanvasContent (che chiamano solo i due
+//  pulsanti) si avvolge da qui, perché è una funzione di primo livello e
+//  quindi una proprietà di window (Bottega §3.1).
+// ════════════════════════════════════════════════════════════════
+function _fdLavoroIniziato() {
+  if (typeof canvas === "undefined" || !canvas || typeof canvas.getObjects !== "function") return false;
+  let tessere = 0;
+  const oggetti = canvas.getObjects();
+  for (let i = 0; i < oggetti.length; i++) {
+    const o = oggetti[i];
+    // sfondo, carta e oggetti di servizio non contano (come nel conteggio
+    // di renderer.js e di autoSave.js)
+    if (!o || o.__isBackground || o.excludeFromExport) continue;
+    if (o === paperTextureObject) continue;
+    const eTratto =
+      (typeof isWatercolorOrFreehand === "function" && isWatercolorOrFreehand(o)) || isCloneStampObject(o);
+    if (eTratto) return true;
+    // un gruppo di tessere conta per quante tessere ha dentro
+    if (o.type === "group" && typeof o.getObjects === "function") tessere += Math.max(1, o.getObjects().length);
+    else tessere++;
+    if (tessere >= 2) return true;
+  }
+  return false;
+}
+
+(function _fdGuardiaFoglio() {
+  const originale = window.rotateCanvasContent;
+  if (typeof originale !== "function" || originale.__mwpGuardia) return;
+  const guscio = function (degrees) {
+    if (_fdLavoroIniziato()) {
+      flashToast(
+        _fdT(
+          "toast.canvas.sheetLocked",
+          null,
+          "🔒 Il foglio non si gira a lavoro iniziato: l'orientamento si sceglie all'inizio, col soggetto del mosaico"
+        )
+      );
+      return;
+    }
+    return originale.apply(this, arguments);
+  };
+  guscio.__mwpGuardia = true;
+  guscio.__mwpOriginale = originale;
+  window.rotateCanvasContent = guscio;
+})();
 
 // Esposizioni globali
 window.lockAllFreehandPaths = lockAllFreehandPaths;
@@ -1384,6 +1866,33 @@ window.saveFreehandSettings = saveFreehandSettings;
 window.reorderCanvasLayers = reorderCanvasLayers;
 window.cacheCanvasPngDataURL = cacheCanvasPngDataURL;
 window.isCloneStampObject = isCloneStampObject;
+window.mwpLavoroIniziato = _fdLavoroIniziato;
+
+// La punta della penna (Fette 3 e 4): leggi() e imposta({ tip, spacing,
+// rotationDeg, follow }). tip "" o null = penna tonda. La usa
+// l'interfaccia dell'inspector (Fetta 4); non salva da sé.
+window.mwpPenTip = {
+  leggi() {
+    return {
+      tip: currentPenTip,
+      spacing: currentPenTipSpacing,
+      rotationDeg: currentPenTipRotationDeg,
+      follow: currentPenTipFollow
+    };
+  },
+  imposta(o) {
+    o = o || {};
+    if ("tip" in o) currentPenTip = o.tip ? String(o.tip) : "";
+    if (Number.isFinite(Number(o.spacing)) && Number(o.spacing) > 0) {
+      currentPenTipSpacing = clamp(Number(o.spacing), _FD_PEN_DISTANZA_MIN, _FD_PEN_DISTANZA_MAX);
+    }
+    if (Number.isFinite(Number(o.rotationDeg))) currentPenTipRotationDeg = clamp(Number(o.rotationDeg), -180, 180);
+    if ("follow" in o) currentPenTipFollow = o.follow === true;
+    if (canvas && canvas.isDrawingMode && !isWatercolorMode && !isEraserMode) applyBrushSettings();
+    _fdPenTipAggiornaUI();
+    return this.leggi();
+  }
+};
 
 // ════════════════════════════════════════════════════════════════
 //  AVVIO DI RISERVA — cantiere «La Bottega», 21 settembre 2026

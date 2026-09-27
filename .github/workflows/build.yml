@@ -61,11 +61,26 @@ jobs:
           body: |
             ## 🎨 Mosaica Workspace Pro ${{ github.ref_name }}
 
-            Aggiornamento grafico: nuova icona dell'applicazione.
+            La penna impara le punte, l'acquerello ha un set di punte nuovo e il foglio non si gira più a lavoro iniziato.
 
-            ### ✨ Miglioramenti
+            ### ✨ Novità
 
-            - 🖼️ **Nuova icona** — ridisegnata e ottimizzata per Windows: nitida a tutte le dimensioni e della stessa grandezza delle altre icone. Aggiornate anche le icone di installer e disinstallatore
+            - ✏️ **Penna con le punte** — oltre alla punta tonda di sempre, la penna può usare una punta disegnata (PNG), come l'acquerello: pennini, grafite, carboncino, gessetto. Il tratto resta **vettoriale**: nitido a ogni zoom, leggero da salvare, si cancella e si annulla come gli altri. Nell'Ispettore: **Punta**, **Distanza**, **Rotazione iniziale** e **Direzione** (la punta segue il tratto)
+            - 🖋️ **Sei punte per la penna**: tonda morbida, pennino a punta, pennino piatto, grafite, carboncino, gessetto. Le tue si aggiungono con il pulsante **📁 Apri la cartella delle punte**
+            - 💧 **Nuovo set di 11 punte per l'acquerello**, fatte apposta: tonda morbida e asciutta, piatta, lingua di gatto, bordo bagnato, bordo sfumato, nuvola, granulazione, spugna, schizzi e la punta di base rifatta
+
+            ### 🔧 Miglioramenti
+
+            - 🔒 **Orientamento del foglio**: a lavoro iniziato (un tratto oppure due tessere) i pulsanti Verticale e Orizzontale non girano più il foglio e lo dicono — girarlo a metà lavoro spostava le tessere e deformava gli acquerelli
+            - 🖱️ **Penna col mouse**: il tratto è largo quanto la Larghezza e quanto l'anello (prima era il 70%). I tratti già fatti non cambiano
+            - 🖊️ **Tavoletta Wacom**: curva di pressione e sensibilità arrivano al tratto finito, che non cambia più spessore quando alzi la penna
+            - 🔄 **Punte aggiornate da sole**: le punte di Mosaica si aggiornano e le 66 vecchie si tolgono; le punte aggiunte da te con altri nomi non si toccano mai
+            - ⚙️ **Impostazioni di penna e acquerello**: quelle del progetto hanno la precedenza e tutti gli slider tornano come li avevi lasciati
+
+            ### 🐛 Correzioni
+
+            - Acquerello con una punta che su questo computer non c'è: prima i tratti erano invisibili, ora usa la punta di base e avvisa
+            - Cambiare la punta dell'acquerello non lascia più un Ctrl+Z "a vuoto"
 
             ### 📥 Installazione
 
@@ -73,11 +88,10 @@ jobs:
             2. Eseguilo (se Windows mostra *"Editore sconosciuto"*, clicca **Ulteriori informazioni → Esegui comunque**)
             3. Segui l'installer — puoi scegliere la lingua all'avvio
 
-            > 💡 Tavole salvate, calibrazioni e preferenze vengono **conservate** durante l'aggiornamento.
-
-            > 🔄 Se dopo l'aggiornamento vedi ancora la vecchia icona, è la cache di Windows: riavvia il PC e comparirà quella nuova.
+            > 💡 Tavole salvate, calibrazioni e preferenze vengono **conservate** durante l'aggiornamento. Le punte che hai aggiunto tu restano; gli acquerelli già dipinti non cambiano.
 
             ### 📝 Note tecniche
 
-            - Versione interna: `9.2026.1`
-            - Nessuna modifica al codice dell'applicazione
+            - Versione interna: `9.2026.2`
+            - Esporta disegno mano libera (SVG): i tratti fatti con una punta escono come immagine del tratto, come l'acquerello
+            - I progetti salvati con le versioni precedenti si aprono normalmente

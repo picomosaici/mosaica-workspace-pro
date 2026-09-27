@@ -600,7 +600,7 @@
     <a href="#lazo">Selezione Lazo</a>
     <a href="#disegno">Disegno Libero</a>
     <a href="#acquerello">Acquerello</a>
-    <a href="#punte">Punte Pennello</a>
+    <a href="#punte">Punte</a>
     <a href="#timbro">Pennello Timbro</a>
     <a href="#sfondo">Sfondo</a>
     <a href="#progetti">Progetti</a>
@@ -822,10 +822,14 @@
     </div>
   </div>
 
+  <div class="callout warning"><div class="callout-icon"></div><div><strong>L'orientamento si sceglie all'inizio, col soggetto del mosaico.</strong> Il foglio si gira solo finché il lavoro non è cominciato. Quando sul foglio c'è almeno <strong>un tratto</strong> (penna, acquerello, gomma o timbro) oppure almeno <strong>due tessere</strong>, i due pulsanti non girano più il foglio: compare l'avviso 🔒 e tessere, tratti e foglio restano come sono. La tessera con cui nasce un progetto nuovo non conta.</div></div>
+
+  <p>La regola si guarda nel momento del clic, sul foglio com'è: vale anche per un progetto riaperto, e se annulli con <kbd>Ctrl</kbd>+<kbd>Z</kbd> fino a togliere il primo tratto (o la seconda tessera) il foglio torna girabile. Il blocco c'è perché girare il foglio a lavoro avviato spostava le tessere già posate e deformava gli acquerelli.</p>
+
   <div class="callout tip">
     <div class="callout-icon"></div>
-    <div>La rotazione è <strong>geometrica e precisa</strong>:<br>
-    • Tutte le forme, i tratti a mano libera e acquerello vengono ruotati.<br>
+    <div>Finché il foglio si può girare, la rotazione è <strong>geometrica e precisa</strong>:<br>
+    • Le forme sul foglio ruotano attorno al centro del foglio A4.<br>
     • La texture della carta viene ricreata automaticamente alle nuove dimensioni.<br>
     • L'immagine di sfondo viene riadattata.<br>
     • La calibrazione mm resta invariata.<br>
@@ -835,10 +839,10 @@
   <p>L'orientamento corrente viene salvato nel file di progetto <code>.msp.json</code> e ripristinato all'apertura. Anche l'export PDF rispetta l'orientamento del foglio (portrait/landscape).</p>
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
-    <li>Prima di ruotare il canvas, posiziona tutte le forme dove desideri: la rotazione avviene attorno al <strong>centro geometrico del foglio A4</strong>.</li>
+    <li>Scegli l'orientamento <strong>subito</strong>, quando carichi l'immagine del soggetto: è il momento in cui serve, prima di posare le tessere e di disegnare.</li>
     <li>Dopo una rotazione, verifica l'immagine di sfondo: se usavi <strong>Adatta</strong> o <strong>Riempi</strong>, potrebbe essere necessario riaggiustare la rotazione dello sfondo separatamente (con i pulsanti ↶ Ruota nel BG Panel).</li>
     <li>La <strong>texture carta</strong> si rigenera automaticamente con l'orientamento corretto: non devi ricaricarla manualmente.</li>
-    <li>Undo/Redo funziona normalmente anche dopo il cambio di orientamento, quindi puoi annullare la rotazione se il risultato non ti soddisfa.</li>
+    <li>Se ti accorgi dell'orientamento sbagliato a lavoro appena cominciato, annulla con <kbd>Ctrl</kbd>+<kbd>Z</kbd> finché il foglio torna girabile, oppure apri un progetto nuovo.</li>
   </ul></div></div>
 </section>
 
@@ -1344,7 +1348,7 @@
   <div class="card-grid col3">
     <div class="card-mini">
       <h4>✏️ Penna</h4>
-      <p>Linee continue, colore solido, spessore regolabile. Bordi netti. Tratti vettoriali.</p>
+      <p>Linee continue, colore solido, spessore regolabile. Tratti vettoriali: bordi netti con la punta <strong>Tonda</strong>, oppure il carattere di un pennino, di una grafite o di un gessetto con una <strong>punta PNG</strong>.</p>
     </div>
     <div class="card-mini">
       <h4>💧 Acquerello</h4>
@@ -1368,7 +1372,24 @@
   <p>Quando penna o gomma sono attive, l'Ispettore mostra:</p>
   <ul>
     <li><strong>Colore corrente</strong> (in alto, blocco condiviso con l'acquerello)</li>
-    <li><strong>Larghezza</strong> — slider 1–60 px</li>
+    <li><strong>Larghezza</strong> — slider 1–60 px. Col mouse il tratto è largo esattamente quanto l'anello attorno al cursore; con la penna della tavoletta lo modula la pressione (vedi <a href="#wacom" style="color:var(--blue);">Tavoletta Wacom</a>).</li>
+    <li><strong>Punta</strong> — il pulsante col nome della punta. Di partenza <strong>Tonda (vettoriale)</strong>, la penna di sempre. Cliccandolo si apre il modale <strong>✏️ Seleziona punta della penna</strong>.</li>
+    <li><strong>Distanza</strong> — dal 5% al 200% della Larghezza (di partenza 25%): quanto sono vicini i timbri della punta. Bassa = tratto pieno; alta = i timbri si staccano.</li>
+    <li><strong>Rotaz. iniz.</strong> — da −180° a +180°, in senso orario col +: di quanto è girata la punta.</li>
+    <li><strong>Direzione — segue il tratto</strong> — spenta di partenza. Spenta: la punta resta sempre girata uguale, come un pennino calligrafico. Accesa: gira con la direzione del tratto, come un pennello piatto.</li>
+  </ul>
+  <p>Distanza, Rotaz. iniz. e Direzione compaiono solo con una punta PNG. La <strong>gomma</strong> resta sempre tonda: la punta vale solo per la penna.</p>
+
+  <h3>La penna a punte</h3>
+  <p>Con una punta PNG la penna <strong>timbra la forma della punta</strong> lungo il tratto, tinta col colore corrente. Il tratto resta <strong>vettoriale</strong>: Mosaica ricorda i punti del tratto e il nome della punta, e lo ridisegna nitido a ogni zoom e nell'export PNG. Per il resto è un tratto di penna come gli altri: gomma, perimetro, lazo, lista linee, <kbd>Ctrl</kbd>+<kbd>Z</kbd>, copia e incolla funzionano uguali.</p>
+  <ul>
+    <li>Il modale mostra in testa <strong>Tonda (vettoriale) — la penna di sempre</strong>, poi le punte della cartella della penna con la miniatura; in fondo il pulsante <strong>📁 Apri la cartella delle punte</strong>. Per tornare alla penna di sempre scegli la Tonda. Le punte e come farne di tue: <a href="#punte" style="color:var(--blue);">Punte: acquerello e penna</a>.</li>
+    <li>La <strong>Larghezza</strong> di una punta è il lato più lungo della sua parte disegnata, e l'anello mostra proprio quella. Mentre tracci con una punta l'anello non si vede (come con l'acquerello): torna appena stacchi.</li>
+    <li><strong>Pennino calligrafico:</strong> pennino a punta o pennino piatto, Direzione spenta, Rotaz. iniz. fra 30° e 45°: il tratto è sottile in una direzione e largo in quella di traverso.</li>
+    <li><strong>Pennello piatto:</strong> pennino piatto con la Direzione accesa e Rotaz. iniz. 90°: la parte larga sta sempre di traverso al tratto. (Con la Direzione accesa e Rotaz. iniz. 0° la parte larga va lungo il tratto.)</li>
+    <li>Punta, Distanza, Rotaz. iniz. e Direzione si salvano come le impostazioni dell'acquerello: nel progetto e per la volta dopo.</li>
+    <li><strong>Se una punta non c'è</strong> (un progetto arrivato da un altro computer, una PNG tolta dalla cartella): il progetto si apre lo stesso, i tratti che la usano si vedono <strong>tondi</strong> e compare un avviso. Il tratto si ricorda la sua punta: rimettendo la PNG nella cartella, alla prossima apertura di Mosaica i tratti tornano com'erano.</li>
+    <li>Un progetto con tratti a punta aperto con una versione vecchia di Mosaica si apre senza errori: i tratti a punta si vedono tondi.</li>
   </ul>
 
   <h3>Gestire i tratti</h3>
@@ -1512,7 +1533,7 @@
       <div class="wc-name">Punta</div>
       <div class="wc-desc">
         <strong>Forma della punta del pennello.</strong> Ogni texture crea un carattere di tratto diverso. Clicca sul pulsante con il nome corrente (es. <code>watercolor-stamp</code>) per aprire il <strong>modale di selezione punte</strong> con tutte le anteprime disponibili.<br>
-        Vedi sezione <a href="#punte" style="color:var(--blue);">Punte Pennello</a>.
+        Vedi sezione <a href="#punte" style="color:var(--blue);">Punte: acquerello e penna</a>.
       </div>
     </div>
     <div class="wc-control" style="border-bottom:none;">
@@ -1529,15 +1550,16 @@
   </div>
 
   <h3>L'anello attorno al cursore</h3>
-  <p>Con penna, gomma e acquerello un <strong>anello tratteggiato</strong> attorno al cursore mostra quanto sarà largo il tratto. Per l'acquerello l'anello è <strong>misurato sulla punta caricata</strong>: mostra la larghezza tipica del tratto, fin dove il colore scende a metà dell'intensità del centro, e si aggiorna quando cambi punta o larghezza. Il tratto cade <strong>centrato sul cursore</strong>; qualche timbro può uscire dall'anello per la dispersione del <strong>Jitter pos.</strong>, che sparpaglia di traverso al tratto.</p>
+  <p>Con penna, gomma e acquerello un <strong>anello tratteggiato</strong> attorno al cursore mostra quanto sarà largo il tratto. Per l'acquerello l'anello è <strong>misurato sulla punta caricata</strong>: mostra la larghezza tipica del tratto, fin dove il colore scende a metà dell'intensità del centro, e si aggiorna quando cambi punta o larghezza. Il tratto cade <strong>centrato sul cursore</strong>; qualche timbro può uscire dall'anello per la dispersione del <strong>Jitter pos.</strong>, che sparpaglia di traverso al tratto. Con la penna l'anello è grande quanto la Larghezza (con una punta PNG, quanto il lato lungo della punta).</p>
 
   <h3>Modale Selettore Punte Pennello</h3>
   <p>Il pulsante <strong>Punta</strong> nell'Ispettore apre un modale a griglia con tutte le texture disponibili nella cartella <code>textures/brush/</code>. Cliccando su una punta essa viene attivata immediatamente e il valore di Rotaz. iniziale specifico di quella punta viene caricato nello slider.</p>
+  <p>Se la punta salvata non c'è su questo computer (un progetto arrivato da un altro PC, una punta tolta), l'acquerello usa la <strong>punta di base</strong> (<code>watercolor-stamp</code>) e te lo dice con un avviso; se non c'è nessuna punta, l'acquerello resta spento e te lo dice. Gli acquerelli già dipinti non cambiano mai: sono immagini.</p>
 
   <div class="callout tip">
     <div class="callout-icon"></div>
     <div><strong>Persistenza automatica</strong><br>
-    Tutti i valori degli slider (Larghezza, Opacità, Tono, Rotaz. iniz., Distanza, Jitter pos., Rotazione, Sbavatura, Livelli e Punta) vengono salvati automaticamente in <code>localStorage</code> e nel progetto <code>.msp.json</code>. All'apertura dell'app o di un progetto, tutti gli slider si impostano automaticamente sugli ultimi valori usati.</div>
+    Tutti i valori degli slider (Larghezza, Opacità, Tono, Rotaz. iniz., Distanza, Jitter pos., Rotazione, Sbavatura, Livelli e Punta) vengono salvati automaticamente in <code>localStorage</code> e nel progetto <code>.msp.json</code>. All'apertura dell'app o di un progetto, tutti gli slider si impostano automaticamente sugli ultimi valori usati. Quelli salvati nel progetto hanno la precedenza: riaprendo un progetto ritrovi i suoi.</div>
   </div>
 
   <div class="callout tip">
@@ -1558,51 +1580,56 @@
 <!-- ── PUNTE PENNELLO ── -->
 <section id="punte">
   <div class="section-label">09</div>
-  <h2>Punte Pennello</h2>
-  <p>Le punte del pennello sono file <strong>PNG con canale alpha (sfondo trasparente)</strong> che definiscono la <strong>forma di ogni singolo timbro</strong>. Quello che conta è il <strong>canale alpha</strong>: dove l'alpha è pieno il pigmento viene applicato a piena intensità, dove l'alpha sfuma il colore diventa più trasparente, dove l'alpha è zero non viene disegnato nulla. Il colore RGB del file è irrilevante (viene sostituito dal colore selezionato), quindi puoi disegnare la silhouette in nero, grigio o qualunque tinta: l'importante è che lo sfondo sia trasparente. Inseriscile nella cartella:</p>  <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;">
-    C:\Users\[utente]\AppData\Roaming\mosaica-workspace-pro\textures\brush\
+  <h2>Punte: acquerello e penna</h2>
+  <p>Le punte sono file <strong>PNG con la trasparenza</strong> che danno la <strong>forma di ogni timbro</strong>: l'acquerello e la penna a punte le timbrano lungo il tratto. Conta <strong>solo la trasparenza</strong>: dove la PNG è piena il colore esce pieno, dove è semitrasparente esce più leggero, dove è trasparente non esce niente. Il colore dei pixel non conta (lo dà Mosaica), quindi puoi disegnarle in nero. Acquerello e penna hanno <strong>ognuno la sua cartella</strong>:</p>
+  <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;">
+    💧 C:\Users\[utente]\AppData\Roaming\mosaica-workspace-pro\textures\brush\<br>
+    ✏️ C:\Users\[utente]\AppData\Roaming\mosaica-workspace-pro\textures\penna\
   </div>
+  <p>La cartella della penna si apre anche dal suo modale, col pulsante <strong>📁 Apri la cartella delle punte</strong>. Una punta nuova compare la volta dopo che apri il modale. Il nome che vedi è quello del file, coi trattini che diventano spazi.</p>
 
-  <div class="brush-cards" style="margin-top:24px;">
-    <div class="brush-card">
-      <div class="brush-preview">
-        <div class="brush-preview-stroke round"></div>
-      </div>
-      <div class="brush-info">
-        <div class="brush-name">Punta Rotonda Morbida</div>
-        <div class="brush-file">brush_round_soft.png</div>
-        <div class="brush-desc">Forma ovale con bordi sfumati e fibre radiali. Ideale per tratti fluidi, linee morbide e campiture uniformi. È la punta più versatile.</div>
-      </div>
-    </div>
-    <div class="brush-card">
-      <div class="brush-preview">
-        <div class="brush-preview-stroke flat"></div>
-      </div>
-      <div class="brush-info">
-        <div class="brush-name">Piatto Largo (Flat Wash)</div>
-        <div class="brush-file">brush_flat_wash.png</div>
-        <div class="brush-desc">Forma rettangolare con bordi strappati e fibre orizzontali. Perfetta per campiture ampie, bande di colore e fondali. Il pennello ruota automaticamente con la direzione del tratto.</div>
-      </div>
-    </div>
-    <div class="brush-card">
-      <div class="brush-preview">
-        <div class="brush-preview-stroke dry"></div>
-      </div>
-      <div class="brush-info">
-        <div class="brush-name">Secco Granulare (Dry Brush)</div>
-        <div class="brush-file">brush_dry_grain.png</div>
-        <div class="brush-desc">Forma allungata con buchi e striature longitudinali. Simula un pennello a secco su carta ruvida. Crea velature, screpolature ed effetti di usura.</div>
-      </div>
-    </div>
-  </div>
+  <h3>Le punte di Mosaica</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Punta</th><th>Per</th><th>Che tratto fa</th></tr></thead>
+    <tbody>
+      <tr><td>watercolor stamp</td><td>💧 Acquerello</td><td>La punta di <strong>base</strong>: quella di partenza, e quella che Mosaica usa quando una punta manca.</td></tr>
+      <tr><td>tonda morbida</td><td>💧 Acquerello</td><td>Piena e morbida, un po' più carica della base.</td></tr>
+      <tr><td>tonda asciutta</td><td>💧 Acquerello</td><td>Pennello quasi scarico: la carta «salta» fra le setole.</td></tr>
+      <tr><td>piatta</td><td>💧 Acquerello</td><td>Pennello piatto: tratto largo, con le setole lungo il tratto.</td></tr>
+      <tr><td>lingua di gatto</td><td>💧 Acquerello</td><td>Ovale con le setole e il bordo morbido.</td></tr>
+      <tr><td>bordo bagnato</td><td>💧 Acquerello</td><td>Il pigmento si ferma ai due bordi del tratto, il centro resta chiaro.</td></tr>
+      <tr><td>bordo sfumato</td><td>💧 Acquerello</td><td>Scuro da un lato del tratto, sfuma verso l'altro.</td></tr>
+      <tr><td>nuvola</td><td>💧 Acquerello</td><td>Macchia morbida e irregolare.</td></tr>
+      <tr><td>granulazione</td><td>💧 Acquerello</td><td>Il pigmento che si deposita a grani.</td></tr>
+      <tr><td>spugna</td><td>💧 Acquerello</td><td>Tamponato, a buchi.</td></tr>
+      <tr><td>schizzi</td><td>💧 Acquerello</td><td>Gocce di varie misure.</td></tr>
+      <tr><td>tonda morbida</td><td>✏️ Penna</td><td>Come un aerografo: piena al centro, sfumata al bordo.</td></tr>
+      <tr><td>pennino a punta</td><td>✏️ Penna</td><td>Mandorla stretta: il tratto calligrafico (prova Rotaz. iniz. 35°).</td></tr>
+      <tr><td>pennino piatto</td><td>✏️ Penna</td><td>Rettangolo netto: calligrafico; con la Direzione accesa e Rotaz. iniz. 90° fa il pennello piatto.</td></tr>
+      <tr><td>grafite</td><td>✏️ Penna</td><td>Tonda e granulosa.</td></tr>
+      <tr><td>carboncino</td><td>✏️ Penna</td><td>Ovale storto, con le striature.</td></tr>
+      <tr><td>gessetto</td><td>✏️ Penna</td><td>Corpo pieno, bordo irregolare e qualche buco.</td></tr>
+    </tbody>
+  </table>
 
-  <div class="callout tip"><div class="callout-icon"></div><div>Puoi aggiungere le tue punte personalizzate: salva qualsiasi <strong>PNG RGBA con sfondo trasparente</strong> nella cartella <code>textures/brush/</code> e apparirà automaticamente nel modale "Punta" alla prossima apertura. Risoluzione consigliata: 256–512 px sul lato maggiore.</div></div>
+  <div class="callout warning"><div class="callout-icon"></div><div><strong>Le punte di Mosaica si rimettono da sole.</strong> A ogni avvio Mosaica rimette le sue punte come sono nell'installer: se ne modifichi una e la salvi con lo stesso nome, torna com'era. Per cambiarne una, <strong>salvala con un altro nome</strong>. Le punte che aggiungi tu, coi tuoi nomi, non vengono mai toccate.</div></div>
+
+  <div class="callout tip"><div class="callout-icon"></div><div><strong>Aggiornando da una versione di prima</strong>, le vecchie punte dell'acquerello vengono tolte dalla cartella, una volta sola. Gli acquerelli già dipinti non cambiano (sono immagini). Un progetto che usava una punta tolta si apre normalmente: accendendo l'acquerello compare un avviso e si usa la punta di base, poi ne scegli un'altra dal modale.</div></div>
+
+  <h3>Come si fa una punta</h3>
+  <ul>
+    <li><strong>PNG su fondo trasparente</strong>, quadrata, <strong>512 × 512 px</strong>, con la forma al centro e qualche pixel libero tutto intorno. <strong>Niente JPG</strong>: non ha trasparenza (l'acquerello timbrerebbe un quadrato pieno, la penna non la mostra nemmeno).</li>
+    <li><strong>Per la penna</strong> disegnala come la vuoi a Rotaz. iniz. 0°: per un pennino piatto, la parte larga in orizzontale. La Larghezza della penna è il lato più lungo della parte disegnata, quindi la grandezza del file non conta.</li>
+    <li><strong>Per l'acquerello</strong> ricorda che l'acquerello gira sempre la punta nella direzione del tratto: una punta piatta va disegnata con la parte larga <strong>in verticale</strong> e le setole in orizzontale (diventano le righe lungo il tratto). Gli effetti di bordo si disegnano <strong>di traverso</strong>, come un profilo dall'alto in basso (bordo bagnato: scuro sopra e sotto, chiaro al centro): un anello intorno alla punta farebbe una bolla a ogni timbro. Sfuma i lati sinistro e destro, se no si vede ogni timbro come il piolo di una scala.</li>
+    <li><strong>Per l'acquerello conta la densità:</strong> l'acquerello sovrappone la punta a strati, quindi <strong>più la punta è piena, più il tratto è scuro</strong>. Disegna le punte dell'acquerello <strong>semitrasparenti</strong>: quelle di Mosaica stanno fra il 20% e il 50% di opacità (la base al 22%), mentre una punta nera piena fa un tratto quasi coprente. Attenzione: conta la trasparenza, non il colore, quindi un grigio chiaro <em>coprente</em> vale come il nero: abbassa l'opacità del livello. L'intensità del tratto poi la regolano <strong>Opacità</strong> e <strong>Livelli</strong>.</li>
+    <li>Per l'acquerello la grandezza del file conta: il timbro è grande in proporzione alla larghezza della PNG. A 512 px le tue punte hanno la stessa scala di quelle di Mosaica.</li>
+  </ul>
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
-    <li>Per aggiungere punte personalizzate, salva file <strong>PNG RGBA con sfondo trasparente</strong> nella cartella <code>textures/brush/</code>: appariranno automaticamente nel modale alla prossima apertura dell'app. Disegna la silhouette del pennello con il canale alpha (alpha pieno = pigmento, alpha sfumato = bordi morbidi).</li>
-    <li>Ogni punta ha la sua <strong>Rotazione iniziale</strong> indipendente: sperimenta angoli diversi per ogni texture per scoprire variazioni di tratto inaspettate.</li>
-    <li>Le punte "dry brush" con buchi e striature (es. <code>brush_dry_grain.png</code>) danno effetti di velatura molto realistici quando combinate con la texture carta ruvida.</li>
-    <li>Se una punta sembra troppo grande o troppo piccola rispetto al tratto, ricorda che la <strong>Larghezza</strong> globale del pennello scala tutte le punte proporzionalmente.</li>
+    <li>Reggono bene le punte con una <strong>forma</strong>: pennini, bordi irregolari, buchi grossi. Una grana finissima, rimpicciolita alla Larghezza del tratto, si impasta.</li>
+    <li>Ogni punta dell'acquerello ha la sua <strong>Rotazione iniziale</strong> indipendente: sperimenta angoli diversi per ogni punta.</li>
+    <li>Con la penna, una <strong>Distanza</strong> bassa dà un tratto pieno; alzandola si vedono i singoli timbri, per un effetto puntinato.</li>
+    <li>Se una punta dell'acquerello sembra troppo grande o troppo piccola, ricorda che la <strong>Larghezza</strong> scala tutte le punte in proporzione.</li>
   </ul></div></div>
 </section>
 
@@ -2072,6 +2099,7 @@
     <li>L'<strong>SVG con riempimento</strong> renderizza le texture come colore medio per garantire l'importazione nei software laser CAM: se ti serve la texture vera, esporta in PNG o PDF.</li>
     <li>Esportando i tratti freehand come <strong>SVG</strong>, il <code>mix-blend-mode</code> viene preservato: aprilo in un browser moderno o in Illustrator per vedere correttamente la sovrapposizione dei colori.</li>
     <li>Il <strong>PNG completo</strong> viene generato ad alta risoluzione: ottimo per presentazioni o post-produzione in Photoshop.</li>
+    <li>Nell'<strong>SVG</strong> i tratti della penna <strong>Tonda</strong> escono come linee vettoriali; quelli fatti con una <strong>punta PNG</strong> escono come <strong>immagine del tratto</strong>, uguale a come lo vedi (come l'acquerello): il file è più pesante e il tratto non si modifica come linea. Nel <strong>PNG</strong> escono tutti nitidi.</li>
     <li>Quando esporti i tratti freehand in modalità <strong>File separati</strong>, ogni linea viene salvata singolarmente: utile se devi animare o trattare i layer individualmente.</li>
   </ul></div></div>
 </section>
@@ -2208,7 +2236,7 @@
   <div class="card-grid col3">
     <div class="card-mini">
       <h4>📏 Larghezza (Width)</h4>
-      <p>Min/Max factor della larghezza del tratto. Default 20%–120%: pressione zero = 1/5 della width, pressione massima = +20%. Si applica sia alla Penna che all'Acquerello.</p>
+      <p>Min/Max factor della larghezza del tratto. Default 20%–120%: pressione zero = 1/5 della width, pressione massima = +20%. Si applica sia alla Penna che all'Acquerello. Curva e sensibilità del Pannello 2 valgono uguali per l'anteprima, per il tratto finito e per l'anello: il tratto non cambia spessore quando stacchi la penna. Lo spessore si decide mentre disegni e resta nel tratto: cambiare le preferenze dopo non cambia i tratti già fatti.</p>
     </div>
     <div class="card-mini">
       <h4>👻 Opacità (Opacity)</h4>
@@ -2289,6 +2317,7 @@
     <li>Mappa il tasto basso su <strong>↩️ Annulla</strong> e il tasto alto su <strong>🧼 Gomma rapida</strong>: è il setup più comodo per disegno + correzione veloce senza staccare la penna dalla tavoletta.</li>
     <li>Se i tasti penna non rispondono, prima di tutto <strong>calibrali</strong>: l'euristica di fallback funziona sul 70% dei driver, ma calibrare li sblocca al 100%.</li>
     <li>Se devi modificare le aree attive della tavoletta, la pressione del sistema o l'orientamento, usa <strong>🪟 Apri Preferenze Wacom</strong>: quello è il pannello ufficiale dei driver.</li>
+    <li>Col <strong>mouse</strong> la pressione non conta: la penna traccia sempre alla Larghezza piena dello slider, grande quanto l'anello.</li>
     <li>Disattivando l'integrazione Wacom (checkbox master), l'app si comporta come con un mouse: tutti i fattori tornano a 1.0 e gli slider degli strumenti riprendono effetto pieno.</li>
   </ul></div></div>
 </section>

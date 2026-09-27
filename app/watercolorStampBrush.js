@@ -20,6 +20,18 @@
 //     altrimenti nella storia resta sopra le tessere (trappola 167);
 //   • un solo disegno del foglio a fine tratto invece di due: l'anteprima
 //     si toglie nel fotogramma in cui il tratto e' disegnato.
+//
+// Cantiere «Le Punte», Fetta 1 (26/09/2026):
+//   • A1: se la PNG della punta non c'e' (progetto da un altro computer,
+//     punta tolta), si usa la punta di base «watercolor-stamp» con UN
+//     avviso per punta; se manca anche quella il caricamento fallisce e
+//     l'acquerello si spegne (freehandDrawing.js). Tolto il ripiego dentro
+//     l'asar, dove le punte non ci sono;
+//   • A10: un tratto senza timbro (punta non ancora pronta o assente) non
+//     mette piu' sul foglio la lastra vuota grande quanto il buffer, e
+//     non aggiunge una voce di storia;
+//   • chieste due punte di fila, vince l'ultima (niente punta vecchia
+//     montata in ritardo sopra quella nuova).
 
 let watercolorStampCanvas = null;
 let watercolorStampLoading = null;
@@ -355,8 +367,14 @@ function smoothAngleRad(prev, next, baseFactor = 0.35) {
 }
 
 function getBrushTipAngleOffset() {
+  // La punta che si disegna davvero (se quella scelta manca, e' la punta
+  // di base): i suoi 90° non vanno applicati a un'altra PNG.
   const brushName =
-    typeof currentBrushTip !== "undefined" && currentBrushTip ? String(currentBrushTip) : "watercolor-stamp";
+    watercolorStampCanvas && watercolorStampCanvas.__currentBrush
+      ? String(watercolorStampCanvas.__currentBrush)
+      : typeof currentBrushTip !== "undefined" && currentBrushTip
+        ? String(currentBrushTip)
+        : "watercolor-stamp";
 
   let baseOffsetRad = 0;
   switch (brushName) {
@@ -383,44 +401,100 @@ function getBrushTipAngleOffset() {
 
 // ─── CARICAMENTO BRUSH (con createImageBitmap) ───────────────────────────────
 
-async function loadWatercolorStamp(brushName = currentBrushTip) {
-  if (watercolorStampCanvas && watercolorStampCanvas.__currentBrush === brushName) {
-    return watercolorStampCanvas;
-  }
+const WC_PUNTA_DI_BASE = "watercolor-stamp";
+const _wcAvvisiDati = new Set(); // punte mancanti gia' segnalate in questa sessione
+let _wcCaricamento = null; // { nome, promessa } del caricamento in corso
+let _wcUltimaRichiesta = 0;
 
-  watercolorStampLoading = new Promise(async (resolve, reject) => {
-    try {
-      let src = null;
-
-      if (window.brushAPI?.listBrushes) {
-        const list = await window.brushAPI.listBrushes();
-        const found = list.find((item) => item.filename === brushName || item.filename === `${brushName}.png`);
-        if (found?.dataURL) src = found.dataURL;
-      }
-
-      if (!src) {
-        src = new URL(`./textures/brush/${brushName}.png`, window.location.href).href;
-      }
-
-      const img = new Image();
-      img.onerror = () => reject(new Error(`Brush texture not found: ${brushName}`));
-      img.onload = async () => {
+// Decodifica una PNG (data-URL) in ImageBitmap; null se non si legge.
+function _wcDecodifica(dataURL) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onerror = () => resolve(null);
+    img.onload = async () => {
+      try {
         // createImageBitmap: la texture viene decodificata una sola volta
         // e il risultato risiede in memoria accessibile alla GPU.
-        const bitmap = await createImageBitmap(img);
-        bitmap.__currentBrush = brushName;
-        watercolorStampCanvas = bitmap;
-        watercolorTintCache.clear();
-        console.log(`[WatercolorStamp] ✅ Caricata (ImageBitmap): ${brushName}`);
-        resolve(bitmap);
-      };
-      img.src = src;
-    } catch (err) {
-      reject(err);
-    }
+        resolve(await createImageBitmap(img));
+      } catch (_) {
+        resolve(null);
+      }
+    };
+    img.src = dataURL;
   });
+}
 
-  return watercolorStampLoading;
+// Legge la punta «nome» dalla cartella delle punte dell'utente (via
+// main.js). Se non c'e' o non si legge, prova la punta di base.
+// Ritorna l'ImageBitmap con __currentBrush (la punta usata) e
+// __requested (quella chiesta), oppure null.
+async function _wcLeggiPunta(nome) {
+  let list = [];
+  try {
+    if (window.brushAPI?.listBrushes) list = await window.brushAPI.listBrushes();
+  } catch (e) {
+    console.warn("[WatercolorStamp] elenco delle punte illeggibile:", e);
+  }
+  if (!Array.isArray(list)) list = [];
+  const trova = (n) => list.find((item) => item && (item.filename === n || item.filename === `${n}.png`));
+
+  const candidati = nome === WC_PUNTA_DI_BASE ? [nome] : [nome, WC_PUNTA_DI_BASE];
+  for (const n of candidati) {
+    const found = trova(n);
+    if (!found?.dataURL) continue;
+    const bitmap = await _wcDecodifica(found.dataURL);
+    if (!bitmap) continue;
+    bitmap.__currentBrush = n;
+    bitmap.__requested = nome;
+    return bitmap;
+  }
+  return null;
+}
+
+// Un avviso solo per punta mancante, e solo con l'acquerello acceso.
+function _wcAvvisaSostituita(bitmap) {
+  if (!bitmap || !bitmap.__requested || bitmap.__requested === bitmap.__currentBrush) return;
+  if (typeof isWatercolorMode === "undefined" || !isWatercolorMode) return;
+  if (_wcAvvisiDati.has(bitmap.__requested)) return;
+  _wcAvvisiDati.add(bitmap.__requested);
+  const nome = String(bitmap.__requested).replace(/-/g, " ");
+  const fallback = `⚠️ La punta «${nome}» non c'è su questo computer: l'acquerello usa la punta di base`;
+  const testo =
+    typeof __t === "function" ? __t("toast.watercolor.tipMissing", { name: nome }, fallback) : fallback;
+  if (typeof flashToast === "function") flashToast(testo);
+}
+
+async function loadWatercolorStamp(brushName = currentBrushTip) {
+  const nome = String(brushName || WC_PUNTA_DI_BASE);
+
+  const pronta = watercolorStampCanvas;
+  if (pronta && (pronta.__requested === nome || (!pronta.__requested && pronta.__currentBrush === nome))) {
+    _wcAvvisaSostituita(pronta);
+    return pronta;
+  }
+  if (_wcCaricamento && _wcCaricamento.nome === nome) return _wcCaricamento.promessa;
+
+  const mia = ++_wcUltimaRichiesta;
+  const voce = { nome, promessa: null };
+  voce.promessa = (async () => {
+    try {
+      const bitmap = await _wcLeggiPunta(nome);
+      if (!bitmap) throw new Error(`Brush texture not found: ${nome}`);
+      // Se nel frattempo e' stata chiesta un'altra punta, vince quella.
+      if (mia !== _wcUltimaRichiesta) return bitmap;
+      watercolorStampCanvas = bitmap;
+      watercolorTintCache.clear();
+      console.log(`[WatercolorStamp] ✅ Caricata (ImageBitmap): ${bitmap.__currentBrush}` +
+        (bitmap.__currentBrush !== nome ? ` (al posto di «${nome}», che manca)` : ""));
+      _wcAvvisaSostituita(bitmap);
+      return bitmap;
+    } finally {
+      if (_wcCaricamento === voce) _wcCaricamento = null;
+    }
+  })();
+  _wcCaricamento = voce;
+  watercolorStampLoading = voce.promessa;
+  return voce.promessa;
 }
 
 // Tetto LRU: limite massimo di voci nella cache. Map preserva l'ordine
@@ -619,6 +693,12 @@ class WatercolorStampBrush extends fabric.PencilBrush {
 
     this._currentTintedStamp = getTintedStampCanvas(strokeColor);
     this._strokeStampData = _captureCurrentTintedStampData(this._currentTintedStamp);
+
+    // Punta non ancora pronta: questo tratto non lascera' niente (A10),
+    // intanto la si chiede, cosi' il prossimo tratto la trova.
+    if (!this._currentTintedStamp && typeof currentBrushTip !== "undefined") {
+      loadWatercolorStamp(currentBrushTip).catch(() => {});
+    }
 
     this._useStreamingWorker = this._startStreamingStroke(this.canvas);
 
@@ -885,6 +965,16 @@ class WatercolorStampBrush extends fabric.PencilBrush {
       this._strokeFlushRAF = 0;
     }
     this._flushStrokeChunk();
+
+    // Senza timbro non si e' disegnato niente (A1, A10): si pulisce il
+    // foglio di sopra e basta, niente immagine vuota e niente storia.
+    if (!this._currentTintedStamp) {
+      _clearActiveWorkerStrokeState(this._strokeId);
+      this._cancelStreamingStroke();
+      if (this.canvas && this.canvas.contextTop) this.canvas.clearContext(this.canvas.contextTop);
+      this._resetStrokeState();
+      return;
+    }
 
     if (!this.hasDrawnAnyStamp && this.downPoint) {
       const rotation = this.tipAngleOffset || 0;

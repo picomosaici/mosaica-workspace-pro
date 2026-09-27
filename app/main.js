@@ -362,6 +362,87 @@ ipcMain.handle("brushes:list", async () => {
 });
 
 /* ===============================
+   🖊️ PUNTE DELLA PENNA (cantiere «Le Punte», Fetta 4)
+   ------------------------------------------------------------
+   Cartella propria: userData/textures/penna/ (B2). Le punte si
+   leggono UNA PER VOLTA (A8: brushes:list le legge tutte a ogni
+   cambio), solo PNG (A7: una JPG non ha trasparenza), e il nome
+   non può uscire dalla cartella: si accetta solo un file che c'è
+   davvero nell'elenco della cartella.
+================================ */
+const PENTIP_MAX_BYTES = 20 * 1024 * 1024; // una punta più grossa non è una punta
+const PNG_FIRMA = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
+function getPenTipDir() {
+  const dir = path.join(getTextureDir(), "penna");
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
+// Il file di una punta, cercato PER NOME fra i file della cartella (senza
+// badare a maiuscole/minuscole, come Windows). Niente percorsi: un nome
+// con barre, «..» o caratteri strani non trova niente.
+function _penTipFile(nome) {
+  if (typeof nome !== "string") return null;
+  nome = nome.replace(/\.png$/i, "");
+  if (!nome || nome.length > 200 || /[\\/:*?"<>|\x00-\x1f]/.test(nome) || nome === "." || nome === "..") return null;
+  const dir = getPenTipDir();
+  const cercato = (nome + ".png").toLowerCase();
+  let trovato = null;
+  try {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (e.isFile() && e.name.toLowerCase() === cercato) {
+        trovato = e.name;
+        break;
+      }
+    }
+  } catch (_) {
+    return null;
+  }
+  return trovato ? path.join(dir, trovato) : null;
+}
+
+// L'elenco dei NOMI (senza estensione, in ordine alfabetico): niente file letti.
+ipcMain.handle("pentips:list", async () => {
+  try {
+    return fs
+      .readdirSync(getPenTipDir(), { withFileTypes: true })
+      .filter((e) => e.isFile() && /\.png$/i.test(e.name))
+      .map((e) => e.name.replace(/\.png$/i, ""))
+      .sort((a, b) => a.localeCompare(b, "it", { sensitivity: "base" }));
+  } catch (e) {
+    console.warn("[PuntePenna] elenco non leggibile:", e.message);
+    return [];
+  }
+});
+
+// Una punta: il data-URL della PNG, oppure null (non c'è, non è una PNG,
+// è troppo grossa, il nome non è valido).
+ipcMain.handle("pentips:read", async (_, nome) => {
+  const file = _penTipFile(nome);
+  if (!file) return null;
+  try {
+    const st = await fs.promises.stat(file);
+    if (!st.isFile() || st.size > PENTIP_MAX_BYTES) return null;
+    const buf = await fs.promises.readFile(file);
+    if (buf.length < 8 || !buf.subarray(0, 8).equals(PNG_FIRMA)) return null;
+    return `data:image/png;base64,${buf.toString("base64")}`;
+  } catch (_) {
+    return null;
+  }
+});
+
+// Apre la cartella delle punte in Esplora file (per metterci le proprie).
+ipcMain.handle("pentips:openFolder", async () => {
+  try {
+    const err = await shell.openPath(getPenTipDir());
+    return !err;
+  } catch (_) {
+    return false;
+  }
+});
+
+/* ===============================
    📁 PROJECTS + AUTO-OPEN (Feature B completa)
 ================================ */
 
@@ -919,6 +1000,141 @@ ipcMain.handle("window:is-fullscreen", () => {
 });
 
 // ======================== COPIA DEFAULT TEXTURES (RICORSIVA) ========================
+// Copia le texture dell'installer nella cartella dell'utente (userData/textures).
+// Le regole (cantiere «Le Punte», Fetta 5, 27/09/2026 — decise da Mirko):
+//  • Le PUNTE DI FABBRICA sono le PNG sciolte in textures/brush/ (acquerello)
+//    e textures/penna/ (penna) dell'installer. Una punta di fabbrica che
+//    sul PC c'è già ma è DIVERSA si sostituisce (così un aggiornamento del
+//    set arriva a tutti). Fino alla 09.2026 si copiava solo quello che
+//    mancava, e una punta cambiata non arrivava mai (trappola 232).
+//  • Tutto il resto (texture-carta, le texture delle tessere, e le punte
+//    AGGIUNTE dall'utente con altri nomi) si copia solo se manca, come prima:
+//    non si sovrascrive e non si cancella mai.
+//  • Le 66 punte dell'acquerello fino alla 09.2026 si tolgono PER NOME, una
+//    volta sola (il segno è textures/.punte-di-fabbrica.json): se poi
+//    l'utente mette una sua punta con uno di quei nomi, resta.
+const PUNTE_CARTELLE_DI_FABBRICA = ["brush", "penna"];
+const PUNTE_SEGNO = ".punte-di-fabbrica.json";
+const PUNTE_SET = "2026-09"; // cambia solo se un giorno si tolgono ALTRE punte per nome
+const PUNTE_VECCHIE_ACQUERELLO = [
+  "PENNELLO DSC 1.png",
+  "PENNELLO DSC 10.png",
+  "PENNELLO DSC 11.png",
+  "PENNELLO DSC 12.png",
+  "PENNELLO DSC 13.png",
+  "PENNELLO DSC 14.png",
+  "PENNELLO DSC 15.png",
+  "PENNELLO DSC 16.png",
+  "PENNELLO DSC 17.png",
+  "PENNELLO DSC 18.png",
+  "PENNELLO DSC 19.png",
+  "PENNELLO DSC 2.png",
+  "PENNELLO DSC 20.png",
+  "PENNELLO DSC 21.png",
+  "PENNELLO DSC 3.png",
+  "PENNELLO DSC 4.png",
+  "PENNELLO DSC 5.png",
+  "PENNELLO DSC 6.png",
+  "PENNELLO DSC 7.png",
+  "PENNELLO DSC 8.png",
+  "PENNELLO DSC 9.png",
+  "PENNELLO FOGLIA 1.png",
+  "PENNELLO FOGLIA 2.png",
+  "PENNELLO FRATTALE 1.png",
+  "PENNELLO FRATTALE 10.png",
+  "PENNELLO FRATTALE 11.png",
+  "PENNELLO FRATTALE 12.png",
+  "PENNELLO FRATTALE 13.png",
+  "PENNELLO FRATTALE 14.png",
+  "PENNELLO FRATTALE 15.png",
+  "PENNELLO FRATTALE 16.png",
+  "PENNELLO FRATTALE 17.png",
+  "PENNELLO FRATTALE 18.png",
+  "PENNELLO FRATTALE 2.png",
+  "PENNELLO FRATTALE 3.png",
+  "PENNELLO FRATTALE 4.png",
+  "PENNELLO FRATTALE 5.png",
+  "PENNELLO FRATTALE 6.png",
+  "PENNELLO FRATTALE 7.png",
+  "PENNELLO FRATTALE 8.png",
+  "PENNELLO FRATTALE 9.png",
+  "PENNELLO SFUMATURA.png",
+  "PENNELLO SOLE 1.png",
+  "PENNELLO TURBINIO 1.png",
+  "PENNELLO TURBINIO 10.png",
+  "PENNELLO TURBINIO 11.png",
+  "PENNELLO TURBINIO 12.png",
+  "PENNELLO TURBINIO 2.png",
+  "PENNELLO TURBINIO 3.png",
+  "PENNELLO TURBINIO 4.png",
+  "PENNELLO TURBINIO 5.png",
+  "PENNELLO TURBINIO 6.png",
+  "PENNELLO TURBINIO 7.png",
+  "PENNELLO TURBINIO 8.png",
+  "PENNELLO TURBINIO 9.png",
+  "PIATTO 3.png",
+  "watercolor-brush.png",
+  "watercolor-filbert.png",
+  "watercolor-stamp - Copia.png",
+  "watercolor-stamp.png",
+  "watercolor_filbert.png",
+  "watercolor_flat_wide.png",
+  "watercolor_granulation_patch.png",
+  "watercolor_mop_soft.png",
+  "watercolor_round_dry.png",
+  "watercolor_round_soft.png"
+];
+
+function _stessiByte(a, b) {
+  try {
+    const sa = fs.statSync(a),
+      sb = fs.statSync(b);
+    if (sa.size !== sb.size) return false;
+    return fs.readFileSync(a).equals(fs.readFileSync(b));
+  } catch (_) {
+    return false;
+  }
+}
+
+// Una volta sola: via le punte vecchie dell'acquerello, SOLO se il set
+// nuovo non ha una punta con lo stesso nome (watercolor-stamp resta: si
+// sostituisce, se è cambiata). Se una cancellazione fallisce (file aperto,
+// permessi) il segno non si scrive e si riprova al prossimo avvio.
+function _togliPunteVecchie(texturesDir, sourceDir) {
+  const segno = path.join(texturesDir, PUNTE_SEGNO);
+  try {
+    const s = JSON.parse(fs.readFileSync(segno, "utf8"));
+    if (s && s.set === PUNTE_SET) return;
+  } catch (_) {}
+  const brushDir = path.join(texturesDir, "brush");
+  const nuove = new Set();
+  try {
+    for (const f of fs.readdirSync(path.join(sourceDir, "brush"))) nuove.add(f.toLowerCase());
+  } catch (_) {}
+  const tolte = [];
+  let fallite = 0;
+  for (const nome of PUNTE_VECCHIE_ACQUERELLO) {
+    if (nuove.has(nome.toLowerCase())) continue;
+    const f = path.join(brushDir, nome);
+    try {
+      if (fs.existsSync(f) && fs.statSync(f).isFile()) {
+        fs.unlinkSync(f);
+        tolte.push(nome);
+      }
+    } catch (e) {
+      fallite++;
+      console.warn(`[Textures] Punta vecchia non tolta: ${nome} (${e.message})`);
+    }
+  }
+  if (tolte.length) console.log(`[Textures] Tolte ${tolte.length} punte vecchie dell'acquerello`);
+  if (fallite) return;
+  try {
+    fs.writeFileSync(segno, JSON.stringify({ set: PUNTE_SET, data: new Date().toISOString(), tolte }, null, 2));
+  } catch (e) {
+    console.warn("[Textures] Segno delle punte non scritto:", e.message);
+  }
+}
+
 async function copyDefaultTextures() {
   const texturesDir = getTextureDir();
 
@@ -926,7 +1142,10 @@ async function copyDefaultTextures() {
 
   if (!fs.existsSync(sourceDir)) return;
 
-  function copyRecursive(src, dest) {
+  _togliPunteVecchie(texturesDir, sourceDir);
+
+  // puntaDiFabbrica: siamo dentro brush/ o penna/, al primo livello.
+  function copyRecursive(src, dest, puntaDiFabbrica) {
     if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
 
     const entries = fs.readdirSync(src, { withFileTypes: true });
@@ -936,17 +1155,25 @@ async function copyDefaultTextures() {
       const destPath = path.join(dest, entry.name);
 
       if (entry.isDirectory()) {
-        copyRecursive(srcPath, destPath);
+        const fabbrica = src === sourceDir && PUNTE_CARTELLE_DI_FABBRICA.includes(entry.name);
+        copyRecursive(srcPath, destPath, fabbrica);
       } else if (/\.(png|jpg|jpeg|gif|webp|svg)$/i.test(entry.name)) {
-        if (!fs.existsSync(destPath)) {
-          fs.copyFileSync(srcPath, destPath);
-          console.log(`[Textures] Copiato: ${entry.name} → ${destPath}`);
+        try {
+          if (!fs.existsSync(destPath)) {
+            fs.copyFileSync(srcPath, destPath);
+            console.log(`[Textures] Copiato: ${entry.name} → ${destPath}`);
+          } else if (puntaDiFabbrica && /\.png$/i.test(entry.name) && !_stessiByte(srcPath, destPath)) {
+            fs.copyFileSync(srcPath, destPath);
+            console.log(`[Textures] Punta di fabbrica aggiornata: ${entry.name}`);
+          }
+        } catch (e) {
+          console.warn(`[Textures] ${entry.name} non copiato: ${e.message}`);
         }
       }
     }
   }
 
-  copyRecursive(sourceDir, texturesDir);
+  copyRecursive(sourceDir, texturesDir, false);
 }
 
 /* ===============================

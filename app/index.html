@@ -2346,6 +2346,46 @@
             <input type="range" id="lineWidthSlider" min="1" max="60" value="4" step="0.2" />
             <span class="val" id="lineWidthValue">4</span>
           </div>
+          <!-- La punta della penna (cantiere «Le Punte», Fetta 4). Distanza,
+               Rotaz. iniz. e Direzione si vedono solo con una punta PNG. -->
+          <div class="inspector-row">
+            <span class="lbl" data-i18n="inspector.penna.tip">Punta</span>
+            <button
+              id="penTipModalBtn"
+              style="
+                flex: 1;
+                background: #2b6cff;
+                color: #fff;
+                border: 0;
+                border-radius: 6px;
+                padding: 6px 10px;
+                font-size: 12px;
+                cursor: pointer;
+              ">
+              <span id="penTipRoundName" data-i18n="inspector.penna.tipRound">Tonda (vettoriale)</span>
+              <span id="currentPenTipName" style="display: none"></span>
+            </button>
+          </div>
+          <div class="inspector-row" id="penTipSpacingRow" style="display: none">
+            <span class="lbl" data-i18n="inspector.penna.distance">Distanza</span>
+            <input type="range" id="penTipSpacingSlider" min="5" max="200" value="25" step="1" />
+            <span class="val" id="penTipSpacingValue">25%</span>
+          </div>
+          <div class="inspector-row" id="penTipRotationRow" style="display: none">
+            <span class="lbl" data-i18n="inspector.penna.initialRotation">Rotaz. iniz.</span>
+            <input type="range" id="penTipRotationSlider" min="-180" max="180" value="0" step="1" />
+            <span class="val" id="penTipRotationValue">0°</span>
+          </div>
+          <div class="inspector-row" id="penTipFollowRow" style="display: none">
+            <span class="lbl" data-i18n="inspector.penna.follow">Direzione</span>
+            <label
+              style="display: flex; align-items: center; gap: 6px; flex: 1; cursor: pointer; font-size: 11px; color: var(--col-text-dim)"
+              data-i18n-title="inspector.penna.follow.tooltip"
+              title="Accesa, la punta gira con la direzione del tratto (un pennello piatto). Spenta, resta sempre girata uguale (un pennino calligrafico).">
+              <input type="checkbox" id="penTipFollowChk" style="cursor: pointer" />
+              <span data-i18n="inspector.penna.follow.hint">segue il tratto</span>
+            </label>
+          </div>
           <div class="inspector-divider"></div>
           <div style="font-size: 11px; color: var(--col-text-dim); line-height: 1.5" data-i18n-html="inspector.penna.note">
             La penna disegna tratti vettoriali sopra le forme.<br />
@@ -3088,7 +3128,8 @@
           box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
         ">
         <div style="display: flex; justify-content: space-between; margin-bottom: 15px">
-          <h3 style="margin: 0" data-i18n="brushTip.modal.title">🖌️ Seleziona Punta Pennello Acquerello</h3>
+          <h3 style="margin: 0" id="brushTipModalTitle" data-i18n="brushTip.modal.title">🖌️ Seleziona Punta Pennello Acquerello</h3>
+          <h3 style="margin: 0; display: none" id="penTipModalTitle" data-i18n="penTip.modal.title">✏️ Seleziona punta della penna</h3>
           <button
             id="brushTipModalCloseBtn"
             style="background: none; border: none; color: #aaa; font-size: 26px; cursor: pointer; line-height: 1">
@@ -3985,6 +4026,7 @@
     <script src="mouseObserver.js"></script>
     <script src="lassoSelection.js"></script>
     <script src="lassoBrushSelection.js"></script>
+    <script src="penTips.js"></script>
     <script src="wacomTablet.js"></script>
     <script src="freehandTools.js"></script>
     <script src="freehandClipLens.js"></script>

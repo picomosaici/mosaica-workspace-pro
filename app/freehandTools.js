@@ -283,14 +283,21 @@
   // Il brush corrente fa il FULL render dell'anteprima (clear + _render ad
   // ogni move)? Solo in tal caso posso disegnare il cerchio SOPRA il tratto
   // senza lasciare scie: e' il caso della penna (PressurePencilBrush).
+  // Il pennello ridisegna TUTTO il foglio di sopra a ogni movimento? Solo
+  // allora l'anello si puo' sovrapporre durante il tratto: il pennello lo
+  // cancella al movimento dopo. Si chiede PRIMA al pennello (cantiere «Le
+  // Punte», 27/09/2026): la penna a punte (Fetta 3) posa solo i timbri
+  // nuovi e non cancella, e l'anello ci restava stampato a ogni movimento,
+  // una scia di cerchi fino al rilascio (trappola 241). Il nome resta come
+  // riserva per un pennello che non sa rispondere.
   function _brushIsFullRender() {
     const c = _canvas();
     const b = c && c.freeDrawingBrush;
     if (!b) return false;
-    if (b.name === "pressure-pencil") return true;
     if (typeof b.needsFullRender === "function") {
       try { return !!b.needsFullRender(); } catch (e) {}
     }
+    if (b.name === "pressure-pencil") return true;
     return false;
   }
   // Lazo o pennello selezione accesi? Disegnano sullo stesso contextTop e lo

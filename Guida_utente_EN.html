@@ -601,7 +601,7 @@
     <a href="#lazo">Lasso</a>
     <a href="#disegno">Freehand Drawing</a>
     <a href="#acquerello">Watercolor</a>
-    <a href="#punte">Brush Tips</a>
+    <a href="#punte">Tips</a>
     <a href="#timbro">Clone Stamp</a>
     <a href="#sfondo">Background</a>
     <a href="#progetti">Projects</a>
@@ -823,10 +823,14 @@
     </div>
   </div>
 
+  <div class="callout warning"><div class="callout-icon"></div><div><strong>The orientation is chosen at the start, with the mosaic's subject.</strong> The sheet can be rotated only until the work has started. As soon as the sheet holds at least <strong>one stroke</strong> (pen, watercolor, eraser or clone stamp) or at least <strong>two tiles</strong>, the two buttons no longer rotate the sheet: the 🔒 notice appears and tiles, strokes and sheet stay as they are. The tile a new project starts with does not count.</div></div>
+
+  <p>The rule is checked at the moment of the click, on the sheet as it is: it also applies to a reopened project, and if you undo with <kbd>Ctrl</kbd>+<kbd>Z</kbd> until the first stroke (or the second tile) is gone, the sheet can be rotated again. The lock is there because rotating the sheet with the work under way moved the tiles already laid and distorted the watercolors.</p>
+
   <div class="callout tip">
     <div class="callout-icon"></div>
-    <div>Rotation is <strong>geometric and precise</strong>:<br>
-    • All shapes, freehand strokes, and watercolor are rotated.<br>
+    <div>While the sheet can still be rotated, rotation is <strong>geometric and precise</strong>:<br>
+    • The shapes on the sheet rotate around the center of the A4 sheet.<br>
     • The paper texture is automatically recreated to the new dimensions.<br>
     • The background image is readjusted.<br>
     • The mm calibration remains unchanged.<br>
@@ -836,10 +840,10 @@
   <p>The current orientation is saved in the <code>.msp.json</code> project file and restored on opening. PDF export also respects the sheet orientation (portrait/landscape).</p>
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
-    <li>Before rotating the canvas, position all shapes where you want them: rotation occurs around the <strong>geometric center of the A4 sheet</strong>.</li>
+    <li>Choose the orientation <strong>right away</strong>, when you load the image of the subject: that is when it matters, before laying tiles and drawing.</li>
     <li>After a rotation, check the background image: if you were using <strong>Contain</strong> or <strong>Cover</strong>, you may need to readjust the background rotation separately (using the ↶ Rotate buttons in the BG Panel).</li>
     <li>The <strong>paper texture</strong> automatically regenerates with the correct orientation: you do not need to reload it manually.</li>
-    <li>Undo/Redo works normally even after an orientation change, so you can undo the rotation if the result is not satisfactory.</li>
+    <li>If you notice the wrong orientation just after starting, undo with <kbd>Ctrl</kbd>+<kbd>Z</kbd> until the sheet can be rotated again, or open a new project.</li>
   </ul></div></div>
 </section>
 
@@ -1345,7 +1349,7 @@
   <div class="card-grid col3">
     <div class="card-mini">
       <h4>✏️ Pen</h4>
-      <p>Continuous lines, solid color, adjustable thickness. Sharp edges. Vector strokes.</p>
+      <p>Continuous lines, solid color, adjustable thickness. Vector strokes: sharp edges with the <strong>Round</strong> tip, or the character of a nib, graphite or chalk with a <strong>PNG tip</strong>.</p>
     </div>
     <div class="card-mini">
       <h4>💧 Watercolor</h4>
@@ -1369,7 +1373,24 @@
   <p>When pen or eraser are active, the Inspector shows:</p>
   <ul>
     <li><strong>Current color</strong> (at the top, block shared with watercolor)</li>
-    <li><strong>Width</strong> — slider 1–60 px</li>
+    <li><strong>Width</strong> — slider 1–60 px. With the mouse the stroke is exactly as wide as the ring around the cursor; with the tablet pen the pressure modulates it (see <a href="#wacom" style="color:var(--blue);">Wacom Tablet</a>).</li>
+    <li><strong>Tip</strong> — the button with the name of the tip. By default <strong>Round (vector)</strong>, the usual pen. Clicking it opens the <strong>✏️ Select pen tip</strong> modal.</li>
+    <li><strong>Distance</strong> — from 5% to 200% of the Width (25% by default): how close together the stamps of the tip are. Low = solid stroke; high = the stamps come apart.</li>
+    <li><strong>Init. rotation</strong> — from −180° to +180°, clockwise with +: how much the tip is turned.</li>
+    <li><strong>Direction — follows the stroke</strong> — off by default. Off: the tip always keeps the same angle, like a calligraphy nib. On: it turns with the direction of the stroke, like a flat brush.</li>
+  </ul>
+  <p>Distance, Init. rotation and Direction appear only with a PNG tip. The <strong>eraser</strong> always stays round: the tip applies to the pen only.</p>
+
+  <h3>The pen with tips</h3>
+  <p>With a PNG tip the pen <strong>stamps the shape of the tip</strong> along the stroke, tinted with the current color. The stroke stays <strong>vector</strong>: Mosaica remembers the points of the stroke and the name of the tip, and redraws it sharp at every zoom and in the PNG export. Otherwise it is a pen stroke like the others: eraser, perimeter, lasso, line list, <kbd>Ctrl</kbd>+<kbd>Z</kbd>, copy and paste work the same.</p>
+  <ul>
+    <li>The modal shows <strong>Round (vector) — the usual pen</strong> at the top, then the tips of the pen folder with their thumbnail; at the bottom, the <strong>📁 Open the tips folder</strong> button. To go back to the usual pen, choose Round. The tips, and how to make your own: <a href="#punte" style="color:var(--blue);">Tips: watercolor and pen</a>.</li>
+    <li>The <strong>Width</strong> of a tip is the longest side of its drawn part, and the ring shows exactly that. While you draw with a tip the ring is hidden (as with watercolor): it comes back as soon as you lift.</li>
+    <li><strong>Calligraphy nib:</strong> pointed nib or flat nib, Direction off, Init. rotation between 30° and 45°: the stroke is thin in one direction and wide across it.</li>
+    <li><strong>Flat brush:</strong> flat nib with Direction on and Init. rotation 90°: the wide side always stays across the stroke. (With Direction on and Init. rotation 0° the wide side runs along the stroke.)</li>
+    <li>Tip, Distance, Init. rotation and Direction are saved like the watercolor settings: in the project and for next time.</li>
+    <li><strong>If a tip is missing</strong> (a project coming from another computer, a PNG removed from the folder): the project opens anyway, the strokes that use it are shown <strong>round</strong> and a notice appears. The stroke remembers its tip: put the PNG back in the folder and the strokes are as before the next time you open Mosaica.</li>
+    <li>A project with tip strokes opened with an older version of Mosaica opens without errors: the tip strokes are shown round.</li>
   </ul>
 
   <h3>Managing Strokes</h3>
@@ -1513,7 +1534,7 @@
       <div class="wc-name">Tip</div>
       <div class="wc-desc">
         <strong>Brush tip shape.</strong> Each texture creates a different stroke character. Click the button with the current name (e.g. <code>watercolor-stamp</code>) to open the <strong>tip selector modal</strong> with all available previews.<br>
-        See <a href="#punte" style="color:var(--blue);">Brush Tips</a> section.
+        See <a href="#punte" style="color:var(--blue);">Tips: watercolor and pen</a> section.
       </div>
     </div>
     <div class="wc-control" style="border-bottom:none;">
@@ -1530,15 +1551,16 @@
   </div>
 
   <h3>The ring around the cursor</h3>
-  <p>With pen, eraser and watercolor a <strong>dashed ring</strong> around the cursor shows how wide the stroke will be. For the watercolor the ring is <strong>measured on the loaded tip</strong>: it shows the typical width of the stroke, out to where the color drops to half the intensity of the center, and it updates when you change tip or width. The stroke lands <strong>centered on the cursor</strong>; a few stamps may fall outside the ring because of the <strong>Pos. jitter</strong> spread, which scatters them across the stroke.</p>
+  <p>With pen, eraser and watercolor a <strong>dashed ring</strong> around the cursor shows how wide the stroke will be. For the watercolor the ring is <strong>measured on the loaded tip</strong>: it shows the typical width of the stroke, out to where the color drops to half the intensity of the center, and it updates when you change tip or width. The stroke lands <strong>centered on the cursor</strong>; a few stamps may fall outside the ring because of the <strong>Pos. jitter</strong> spread, which scatters them across the stroke. With the pen the ring is as large as the Width (with a PNG tip, as the longest side of the tip).</p>
 
   <h3>Brush Tip Selector Modal</h3>
   <p>The <strong>Tip</strong> button in the Inspector opens a grid modal with all available textures in the <code>textures/brush/</code> folder. Clicking a tip immediately activates it and the specific Initial Rotation value for that tip is loaded into the slider.</p>
+  <p>If the saved tip is not on this computer (a project coming from another PC, a removed tip), watercolor uses the <strong>basic tip</strong> (<code>watercolor-stamp</code>) and tells you with a notice; if there is no tip at all, watercolor stays off and tells you. Watercolors already painted never change: they are images.</p>
 
   <div class="callout tip">
     <div class="callout-icon"></div>
     <div><strong>Automatic Persistence</strong><br>
-    All slider values (Width, Opacity, Tone, Initial Rot., Spacing, Pos. Jitter, Rotation, Bleed, Layers, and Tip) are automatically saved in <code>localStorage</code> and in the <code>.msp.json</code> project. When opening the app or a project, all sliders automatically set to the last used values.</div>
+    All slider values (Width, Opacity, Tone, Initial Rot., Spacing, Pos. Jitter, Rotation, Bleed, Layers, and Tip) are automatically saved in <code>localStorage</code> and in the <code>.msp.json</code> project. When opening the app or a project, all sliders automatically set to the last used values. The values saved in the project take precedence: reopening a project you find its own.</div>
   </div>
 
   <div class="callout tip">
@@ -1559,49 +1581,56 @@
 <!-- ── BRUSH TIPS ── -->
 <section id="punte">
   <div class="section-label">09</div>
-  <h2>Brush Tips</h2>
-  <p>Brush tips are <strong>PNG files with an alpha channel (transparent background)</strong> that define the <strong>shape of each individual stamp</strong>. What matters is the <strong>alpha channel</strong>: where alpha is full the pigment is applied at full intensity, where alpha fades the color becomes more transparent, where alpha is zero nothing is drawn. The RGB color of the file is irrelevant (it is replaced by the selected color), so you can draw the silhouette in black, gray, or any tint: the important thing is that the background is transparent. Place them in the folder:</p>  <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;">
-    C:\Users\[user]\AppData\Roaming\mosaica-workspace-pro\textures\brush\
+  <h2>Tips: watercolor and pen</h2>
+  <p>Tips are <strong>PNG files with transparency</strong> that give the <strong>shape of each stamp</strong>: watercolor and the pen with tips stamp them along the stroke. <strong>Only the transparency counts</strong>: where the PNG is full the color comes out full, where it is semi-transparent it comes out lighter, where it is transparent nothing comes out. The color of the pixels does not matter (Mosaica gives it), so you can draw them in black. Watercolor and pen <strong>each have their own folder</strong>:</p>
+  <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;">
+    💧 C:\Users\[user]\AppData\Roaming\mosaica-workspace-pro\textures\brush\<br>
+    ✏️ C:\Users\[user]\AppData\Roaming\mosaica-workspace-pro\textures\penna\
   </div>
+  <p>The pen folder also opens from its modal, with the <strong>📁 Open the tips folder</strong> button. A new tip appears the next time you open the modal. The name you see is the file name, with dashes turned into spaces.</p>
 
-  <div class="brush-cards" style="margin-top:24px;">
-    <div class="brush-card">
-      <div class="brush-preview">
-        <div class="brush-preview-stroke round"></div>
-      </div>
-      <div class="brush-info">
-        <div class="brush-name">Soft Round Tip</div>
-        <div class="brush-file">brush_round_soft.png</div>
-        <div class="brush-desc">Oval shape with blurred edges and radial fibers. Ideal for fluid strokes, soft lines, and uniform fills. The most versatile tip.</div>
-      </div>
-    </div>
-    <div class="brush-card">
-      <div class="brush-preview">
-        <div class="brush-preview-stroke flat"></div>
-      </div>
-      <div class="brush-info">
-        <div class="brush-name">Wide Flat (Flat Wash)</div>
-        <div class="brush-file">brush_flat_wash.png</div>
-        <div class="brush-desc">Rectangular shape with torn edges and horizontal fibers. Perfect for large fills, color bands, and backgrounds. The brush automatically rotates with the stroke direction.</div>
-      </div>
-    </div>
-    <div class="brush-card">
-      <div class="brush-preview">
-        <div class="brush-preview-stroke dry"></div>
-      </div>
-      <div class="brush-info">
-        <div class="brush-name">Dry Granular (Dry Brush)</div>
-        <div class="brush-file">brush_dry_grain.png</div>
-        <div class="brush-desc">Elongated shape with holes and longitudinal streaks. Simulates a dry brush on rough paper. Creates glazes, crackling, and wear effects.</div>
-      </div>
-    </div>
-  </div>
+  <h3>Mosaica's tips</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Tip</th><th>For</th><th>What stroke it makes</th></tr></thead>
+    <tbody>
+      <tr><td>watercolor stamp</td><td>💧 Watercolor</td><td>The <strong>basic</strong> tip: the default one, and the one Mosaica uses when a tip is missing.</td></tr>
+      <tr><td>tonda morbida</td><td>💧 Watercolor</td><td>Soft round: full and soft, a little richer than the basic tip.</td></tr>
+      <tr><td>tonda asciutta</td><td>💧 Watercolor</td><td>Dry round: an almost empty brush, the paper "skips" between the bristles.</td></tr>
+      <tr><td>piatta</td><td>💧 Watercolor</td><td>Flat brush: a wide stroke, with the bristles along the stroke.</td></tr>
+      <tr><td>lingua di gatto</td><td>💧 Watercolor</td><td>Filbert: an oval with bristles and a soft edge.</td></tr>
+      <tr><td>bordo bagnato</td><td>💧 Watercolor</td><td>Wet edge: the pigment gathers at the two edges of the stroke, the center stays light.</td></tr>
+      <tr><td>bordo sfumato</td><td>💧 Watercolor</td><td>Faded edge: dark on one side of the stroke, fading towards the other.</td></tr>
+      <tr><td>nuvola</td><td>💧 Watercolor</td><td>Cloud: a soft, irregular blot.</td></tr>
+      <tr><td>granulazione</td><td>💧 Watercolor</td><td>Granulation: pigment settling in grains.</td></tr>
+      <tr><td>spugna</td><td>💧 Watercolor</td><td>Sponge: dabbed, full of holes.</td></tr>
+      <tr><td>schizzi</td><td>💧 Watercolor</td><td>Splatter: drops of various sizes.</td></tr>
+      <tr><td>tonda morbida</td><td>✏️ Pen</td><td>Soft round: like an airbrush, full in the center and soft at the edge.</td></tr>
+      <tr><td>pennino a punta</td><td>✏️ Pen</td><td>Pointed nib: a narrow almond, the calligraphic stroke (try Init. rotation 35°).</td></tr>
+      <tr><td>pennino piatto</td><td>✏️ Pen</td><td>Flat nib: a sharp rectangle, calligraphic; with Direction on and Init. rotation 90° it becomes a flat brush.</td></tr>
+      <tr><td>grafite</td><td>✏️ Pen</td><td>Graphite: round and grainy.</td></tr>
+      <tr><td>carboncino</td><td>✏️ Pen</td><td>Charcoal: a skewed oval, with streaks.</td></tr>
+      <tr><td>gessetto</td><td>✏️ Pen</td><td>Chalk: a solid body, an irregular edge and a few holes.</td></tr>
+    </tbody>
+  </table>
 
-    <div class="callout tip"><div class="callout-icon"></div><div>You can add your own custom tips: save any <strong>RGBA PNG with transparent background</strong> in the <code>textures/brush/</code> folder and it will automatically appear in the "Tip" modal at the next opening. Recommended resolution: 256–512 px on the longest side.</div></div>  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
-    <li>To add custom tips, save <strong>RGBA PNG files with transparent background</strong> in the <code>textures/brush/</code> folder: they will automatically appear in the modal at the next app opening. Draw the brush silhouette with the alpha channel (full alpha = pigment, faded alpha = soft edges).</li>
-    <li>Each tip has its own independent <strong>Initial Rotation</strong>: experiment with different angles for each texture to discover unexpected stroke variations.</li>
-    <li>"Dry brush" tips with holes and streaks (e.g. <code>brush_dry_grain.png</code>) give very realistic glaze effects when combined with rough paper texture.</li>
-    <li>If a tip seems too large or too small relative to the stroke, remember that the global brush <strong>Width</strong> scales all tips proportionally.</li>
+  <div class="callout warning"><div class="callout-icon"></div><div><strong>Mosaica's tips put themselves back.</strong> At every start Mosaica restores its tips as they are in the installer: if you edit one and save it with the same name, it goes back to how it was. To change one, <strong>save it under another name</strong>. The tips you add yourself, with your own names, are never touched.</div></div>
+
+  <div class="callout tip"><div class="callout-icon"></div><div><strong>When updating from an earlier version</strong>, the old watercolor tips are removed from the folder, once only. Watercolors already painted do not change (they are images). A project that used a removed tip opens normally: turning watercolor on, a notice appears and the basic tip is used, then you choose another one from the modal.</div></div>
+
+  <h3>How to make a tip</h3>
+  <ul>
+    <li><strong>PNG on a transparent background</strong>, square, <strong>512 × 512 px</strong>, with the shape in the center and a few free pixels all around. <strong>No JPG</strong>: it has no transparency (watercolor would stamp a solid square, the pen does not even show it).</li>
+    <li><strong>For the pen</strong> draw it as you want it at Init. rotation 0°: for a flat nib, the wide side horizontal. The pen Width is the longest side of the drawn part, so the size of the file does not matter.</li>
+    <li><strong>For watercolor</strong> remember that watercolor always turns the tip in the direction of the stroke: a flat tip must be drawn with the wide side <strong>vertical</strong> and the bristles horizontal (they become the lines along the stroke). Edge effects are drawn <strong>across</strong>, as a top-to-bottom profile (wet edge: dark at the top and bottom, light in the center): a ring around the tip would make a bubble at every stamp. Fade the left and right sides, otherwise every stamp shows like the rung of a ladder.</li>
+    <li><strong>For watercolor the density matters:</strong> watercolor lays the tip down in layers, so <strong>the fuller the tip, the darker the stroke</strong>. Draw watercolor tips <strong>semi-transparent</strong>: Mosaica's are between 20% and 50% opacity (the basic one at 22%), while a solid black tip gives an almost opaque stroke. Careful: transparency counts, not color, so an <em>opaque</em> light gray counts as black: lower the layer opacity. The intensity of the stroke is then set by <strong>Opacity</strong> and <strong>Layers</strong>.</li>
+    <li>For watercolor the size of the file matters: the stamp is large in proportion to the width of the PNG. At 512 px your tips have the same scale as Mosaica's.</li>
+  </ul>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li>Tips with a <strong>shape</strong> hold up well: nibs, irregular edges, big holes. A very fine grain, shrunk to the Width of the stroke, gets muddy.</li>
+    <li>Each watercolor tip has its own independent <strong>Initial Rotation</strong>: try different angles for each tip.</li>
+    <li>With the pen, a low <strong>Distance</strong> gives a solid stroke; raising it you see the single stamps, for a dotted effect.</li>
+    <li>If a watercolor tip seems too large or too small, remember that the <strong>Width</strong> scales all tips proportionally.</li>
   </ul></div></div>
 </section>
 
@@ -2071,6 +2100,7 @@
     <li>The <strong>Filled SVG</strong> renders textures as average color to guarantee importation into laser CAM software: if you need the real texture, export to PNG or PDF.</li>
     <li>Exporting freehand strokes as <strong>SVG</strong> preserves the <code>mix-blend-mode</code>: open it in a modern browser or in Illustrator to see the color overlap correctly.</li>
     <li>The <strong>Full PNG</strong> is generated at high resolution: great for presentations or post-production in Photoshop.</li>
+    <li>In the <strong>SVG</strong>, strokes of the <strong>Round</strong> pen come out as vector lines; those made with a <strong>PNG tip</strong> come out as an <strong>image of the stroke</strong>, the same as you see it (like watercolor): the file is heavier and the stroke cannot be edited as a line. In the <strong>PNG</strong> they all come out sharp.</li>
     <li>When exporting freehand strokes in <strong>Separate Files</strong> mode, each line is saved individually: useful if you need to animate or treat layers individually.</li>
   </ul></div></div>
 </section>
@@ -2207,7 +2237,7 @@
   <div class="card-grid col3">
     <div class="card-mini">
       <h4>📏 Width</h4>
-      <p>Min/Max factor of stroke width. Default 20%–120%: zero pressure = 1/5 of width, maximum pressure = +20%. Applies to both Pen and Watercolor.</p>
+      <p>Min/Max factor of stroke width. Default 20%–120%: zero pressure = 1/5 of width, maximum pressure = +20%. Applies to both Pen and Watercolor. The curve and sensitivity of Panel 2 apply the same way to the preview, the finished stroke and the ring: the stroke does not change thickness when you lift the pen. The thickness is decided while you draw and stays in the stroke: changing the preferences later does not change the strokes already made.</p>
     </div>
     <div class="card-mini">
       <h4>👻 Opacity</h4>
@@ -2288,6 +2318,7 @@
     <li>Map the lower button to <strong>↩️ Undo</strong> and the upper button to <strong>🧼 Quick Eraser</strong>: it is the most convenient setup for drawing + quick correction without lifting the pen from the tablet.</li>
     <li>If the pen buttons do not respond, first of all <strong>calibrate them</strong>: the fallback heuristic works on 70% of drivers, but calibrating unlocks them 100%.</li>
     <li>If you need to modify the tablet active areas, system pressure, or orientation, use <strong>🪟 Open Wacom Preferences</strong>: that is the official driver panel.</li>
+    <li>With the <strong>mouse</strong> pressure does not count: the pen always draws at the full Width of the slider, as large as the ring.</li>
     <li>Disabling Wacom integration (master checkbox), the app behaves as with a mouse: all factors return to 1.0 and the tool sliders regain full effect.</li>
   </ul></div></div>
 </section>

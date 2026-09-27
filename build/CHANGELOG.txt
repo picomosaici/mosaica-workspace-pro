@@ -1,4 +1,65 @@
 ------------------------------------------------------------
+Versione 09.2026.2  (Settembre 2026)
+------------------------------------------------------------
+
+NOVITA':
+  + Penna con le punte: oltre alla punta tonda di sempre, la
+    penna puo' usare una punta disegnata (PNG), come
+    l'acquerello: pennini, grafite, carboncino, gessetto. Il
+    tratto resta vettoriale: nitido a ogni zoom, leggero da
+    salvare, si cancella, si annulla e si copia come gli
+    altri. Nell'Ispettore: Punta, Distanza, Rotazione
+    iniziale e Direzione (la punta segue il tratto)
+  + Sei punte per la penna: tonda morbida, pennino a punta,
+    pennino piatto, grafite, carboncino, gessetto. Le tue si
+    aggiungono nella cartella delle punte della penna (si
+    apre dal pulsante "Apri la cartella delle punte")
+  + Nuovo set di 11 punte per l'acquerello, fatte apposta:
+    tonda morbida, tonda asciutta, piatta, lingua di gatto,
+    bordo bagnato, bordo sfumato, nuvola, granulazione,
+    spugna, schizzi e la punta di base rifatta. Le 66 punte
+    di prima escono dall'installer
+
+MIGLIORAMENTI:
+  * Orientamento del foglio: a lavoro iniziato (un tratto
+    oppure due tessere) i pulsanti Verticale e Orizzontale
+    non girano piu' il foglio e lo dicono. Girarlo a meta'
+    lavoro spostava le tessere e deformava gli acquerelli
+  * Penna col mouse: il tratto e' largo quanto la Larghezza
+    e quanto l'anello (prima era il 70%). I tratti gia'
+    fatti non cambiano
+  * Tavoletta Wacom: curva di pressione e sensibilita'
+    arrivano al tratto finito, che non cambia piu' spessore
+    quando si alza la penna
+  * Punte aggiornate da sole: installando sopra una versione
+    di prima, le punte di Mosaica si aggiornano e le 66
+    vecchie si tolgono; le punte aggiunte da te con altri
+    nomi non si toccano mai
+  * Impostazioni di penna e acquerello: quelle salvate nel
+    progetto hanno la precedenza, tutti gli slider tornano
+    come li avevi lasciati (anche la Rotazione iniziale) e
+    i messaggi sono tradotti anche in inglese
+
+CORREZIONI:
+  + Acquerello con una punta che su questo computer non c'e'
+    (progetto arrivato da un altro PC): prima i tratti erano
+    invisibili e restava un'immagine vuota; ora usa la punta
+    di base e avvisa
+  + Cambiare la punta dell'acquerello non lascia piu' un
+    Ctrl+Z "a vuoto", e la punta scelta ad acquerello spento
+    e' quella che si usa quando lo accendi
+
+NOTE TECNICHE:
+  - Versione interna: 9.2026.2
+  - Esporta disegno mano libera (SVG): i tratti fatti con una
+    punta escono come immagine del tratto, come l'acquerello
+  - Le punte di Mosaica si rigenerano con
+    build/punte/genera_punte.py
+  - 929 chiavi di traduzione simmetriche IT + EN
+  - I progetti salvati con le versioni precedenti si aprono
+    normalmente
+
+------------------------------------------------------------
 Versione 09.2026.1  (Settembre 2026)
 ------------------------------------------------------------
 

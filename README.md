@@ -32,8 +32,8 @@ Sviluppata su tecnologia Electron e Fabric.js, offre un'esperienza nativa Window
 - 🟦 **Modelli geometrici dedicati al mosaico**: settori circolari, triangoli, trapezoidi, sagome personalizzate
 - ✂️ **Builder forme non regolari** con foglio in mm reali (A5→A0 + personalizzato), arrotondamento per singolo vertice, curve di Bézier sui lati, immagine di riferimento per il ricalco e composizioni multi-forma (posa palladiana)
 - 🪨 **Texture procedurali di pietra** generate da codice (granito, marmo, cemento, murano, EVA, venature): ripetibili senza giunte, colorabili a piacere e salvate nel progetto, così un file riaperto ritrova la texture identica anche su un altro PC
-- ✏️ **Disegno a mano libera** con pennelli pressure-sensitive e anteprima live dello spessore del tratto
-- 💧 **Stamp brush acquerello** per effetti pittorici realistici con *bleed*, con anello attorno al cursore misurato sulla punta vera
+- ✏️ **Penna a mano libera** vettoriale e sensibile alla pressione, con la punta tonda oppure con **punte PNG** (pennini, grafite, carboncino, gessetto…): distanza dei timbri, rotazione e punta che segue il tratto; le tue punte si aggiungono in una cartella
+- 💧 **Stamp brush acquerello** per effetti pittorici realistici con *bleed*, con un set di punte fatte apposta (bordo bagnato, granulazione, spugna, schizzi…) e anello attorno al cursore misurato sulla punta vera
 - 🖼️ **Pennello Timbro**: copi una zona del lavoro e la ristampi dove dipingi; punta con forma, misura, spaziatura e rotazione regolabili, anche con una forma libera disegnata col costruttore della palladiana
 - 🚧 **Perimetro di contenimento**: tracci un poligono entro cui penna e acquerello possono colorare (e fuori no), comodo per restare dentro le fughe; si corregge con le maniglie, ha una lente mirino per piazzare i vertici con precisione e viene salvato col progetto
 - 🎯 **Selezione avanzata delle tessere**:
@@ -43,7 +43,7 @@ Sviluppata su tecnologia Electron e Fabric.js, offre un'esperienza nativa Window
   - **Comandi della selezione**: deseleziona, inquadra la selezione, specchio orizzontale e verticale (anche sulle tessere ruotate, senza cambiare le misure)
 - 🎨 **Sistema di calibrazione** colore e dimensione tessere in mm reali
 - 🖌️ **Supporto tavoletta grafica Wacom** nativo
-- 🖼️ **Canvas A4 verticale/orizzontale** con immagine di sfondo come riferimento (fit, rotazione, rimozione)
+- 🖼️ **Canvas A4 verticale/orizzontale** con immagine di sfondo come riferimento (fit, rotazione, rimozione); l'orientamento si sceglie all'inizio e a lavoro iniziato il foglio non si gira
 - 💾 **Salvataggio automatico** e gestione file di progetto
 - 📤 **Esportazione SVG e PDF** ad alta qualità, con export dedicato delle sole linee a mano libera
 - 🔪 **Tavola delle Tessere per il taglio laser**: SVG separati per famiglia di colore, compensazione del taglio e linguette, PDF per il banco di lavoro e distinta delle tessere in CSV
@@ -94,6 +94,15 @@ npm run dist
 ```
 
 L'installer viene generato in `dist/MosaicaWorkspacePro-Setup-MM.YYYY.exe`.
+
+### Le punte di acquerello e penna
+
+Le punte «di fabbrica» (`app/textures/brush/` per l'acquerello, `app/textures/penna/` per la penna) sono generate da uno script, ripetibile:
+
+```bash
+pip install numpy pillow
+python build/punte/genera_punte.py
+```
 
 ## 🧰 Tecnologie
 
