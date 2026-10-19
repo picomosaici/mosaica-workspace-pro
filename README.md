@@ -10,7 +10,7 @@
 [![Build](https://img.shields.io/github/actions/workflow/status/picomosaici/mosaica-workspace-pro/build.yml?label=build)](https://github.com/picomosaici/mosaica-workspace-pro/actions)
 [![Piattaforma](https://img.shields.io/badge/piattaforma-Windows-blue?logo=windows&logoColor=white)](https://github.com/picomosaici/mosaica-workspace-pro/releases)
 [![Electron](https://img.shields.io/badge/Electron-41-47848F?logo=electron&logoColor=white)](https://www.electronjs.org/)
-[![Fabric.js](https://img.shields.io/badge/Fabric.js-5.1.0%2B-red)](http://fabricjs.com/)
+[![Fabric.js](https://img.shields.io/badge/Fabric.js-5.5.2-red)](http://fabricjs.com/)
 
 [Download](#-download-e-installazione) • 
 [Funzionalità](#-funzionalità) • 
@@ -32,20 +32,23 @@ Sviluppata su tecnologia Electron e Fabric.js, offre un'esperienza nativa Window
 - 🟦 **Modelli geometrici dedicati al mosaico**: settori circolari, triangoli, trapezoidi, sagome personalizzate
 - ✂️ **Builder forme non regolari** con foglio in mm reali (A5→A0 + personalizzato), arrotondamento per singolo vertice, curve di Bézier sui lati, immagine di riferimento per il ricalco e composizioni multi-forma (posa palladiana)
 - 🪨 **Texture procedurali di pietra** generate da codice (granito, marmo, cemento, murano, EVA, venature): ripetibili senza giunte, colorabili a piacere e salvate nel progetto, così un file riaperto ritrova la texture identica anche su un altro PC
+- 👻 **Texture fantasma** per i mosaici grandi: la texture si mette una volta su una tessera e si nasconde; copie, cambi di forma e settori se la portano dietro, e con un clic compare su tutta la famiglia, ogni tessera tinta col suo colore
 - ✏️ **Penna a mano libera** vettoriale e sensibile alla pressione, con la punta tonda oppure con **punte PNG** (pennini, grafite, carboncino, gessetto…): distanza dei timbri, rotazione e punta che segue il tratto; le tue punte si aggiungono in una cartella
 - 💧 **Stamp brush acquerello** per effetti pittorici realistici con *bleed*, con un set di punte fatte apposta (bordo bagnato, granulazione, spugna, schizzi…) e anello attorno al cursore misurato sulla punta vera
 - 🖼️ **Pennello Timbro**: copi una zona del lavoro e la ristampi dove dipingi; punta con forma, misura, spaziatura e rotazione regolabili, anche con una forma libera disegnata col costruttore della palladiana
-- 🚧 **Perimetro di contenimento**: tracci un poligono entro cui penna e acquerello possono colorare (e fuori no), comodo per restare dentro le fughe; si corregge con le maniglie, ha una lente mirino per piazzare i vertici con precisione e viene salvato col progetto
+- 🚧 **Perimetro di contenimento**: tracci un poligono entro cui penna e acquerello possono colorare (e fuori no), comodo per restare dentro le fughe; si corregge con le maniglie, fa **curve** (punti morbidi e archi), ha una lente mirino con reticolo in mm, una **mira lenta** tenendo premuto e le frecce al centesimo di millimetro, e viene salvato col progetto
 - 🎯 **Selezione avanzata delle tessere**:
   - **Lazo a poligono** per racchiudere un'area
   - **Pennello selezione**: selezioni le tessere "dipingendoci" sopra a mano libera, con larghezza in mm regolabile e tratti che si sommano (CTRL per deselezionare)
   - **Menu radiale** che agisce su una o più forme insieme (multi-selezione con CTRL+click): colore, texture, blocco, eliminazione, raggruppa / separa; quando non c'è spazio si dispone in colonna
   - **Comandi della selezione**: deseleziona, inquadra la selezione, specchio orizzontale e verticale (anche sulle tessere ruotate, senza cambiare le misure)
-- 🎨 **Sistema di calibrazione** colore e dimensione tessere in mm reali
+- 🎨 **Ruota dei colori** con HEX, RGB e **CMYK** del profilo di stampa, il colore «in stampa» accanto a quello «a video», l'avviso fuori stampa e il **contagocce**; vale per le tessere, la penna e l'acquerello
+- 🖨️ **Prova di stampa** a video (soft-proof FOGRA39 / ISO Coated v2 300%, carta simulata, colori fuori stampa segnati) ed **Esporta per la stampa** in **PDF/X-4**, **PDF/X-1a** o PNG compatibile Adobe RGB; profili liberi nell'installer, gli originali ECI e Adobe si trovano da soli o si aggiungono
+- 📏 **Sistema di calibrazione** dello schermo, per tessere in mm reali
 - 🖌️ **Supporto tavoletta grafica Wacom** nativo
 - 🖼️ **Canvas A4 verticale/orizzontale** con immagine di sfondo come riferimento (fit, rotazione, rimozione); l'orientamento si sceglie all'inizio e a lavoro iniziato il foglio non si gira
 - 💾 **Salvataggio automatico** e gestione file di progetto
-- 📤 **Esportazione SVG e PDF** ad alta qualità, con export dedicato delle sole linee a mano libera
+- 📤 **Esportazione SVG, PNG e PDF** ad alta qualità (il PNG con l'etichetta sRGB), con export dedicato delle sole linee a mano libera
 - 🔪 **Tavola delle Tessere per il taglio laser**: SVG separati per famiglia di colore, compensazione del taglio e linguette, PDF per il banco di lavoro e distinta delle tessere in CSV
 - 🔍 **Zoom Photoshop-style** fluido con snapshot GPU: gesti di rotella reattivi anche su canvas pesanti (centinaia di tessere, sfondi grandi, decine di tratti)
 - 🖱️ **Mappatura mouse e tastiera completa**: tasti laterali X1/X2, combinazioni (chord), scorciatoie personalizzate, tasti direzionali rimappabili
@@ -107,9 +110,11 @@ python build/punte/genera_punte.py
 ## 🧰 Tecnologie
 
 - [Electron](https://www.electronjs.org/) — framework desktop
-- [Fabric.js](http://fabricjs.com/) (5.1.0+) — canvas 2D
+- [Fabric.js](http://fabricjs.com/) (5.5.2) — canvas 2D
+- [Little CMS](https://www.littlecms.com/) in WebAssembly ([lcms-wasm](https://github.com/mattdesl/lcms-wasm), licenza MIT) — motore colore per la prova di stampa e i PDF/X
 - [PDFKit](https://pdfkit.org/) — esportazione PDF
 - [electron-builder](https://www.electron.build/) — packaging Windows
+- Profili di stampa nell'installer: basICColor ISO Coated v2 (licenza zlib) e un profilo compatibile Adobe RGB (1998) ([Compact-ICC-Profiles](https://github.com/saucecontrol/Compact-ICC-Profiles), CC0); licenze nella cartella `profili-icc`
 
 ## 🐛 Segnalazione bug e suggerimenti
 

@@ -41,6 +41,7 @@
 //            • TAP sul 1° vertice / INVIO / DOPPIO-CLICK = chiude e
 //                         passa alla fase maniglie
 //            • BACKSPACE = rimuove l'ultimo punto messo
+//            • FRECCE   = spostano l'ultimo punto messo (vedi sotto)
 //            • ESC      = abbandona la sessione (NON cancella un
 //                         perimetro gia' committato)
 //
@@ -53,7 +54,131 @@
 //                         sotto i 3 punti)
 //            • CTRL+Z    = annulla l'ultima modifica di forma fatta
 //                         DENTRO la sessione (vedi nota sotto)
+//            • FRECCE    = spostano la maniglia selezionata (vedi sotto)
 //            • INVIO / ESC / ⬡ / altro strumento = esce dalla modalita'
+//
+//      ── LA MIRA (cantiere «Il Mirino», Fetta 1, 2 ottobre 2026) ──────
+//        • Il TAP mette il punto dove si e' PREMUTO, non dove si e'
+//          rilasciato: premere sposta quasi sempre il mouse di un pixel,
+//          e nella lente quel pixel e' un salto (trappola 247).
+//        • Con la LENTE a schermo le distanze di presa (maniglia, lato) si
+//          misurano NEL VETRO, cioe' divise anche per l'ingrandimento: due
+//          spigoli a 1 mm, lontani nella lente, non sono piu' «lo stesso
+//          punto» (trappola 246). Con la lente accesa la chiusura per
+//          vicinanza al 1° vertice e' spenta: si chiude col tap SOPRA il
+//          1° vertice, con Invio o col doppio-click.
+//        • Le FRECCE spostano il punto selezionato come spostano le
+//          tessere: 0,1 mm, Shift 1 mm, Ctrl 0,01 mm (anche i tasti
+//          mappati come frecce: si avvolge window.handleArrowMovement,
+//          trappola 249). Senza punto selezionato fanno quello di sempre.
+//          In fase maniglie il taglio dei tratti si aggiorna dopo una
+//          pausa: una raffica di frecce e' UN passo di Ctrl+Z.
+//
+//      ── LA VITE MICROMETRICA (cantiere «Il Mirino», Fetta 2, 6 ottobre
+//         2026) — «premi, tieni e aggiusta» ─────────────────────────────
+//        • Con la LENTE a schermo, PREMERE e TENERE premuto (col mouse, o
+//          con la punta della penna appoggiata) demoltiplica la mano: il
+//          mirino fa 1/N della strada della mano, con N = ingrandimento
+//          della lente. Nel vetro l'immagine si muove cosi' alla velocita'
+//          della mano, come un foglio sotto un microscopio fermo
+//          (trappola 245). Al RILASCIO il punto va dov'e' il mirino.
+//        • Premendo su una maniglia si sposta la maniglia, piano; premendo
+//          a vuoto in fase traccia nasce un punto nuovo al rilascio. Con la
+//          lente accesa trascinare NON e' piu' la mano libera: la mano
+//          libera c'e' con la lente spenta (L), come prima (B2 del cantiere).
+//        • Il punto di mira lo calcola SOLO questo file (_aimFrom); la lente
+//          lo chiede con window.freehandClipAimAt(e) per mettere li' il
+//          centro del reticolo: «centro del reticolo = dove va il punto»
+//          resta vero per costruzione, in qualunque ordine arrivino gli
+//          ascoltatori.
+//        • Mentre si tiene premuto il cursore di Windows sparisce ovunque
+//          (body.clip-aim-hold, regola in index.html): la mano puo' uscire
+//          dal foglio, e un cursore lontano dal mirino indicherebbe un
+//          punto che non conta. Al rilascio il mirino NON torna sotto la
+//          mano: c'e' la frizione (sotto).
+//
+//      ── LA FRIZIONE (cantiere «Il Mirino», Fetta 2-bis, 6 ottobre 2026)
+//        • Il cursore vero non si puo' spostare (trappola 254): al rilascio
+//          della vite la mano e' N volte piu' in la' del mirino. Riportare
+//          il mirino sotto la mano era un salto di (N-1) volte la
+//          regolazione fine: a x8, 3,5 mm di mira = 24,5 mm di salto
+//          (trappola 257). Quindi al rilascio il mirino RESTA dov'e', e da
+//          li' segue la mano 1:1, scostato (clutch, in coordinate LOGICHE).
+//          Come alzare il mouse dal tappetino e riappoggiarlo.
+//        • Lo scostamento non si vede: sopra il foglio, con la lente, il
+//          cursore di Windows e' nascosto. Si riassorbe da solo un po' alla
+//          volta, SOLO lungo la direzione dello scostamento (il mirino non
+//          curva: va un po' piu' piano o un po' piu' svelto della mano), e
+//          piu' in fretta se e' diventato grande.
+//        • Si azzera di colpo (il mirino torna sotto la mano) quando la
+//          lente non c'e' piu' (L, mano fuori dal foglio, rilascio fuori),
+//          quando la mano esce dal foglio, all'apertura e all'uscita.
+//        • La rotella zooma attorno alla mano vera (renderer.js, protetto):
+//          lo scostamento e' in punti del foglio, quindi il mirino resta
+//          sullo stesso punto della tessera; a schermo si sposta con lo zoom.
+//
+//      ── LA FRIZIONE CHE SLITTA (cantiere «Il Mirino», Fetta 2-ter, 7
+//         ottobre 2026) ───────────────────────────────────────────────────
+//        • Attaccata di botto, la frizione passava in un colpo da 1/N a 1:1:
+//          il primo colpo di mouse dopo il rilascio (anche quello del dito
+//          che si alza dal pulsante) valeva N volte di piu' nel vetro. Col
+//          mouse veloce di Mirko un colpo e' 3-5 px di schermo: a x8 un
+//          salto di due puntini e mezzo del reticolo (trappola 259).
+//        • Ora dopo il rilascio il mirino riparte LENTO come nella vite e
+//          riprende velocita' nei primi CLIP_CLUTCH_SLIP_PX px di strada
+//          della mano: il riduttore parte da 1/N, passa per 1:1, va un
+//          filo oltre (a x8 fino al 137% circa) e torna a 1:1. La strada
+//          che il mirino perde all'inizio la RECUPERA dopo: a fine rampa,
+//          andando dritti, lo scostamento e' di nuovo quello del rilascio.
+//          ⚠ Una rampa che non restituisce la strada (solo da 1/N a 1)
+//          allontanerebbe la mano dal mirino a ogni punto, sempre nello
+//          stesso verso, fino a farla uscire dal foglio: il salto grosso.
+//        • Il conto e' esatto sulla strada fatta (integrale della rampa),
+//          quindi non dipende da come Chromium spezza il movimento in
+//          eventi. In questo tratto lo scostamento non si riassorbe: e' la
+//          rampa a muoverlo, e a fine rampa lo rimette com'era.
+//        • Vale dopo OGNI pressione con la lente, anche un tap fermo: il
+//          colpetto del rilascio c'e' lo stesso.
+//
+//      ── LE CURVE, IL MOTORE (cantiere «Il Mirino», Fetta 3, 7 ottobre 2026)
+//        • Il perimetro e' una FORMA (vertici spigolo o morbidi, lati dritti,
+//          morbidi o ad arco) e un POLIGONO DI TAGLIO che ne esce «spianato» in
+//          lati piccoli, entro 0,02 mm dalla curva vera. Al taglio, a
+//          __clipPoly, al file e all'export arriva SOLO il poligono: renderer.js,
+//          autoSave.js e svgExport.js non sanno delle curve e non serve.
+//        • Nel file (freehandClipPolygon) i punti del poligono che sono vertici
+//          veri portano v: 1 (spigolo) o v: 2 (morbido), e a: [t, h] se il lato
+//          che parte da li' e' un arco. Un perimetro di soli spigoli e lati
+//          dritti si salva come prima, senza campi in piu'. Un Mosaica vecchio
+//          legge solo x e y: taglia giusto, curva compresa.
+//        • Lo spianamento e' un'impronta (trappola 252): vedi la sezione «LE
+//          CURVE — il motore» per le regole che lo tengono uguale al bit.
+//        • Le curve si leggono, si salvano, si disegnano, si spostano con le
+//          maniglie e le frecce; i comandi per farle sono quelli qui sotto.
+//
+//      ── LE CURVE A MANO (cantiere «Il Mirino», Fette 4A e 4B, 14 ottobre
+//         2026) ─────────────────────────────────────────────────────────────
+//        • Le maniglie dicono il tipo del punto: QUADRATA = spigolo (la linea
+//          ci fa l'angolo), TONDA = morbido (la linea ci passa in curva).
+//        • PUNTI MORBIDI (4A): doppio-click su una maniglia (fase maniglie),
+//          oppure maniglia selezionata + M (in tutte e due le fasi: e' la
+//          strada senza doppio-click, per la penna). In fase traccia
+//          Shift+tap mette un punto gia' morbido.
+//        • ARCHI (4B): ogni lato ha un ROMBO a meta'; trascinandolo il lato
+//          diventa un arco di cerchio che passa dal rombo (vale la regola per
+//          lato: un arco vince sui morbidi). Il rombo VUOTO e' un lato che non
+//          e' un arco, quello PIENO e' un arco. Per non riempire lo schermo i
+//          rombi si vedono solo sul lato sotto il puntatore, sui due lati della
+//          maniglia selezionata, sul rombo selezionato e su tutti gli archi.
+//          Rombo selezionato + frecce = l'arco si aggiusta di fino; doppio-click
+//          sul rombo di un arco, o rombo selezionato + M (o CANC) = l'arco si
+//          toglie.
+//        • Maniglie e rombi si prendono dal MIRINO (_aimAt, trappola 258): con
+//          la lente tenendo premuto anche il rombo va piano (la vite), e dopo
+//          il rilascio c'e' la frizione come per i punti.
+//        • Prima la maniglia, poi il rombo: dove si toccano vince la maniglia.
+//        • M vale solo dentro la modalita', senza Ctrl/Alt (Ctrl+M resta
+//          libero) e non mentre si scrive in un campo.
 //
 //      ⚠ CONVIVENZA CON LAZO E PENNELLO SELEZIONE. Lazo e pennello
 //      selezione disegnano sullo STESSO strato (contextTop) e lo
@@ -155,6 +280,51 @@
   const CLIP_MIN_VERTICES = 3;                 // un perimetro non scende sotto il triangolo
   const CLIP_POLY_EPS = 0.01;                  // (px logici) tolleranza di confronto fra due forme
   const CLIP_SHAPE_UNDO_LIMIT = 60;            // passi di forma ricordati dentro una sessione
+  // --- La mira (cantiere «Il Mirino», Fetta 1) ---
+  const CLIP_NUDGE_COMMIT_MS = 450;            // pausa dopo l'ultima freccia prima di ri-tagliare i tratti
+  const CLIP_DBL_TAP_MS = 450;                 // due tap cosi' vicini nel tempo sono un doppio-click
+  // --- La vite micrometrica (cantiere «Il Mirino», Fetta 2) ---
+  // Il riduttore e' l'ingrandimento della lente al momento della pressione:
+  // nessun numero da tarare qui. La classe su <body> nasconde il cursore di
+  // sistema finche' si tiene premuto (la regola sta in index.html).
+  const CLIP_AIM_HOLD_CLASS = "clip-aim-hold";
+  // --- La frizione (cantiere «Il Mirino», Fetta 2-bis) ---
+  // Quanta parte del movimento della mano, LUNGO lo scostamento, serve a
+  // riassorbirlo: a 0,3 il mirino va al 70% o al 130% della mano in quella
+  // direzione, e di traverso va uguale. Sopra CLIP_CLUTCH_SOFT_MAX_PX il
+  // riassorbimento cresce in proporzione, fino a CLIP_CLUTCH_PULL_MAX.
+  const CLIP_CLUTCH_PULL = 0.3;
+  const CLIP_CLUTCH_SOFT_MAX_PX = 160;         // (px schermo) scostamento "grande"
+  const CLIP_CLUTCH_PULL_MAX = 0.8;
+  const CLIP_CLUTCH_EPS_PX = 0.25;             // (px schermo) sotto, la frizione si stacca
+  // --- La frizione che slitta (cantiere «Il Mirino», Fetta 2-ter) ---
+  // Quanta strada (px di schermo della MANO) dura la rampa dopo il rilascio
+  // della vite: da 1/N a 1:1, un filo oltre, e di nuovo 1:1. Piu' e' lunga,
+  // piu' i primi colpi del mouse restano lenti, ma piu' strada serve per
+  // recuperare (se ci si ferma a meta', il pezzo non recuperato resta nello
+  // scostamento e si riassorbe come sempre).
+  const CLIP_CLUTCH_SLIP_PX = 40;
+  // --- Le curve (cantiere «Il Mirino», Fetta 3) ---
+  // Lo scarto massimo fra il poligono di taglio e la curva vera: 0,02 mm a
+  // 96 PPI, in px LOGICI fissi. NON con mm2px: la calibrazione cambierebbe il
+  // poligono e i tratti gia' tagliati non si riconoscerebbero piu' (trappola 252).
+  const CLIP_CURVE_TOL_PX = 0.02 * 96 / 25.4;
+  const CLIP_CURVE_ROUND = 100;                // i punti in mezzo si arrotondano a 0,01 px
+  const CLIP_ARC_MAX_DEPTH = 8;                // al massimo 2^8 pezzi per meta' arco
+  const CLIP_ARC_MAX_R_K = 2;                  // arco di piu' di mezzo giro: raggio al massimo 2 volte il lato (Fetta 4B)
+  const CLIP_SOFT_MAX_SEG = 256;               // al massimo 256 pezzi per lato morbido
+  // --- Le curve a mano (cantiere «Il Mirino», Fette 4A e 4B) ---
+  // Maniglia QUADRATA = spigolo, TONDA = morbido, ROMBO a meta' lato = arco.
+  // Il quadrato ha mezzo lato un filo piu' piccolo del raggio del tondo, cosi'
+  // sembrano grandi uguali; il rombo e' piu' piccolo tutti e due.
+  const CLIP_SQUARE_K = 0.9;                   // mezzo lato del quadrato = raggio del tondo × 0,9
+  const CLIP_KNOB_RADIUS_PX = 4.6;             // (px schermo) rombo a riposo (mezza diagonale)
+  const CLIP_KNOB_HOVER_RADIUS_PX = 5.8;       // (px schermo) rombo sotto il puntatore
+  const CLIP_KNOB_SEL_RADIUS_PX = 6.6;         // (px schermo) rombo selezionato o tirato
+  const CLIP_KNOB_LINE_W = 1.4;                // (px schermo) bordo del rombo
+  const CLIP_KNOB_EMPTY_COLOR = "rgba(255,255,255,0.92)"; // rombo VUOTO (lato senza arco): bianco, bordo arancione
+  const CLIP_KNOB_EDGE_COLOR = "rgba(255,255,255,0.95)";  // bordo del rombo selezionato (come le maniglie)
+  const CLIP_KNOB_ARC_EDGE_COLOR = "rgba(90,40,0,0.95)";   // bordo del rombo PIENO (arco): scuro, si vede sulla carta
 
   // ============================================================
   //  STATO
@@ -164,12 +334,15 @@
     window.freehandClipPolygon && Array.isArray(window.freehandClipPolygon)
       ? window.freehandClipPolygon.slice()
       : null;
+  // La FORMA del perimetro committato (Fetta 3): i vertici col loro tipo. Il
+  // poligono qui sopra e' lei spianata. Ci sono sempre tutti e due, o nessuno.
+  let clipShape = clipPolygon ? clipPolygon.map((p) => ({ x: p.x, y: p.y })) : null;
 
   let hoverPoint = null;        // ultimo punto (coord logiche) sotto il cursore
 
   // Modalita' perimetro: null (spenta) | "draw" (tracciamento) | "handles" (maniglie)
   let mode = null;
-  let editPoints = [];          // punti della sessione (coord logiche)
+  let editPoints = [];          // la FORMA della sessione: vertici {x, y, s?, a?} (coord logiche)
   let pointerDown = false;      // pulsante premuto durante la sessione
   let dragStarted = false;      // il pointer ha superato la soglia → mano libera
   let downLogical = null;       // punto logico al mousedown
@@ -181,6 +354,20 @@
   let sessionChanged = false;   // la sessione ha cambiato davvero la forma?
   let shapeUndo = [];           // forme precedenti dentro la sessione (per CTRL+Z)
   let shapeSeen = [];           // tutte le forme che il perimetro ha avuto nella sessione
+  let nudgeTimer = null;        // frecce in fase maniglie: commit in attesa della pausa
+  let lastTap = null;           // {t, x, y} (px client) dell'ultimo tap: riconosce il doppio-click
+  let aiming = false;           // mira fine in corso: pulsante premuto con la lente a schermo
+  let aimN = 1;                 // il riduttore di QUESTA pressione (= ingrandimento della lente)
+  let downHand = null;          // punto logico della MANO al mousedown (il riduttore parte da li')
+  let clutch = null;            // {x,y} logici: mirino - mano dopo il rilascio della vite (null = sotto la mano)
+  let clutchHand = null;        // ultimo punto logico della mano visto dalla frizione
+  let slipN = 1;                // il riduttore da cui riparte la frizione che slitta (= N della vite)
+  let slipLeft = 0;             // px di schermo della mano che mancano alla velocita' piena (0 = attaccata)
+  let selectedKnob = -1;        // rombo selezionato (= indice del lato), bersaglio di M, CANC e frecce
+  let hoverKnob = -1;           // rombo sotto il puntatore (solo evidenza)
+  let knobGrab = -1;            // rombo agganciato al mousedown (-1 = nessuno)
+  let knobMoved = false;        // il rombo agganciato ha superato la soglia
+  let downShift = false;        // Shift premuto alla pressione (Shift+tap = punto morbido)
   let savedDrawingMode = null;  // isDrawingMode salvato prima dell'editing
   let savedSelection = null;    // selection salvato prima dell'editing
   let savedSkipTargetFind = null; // skipTargetFind salvato prima dell'editing
@@ -246,6 +433,160 @@
     const ddy = e.clientY - downScreen.y;
     return (ddx * ddx + ddy * ddy) >
       CLIP_VERTEX_DRAG_THRESHOLD_PX * CLIP_VERTEX_DRAG_THRESHOLD_PX;
+  }
+  // ── LA LENTE E LE DISTANZE DI PRESA (trappola 246) ──
+  // Ingrandimento della lente SE e' a schermo adesso, altrimenti 1. La
+  // lente vive in freehandClipLens.js: qui si legge e basta.
+  function _lensMag() {
+    try {
+      const L = window.freehandClipLens;
+      if (L && typeof L.isVisible === "function" && L.isVisible() &&
+          typeof L.getMag === "function") {
+        const m = Number(L.getMag());
+        if (Number.isFinite(m) && m > 1) return m;
+      }
+    } catch (e) {}
+    return 1;
+  }
+  // Px LOGICI per un px «di chi guarda»: dello schermo grande se la lente
+  // non c'e', del vetro della lente se c'e'. E' la misura giusta per le
+  // distanze di presa: si prende quello che si VEDE vicino.
+  function _aimK() {
+    return _screenK() / _lensMag();
+  }
+  // Chiede alla lente di ridisegnarsi (le frecce muovono un punto senza
+  // che il canvas faccia un render: la lente non lo saprebbe).
+  function _lensRefresh() {
+    try {
+      const L = window.freehandClipLens;
+      if (L && typeof L.requestRender === "function") L.requestRender();
+    } catch (e) {}
+  }
+
+  // ── LA VITE MICROMETRICA (cantiere «Il Mirino», Fetta 2) ──
+  // Il punto di mira. Senza pulsante premuto e' il puntatore. Premendo con
+  // la lente a schermo la mano si demoltiplica: il mirino parte dal punto
+  // della pressione e fa 1/N della strada della mano. Il conto si fa sui
+  // punti LOGICI di getPointer, non sui pixel del client: cosi' non
+  // dipende da come e' fatto lo zoom (CSS sul #paper, trappola 104) e una
+  // mano ferma da' un mirino fermo anche se lo zoom cambia sotto.
+  // ⚠ Fetta 2-bis: il mirino parte da dov'ERA alla pressione (downLogical,
+  // che con la frizione e' scostato dalla mano), ma il riduttore conta la
+  // strada della MANO da dov'era lei (downHand).
+  function _aimFrom(p) {
+    if (aiming && downLogical && aimN > 1) {
+      const h0 = downHand || downLogical;
+      return {
+        x: downLogical.x + (p.x - h0.x) / aimN,
+        y: downLogical.y + (p.y - h0.y) / aimN
+      };
+    }
+    if (clutch) return { x: p.x + clutch.x, y: p.y + clutch.y };
+    return { x: p.x, y: p.y };
+  }
+  function _aimAt(e) {
+    const h = _pointer(e);
+    _clutchFollow(e, h);
+    return _aimFrom(h);
+  }
+
+  // ── LA FRIZIONE (cantiere «Il Mirino», Fetta 2-bis) ──
+  // Si stacca: il mirino torna sotto la mano.
+  function _clutchOff() {
+    clutch = null;
+    clutchHand = null;
+    slipLeft = 0;
+  }
+  // Si attacca al rilascio della vite: mirino = mano + scostamento, e parte
+  // lo slittamento da 1/N (Fetta 2-ter; n = il riduttore di quella vite).
+  // Si attacca anche con scostamento zero (tap fermo): il colpetto del
+  // rilascio deve restare lento lo stesso. (Fino alla 2-bis uno scostamento
+  // sotto CLIP_CLUTCH_EPS_PX non la attaccava: con la rampa sempre accesa
+  // quella guardia non scattava piu', e un mutante l'ha detto.)
+  function _clutchSet(aim, hand, n) {
+    clutch = { x: aim.x - hand.x, y: aim.y - hand.y };
+    clutchHand = { x: hand.x, y: hand.y };
+    slipN = n;
+    slipLeft = CLIP_CLUTCH_SLIP_PX;
+  }
+  // La strada del mirino per s px di strada della mano, dall'inizio dello
+  // slittamento (s fra 0 e S). Il riduttore e' r(u) = 1 - (1 - 1/N) q(u),
+  // con u = s/S e q(u) = (1-u)^2 (1 - 10 u^2): q(0) = 1 (si parte da 1/N),
+  // q(1) = 0 e piatta (si arriva a 1:1 senza strappo), e l'integrale di q
+  // da 0 a 1 e' ZERO: la strada persa all'inizio si recupera tutta.
+  // Qui sotto c'e' l'integrale: Q(u) = u - u^2 - 3u^3 + 5u^4 - 2u^5.
+  function _slipPath(s) {
+    const S = CLIP_CLUTCH_SLIP_PX, u = s / S;
+    const Q = u - u * u - 3 * u * u * u + 5 * u * u * u * u - 2 * u * u * u * u * u;
+    return s - (1 - 1 / slipN) * S * Q;
+  }
+  // La mano si e' mossa (h = punto logico della mano per l'evento e): lo
+  // scostamento si riassorbe un poco, solo per la parte di movimento che va
+  // lungo lo scostamento stesso. Il conto parte dall'ULTIMA posizione della
+  // mano che ha visto, non dall'evento: questo file e la lente chiedono lo
+  // stesso evento, e la seconda volta la mano non si e' mossa, quindi non
+  // cambia niente. Il mirino e' lo stesso in qualunque ordine Fabric chiami
+  // gli ascoltatori. (A pulsante premuto il conto gira lo stesso, ma non
+  // conta: comanda la vite, e al rilascio _clutchSet riscrive tutto.)
+  function _clutchFollow(e, h) {
+    if (!clutch) return;
+    // Senza lente a schermo la frizione non ha senso: la mano si vede.
+    if (_lensMag() === 1) { _clutchOff(); return; }
+    const last = clutchHand;
+    clutchHand = { x: h.x, y: h.y };
+    if (!last) return;
+    const k = _screenK();
+    // La frizione che slitta (Fetta 2-ter): finche' la mano non ha fatto
+    // CLIP_CLUTCH_SLIP_PX px di strada, il mirino fa la strada di
+    // _slipPath; la differenza va e torna nello scostamento. Niente
+    // riassorbimento in questo tratto: e' la ripartenza, non il ritorno.
+    let mx = h.x - last.x, my = h.y - last.y;
+    if (slipLeft > 0) {
+      const step = Math.hypot(mx, my) / k;          // px di schermo della mano
+      if (!(step > 0)) return;
+      const used = Math.min(step, slipLeft);
+      const s0 = CLIP_CLUTCH_SLIP_PX - slipLeft;
+      const f = used / step;                        // la parte di questo movimento dentro la rampa
+      const r = (_slipPath(s0 + used) - _slipPath(s0)) / used;
+      clutch = { x: clutch.x + (r - 1) * f * mx, y: clutch.y + (r - 1) * f * my };
+      slipLeft = slipLeft - used > 1e-9 ? slipLeft - used : 0;
+      if (f >= 1) return;
+      // La rampa e' finita a meta' movimento: il resto va al riassorbimento,
+      // come se fosse arrivato con un evento suo.
+      mx *= 1 - f;
+      my *= 1 - f;
+    }
+    const len = Math.hypot(clutch.x, clutch.y);
+    if (!(len > CLIP_CLUTCH_EPS_PX * k)) { _clutchOff(); return; }
+    const ux = clutch.x / len, uy = clutch.y / len;
+    const along = Math.abs(mx * ux + my * uy);
+    if (!(along > 0)) return;
+    const pull = Math.min(CLIP_CLUTCH_PULL_MAX,
+      CLIP_CLUTCH_PULL * Math.max(1, len / (CLIP_CLUTCH_SOFT_MAX_PX * k)));
+    const next = len - pull * along;
+    if (next <= CLIP_CLUTCH_EPS_PX * k) { _clutchOff(); return; }
+    clutch = { x: ux * next, y: uy * next };
+  }
+  function _aimClass(on) {
+    try {
+      const b = document.body;
+      if (b && b.classList) b.classList.toggle(CLIP_AIM_HOLD_CLASS, !!on);
+    } catch (e) {}
+  }
+  // Comincia la mira fine se la lente e' a schermo; ritorna se e' cominciata.
+  function _beginAim() {
+    const m = _lensMag();
+    aiming = m > 1;
+    aimN = aiming ? m : 1;
+    _aimClass(aiming);
+    return aiming;
+  }
+  // Fine della mira: il cursore ricompare. Dove resta il mirino lo decide
+  // chi chiama (al rilascio: la frizione, Fetta 2-bis).
+  function _endAim() {
+    aiming = false;
+    aimN = 1;
+    _aimClass(false);
   }
 
   // ============================================================
@@ -771,7 +1112,7 @@
   }
   // Maniglia sotto il punto p (coord logiche), o -1. Vince la piu' vicina.
   function _hitHandle(p) {
-    const k = _screenK();
+    const k = _aimK();
     const r = CLIP_HANDLE_GRAB_PX * k;
     let best = -1;
     let bestD = r * r;
@@ -791,22 +1132,389 @@
     if (t > 1) t = 1;
     return { x: a.x + vx * t, y: a.y + vy * t };
   }
+  // ============================================================
+  //  LE CURVE — il motore (cantiere «Il Mirino», Fetta 3, 7 ottobre 2026)
+  // ============================================================
+  // Il perimetro e' DUE cose (§5.4 del cantiere):
+  //   • la FORMA (clipShape, e editPoints durante la sessione): i vertici, ognuno
+  //     {x, y} piu' due campi facoltativi —
+  //       s: true      il vertice e' MORBIDO (senza: e' uno spigolo, come sempre);
+  //       a: [t, h]    il lato che PARTE da questo vertice e' un ARCO di cerchio
+  //                    che passa dal pallino P = A + t·D + h·perp(D), con
+  //                    A = questo vertice, D = vertice dopo − A, perp(D) = (−D.y, D.x).
+  //                    t e h sono frazioni della lunghezza del lato: allungando il
+  //                    lato l'arco si allarga con lui (trappola 251).
+  //   • il POLIGONO DI TAGLIO (clipPolygon): la forma «spianata» in lati piccoli.
+  //     E' lui che va al clipPath, a __clipPoly, a _samePoly, al file: chi non
+  //     sa delle curve vede un poligono e taglia giusto (trappola 248).
+  // La regola per lato (la stessa ovunque):
+  //   1. il vertice di partenza ha un arco → arco;
+  //   2. altrimenti, almeno uno dei due estremi e' morbido → curva morbida
+  //      (Catmull-Rom centripeta: passa dai vertici, niente riccioli);
+  //   3. altrimenti → dritto, come sempre.
+  // ⚠ LO SPIANAMENTO E' UN'IMPRONTA (trappola 252): stessa forma → stesso
+  // poligono, al bit, su ogni PC e in ogni momento. Per questo:
+  //   • dipende SOLO dalla forma: la tolleranza e' in px LOGICI fissi (0,02 mm
+  //     a 96 PPI), non dallo zoom e nemmeno dalla calibrazione (cambiare la
+  //     calibrazione non deve staccare i tratti dal loro perimetro);
+  //   • usa solo + − × ÷ e Math.sqrt, che IEEE 754 arrotonda in un modo solo
+  //     (niente sin/cos/atan2/pow: la loro ultima cifra puo' cambiare fra
+  //     motori). Gli archi si spianano per BISEZIONE, non per angoli;
+  //   • i vertici restano ESATTI (sono i punti dell'utente); i punti in mezzo
+  //     si arrotondano a 0,01 px. Un perimetro di soli spigoli e lati dritti
+  //     spianato e' identico, al bit, a quello di prima delle curve.
+  function _cloneShape(sh) {
+    return sh.map((q) => {
+      const r = { x: q.x, y: q.y };
+      if (q.s === true) r.s = true;
+      if (_validArc(q.a)) r.a = [q.a[0], q.a[1]];
+      return r;
+    });
+  }
+  function _validArc(a) {
+    return Array.isArray(a) && a.length === 2 && Number.isFinite(a[0]) && Number.isFinite(a[1]);
+  }
+  function _shapeHasCurves(sh) {
+    if (!Array.isArray(sh)) return false;
+    for (let i = 0; i < sh.length; i++) {
+      if (sh[i] && (sh[i].s === true || _validArc(sh[i].a))) return true;
+    }
+    return false;
+  }
+  // Che lato e' il lato i (dal vertice i al successivo)?
+  function _sideKind(sh, i, closed) {
+    const n = sh.length;
+    const j = i + 1 < n ? i + 1 : (closed ? 0 : -1);
+    if (j < 0) return "none";
+    if (_validArc(sh[i].a)) return "arc";
+    if (sh[i].s === true || sh[j].s === true) return "soft";
+    return "line";
+  }
+  function _r2(v) { return Math.round(v * CLIP_CURVE_ROUND) / CLIP_CURVE_ROUND; }
+  function _len(dx, dy) { return Math.sqrt(dx * dx + dy * dy); }
+
+  // ── L'ARCO per tre punti: A, il pallino P, B ──
+  // Restituisce { cx, cy, R, o } (o = +1 o −1: il verso in cui l'arco va da A
+  // a P a B), oppure null se i tre punti sono in fila o il lato e' nullo.
+  function _arcCircle(A, P, B) {
+    const ax = A.x, ay = A.y, px = P.x, py = P.y, bx = B.x, by = B.y;
+    const d = 2 * (ax * (py - by) + px * (by - ay) + bx * (ay - py));
+    if (!(Math.abs(d) > 1e-12)) return null;
+    const a2 = ax * ax + ay * ay, p2 = px * px + py * py, b2 = bx * bx + by * by;
+    const cx = (a2 * (py - by) + p2 * (by - ay) + b2 * (ay - py)) / d;
+    const cy = (a2 * (bx - px) + p2 * (ax - bx) + b2 * (px - ax)) / d;
+    const R = _len(ax - cx, ay - cy);
+    if (!(R > 0) || !Number.isFinite(R)) return null;
+    const turn = (px - ax) * (by - py) - (py - ay) * (bx - px);
+    return { cx: cx, cy: cy, R: R, o: turn > 0 ? 1 : -1 };
+  }
+  // Il punto a meta' dell'arco che va da X a Y nel verso o (solo radici).
+  function _arcMid(c, X, Y) {
+    const vx = (X.x + Y.x) / 2 - c.cx, vy = (X.y + Y.y) / 2 - c.cy;
+    const cr = (X.x - c.cx) * (Y.y - c.cy) - (X.y - c.cy) * (Y.x - c.cx);
+    let dx, dy;
+    if (cr * c.o > 0) { dx = vx; dy = vy; }            // meno di mezzo giro
+    else if (cr * c.o < 0) { dx = -vx; dy = -vy; }     // piu' di mezzo giro
+    else {                                             // mezzo giro esatto
+      dx = -c.o * (X.y - c.cy); dy = c.o * (X.x - c.cx);
+    }
+    const L = _len(dx, dy);
+    if (!(L > 0)) return { x: X.x, y: X.y };
+    return { x: c.cx + c.R * dx / L, y: c.cy + c.R * dy / L };
+  }
+  // Quante volte bisecare l'arco X→Y perche' ogni pezzo stia nella tolleranza.
+  function _arcDepth(c, X, Y) {
+    let a = X, b = Y, k = 0;
+    // il primo taglio e' sempre fatto: un pezzo da piu' di mezzo giro non ha
+    // una freccia misurabile con la corda
+    while (k < CLIP_ARC_MAX_DEPTH) {
+      const m = _arcMid(c, a, b);
+      k++;
+      b = m;
+      const half = _len(b.x - a.x, b.y - a.y) / 2;
+      const inside = c.R * c.R - half * half;
+      const sag = c.R - Math.sqrt(inside > 0 ? inside : 0);
+      if (sag <= CLIP_CURVE_TOL_PX) break;
+    }
+    return k;
+  }
+  function _arcPush(c, X, Y, depth, out) {
+    if (depth <= 0) return;
+    const m = _arcMid(c, X, Y);
+    _arcPush(c, X, m, depth - 1, out);
+    out.push(m);
+    _arcPush(c, m, Y, depth - 1, out);
+  }
+  // Il pallino dell'arco del lato A→B, in punti del foglio.
+  function _arcKnob(A, B, a) {
+    const dx = B.x - A.x, dy = B.y - A.y;
+    return { x: A.x + a[0] * dx - a[1] * dy, y: A.y + a[0] * dy + a[1] * dx };
+  }
+  // Un punto Q in proporzione al lato A→B (l'inverso di _arcKnob).
+  function _toArc(A, B, Q) {
+    const dx = B.x - A.x, dy = B.y - A.y, L2 = dx * dx + dy * dy;
+    if (!(L2 > 0)) return null;
+    const qx = Q.x - A.x, qy = Q.y - A.y;
+    return [(qx * dx + qy * dy) / L2, (qy * dx - qx * dy) / L2];
+  }
+  // I punti in mezzo (non arrotondati) del lato ad arco A→B, o null se
+  // l'arco e' cosi' piatto da essere un lato dritto (freccia sotto la
+  // tolleranza) o degenere.
+  function _arcPointsRaw(A, B, a) {
+    const L = _len(B.x - A.x, B.y - A.y);
+    if (!(L > 0)) return null;
+    const P = _arcKnob(A, B, a);
+    if (!_arcWorthIt(A, P, B, L)) return null;
+    const c = _arcCircle(A, P, B);
+    if (!c) return null;
+    const pts = [];
+    _arcPush(c, A, P, _arcDepth(c, A, P), pts);
+    pts.push(P);
+    _arcPush(c, P, B, _arcDepth(c, P, B), pts);
+    // (Fino alla Fetta 3 qui si misurava quanto i puntini si staccano dalla
+    // corda: dalla 4B l'arco piatto lo decide _arcWorthIt, esatto, prima del
+    // cerchio. Quella misura sui puntini era la stessa regola fatta a occhio,
+    // e un mutante ha detto che non decideva piu' niente.)
+    return { pts: pts, circle: c, knob: P };
+  }
+
+  // ⚠ L'ARCO QUASI PIATTO (Fetta 4B, trappola 262). Tirando un rombo lo si
+  // riporta spesso sulla corda: il pallino resta fuori di un nulla (10^-16) e
+  // il cerchio per tre punti quasi in fila ha il centro a miliardi di px, i
+  // conti perdono tutte le cifre e la «curva» esce a zig-zag, fino a 1 mm
+  // fuori dal lato vero. Quindi PRIMA di cercare il cerchio si decide se ne
+  // vale la pena, con conti che non perdono cifre (solo i lati del triangolo
+  // A P B e la sua area, niente centro):
+  //   • P sull'arco MINORE (l'angolo in P e' ottuso: meno di mezzo giro): la
+  //     freccia vera e' (L/2)² / (R + √(R² − (L/2)²)), con R = |AP|·|PB|·L /
+  //     (2·|AP × PB|); sotto la tolleranza il lato e' dritto;
+  //   • P sull'arco MAGGIORE (piu' di mezzo giro: il rombo tirato oltre un
+  //     estremo): si accetta solo con R fino a CLIP_ARC_MAX_R_K volte il lato.
+  //     Oltre, il cerchio sarebbe enorme e la «curva» un giro gigante fuori
+  //     dal foglio: il lato resta dritto;
+  //   • P in fila con A e B (area zero): dritto.
+  // Solo + − × ÷ e √: lo spianamento resta un'impronta (trappola 252). Dove i
+  // conti di prima erano giusti il risultato non cambia: un arco con la
+  // freccia sotto la tolleranza era gia' dritto.
+  function _arcWorthIt(A, P, B, L) {
+    const apx = A.x - P.x, apy = A.y - P.y, bpx = B.x - P.x, bpy = B.y - P.y;
+    const area2 = Math.abs(apx * bpy - apy * bpx);
+    // in fila (area zero): R infinito o 0/0, e il lato resta dritto
+    const R = _len(apx, apy) * _len(bpx, bpy) * L / (2 * area2);
+    if (!Number.isFinite(R)) return false;
+    if (apx * bpx + apy * bpy < 0) {
+      const h = L / 2;
+      const sag = h * h / (R + Math.sqrt(R * R > h * h ? R * R - h * h : 0));
+      return sag >= CLIP_CURVE_TOL_PX;
+    }
+    return R <= CLIP_ARC_MAX_R_K * L;
+  }
+
+  // ── LA CURVA MORBIDA: Catmull-Rom centripeta, come Bézier cubica ──
+  // Il lato P1→P2, con i vicini P0 e P3. Un estremo che e' uno SPIGOLO non
+  // guarda il vicino oltre di se': al suo posto un vicino finto, il
+  // simmetrico (la curva parte, o arriva, lungo la corda: e' l'angolo vero).
+  function _softPointsRaw(P0, P1, P2, P3) {
+    const d12 = _len(P2.x - P1.x, P2.y - P1.y);
+    if (!(d12 > 0)) return [];
+    let d01 = _len(P1.x - P0.x, P1.y - P0.y);
+    if (!(d01 > 0)) { P0 = { x: 2 * P1.x - P2.x, y: 2 * P1.y - P2.y }; d01 = d12; }
+    let d23 = _len(P3.x - P2.x, P3.y - P2.y);
+    if (!(d23 > 0)) { P3 = { x: 2 * P2.x - P1.x, y: 2 * P2.y - P1.y }; d23 = d12; }
+    const t1 = Math.sqrt(d01), t2 = t1 + Math.sqrt(d12), t3 = t2 + Math.sqrt(d23);
+    const k12 = t2 - t1;
+    // le derivate in P1 e in P2 (Barry–Goldman, con t0 = 0)
+    const m1x = (P1.x - P0.x) / t1 - (P2.x - P0.x) / t2 + (P2.x - P1.x) / k12;
+    const m1y = (P1.y - P0.y) / t1 - (P2.y - P0.y) / t2 + (P2.y - P1.y) / k12;
+    const m2x = (P2.x - P1.x) / k12 - (P3.x - P1.x) / (t3 - t1) + (P3.x - P2.x) / (t3 - t2);
+    const m2y = (P2.y - P1.y) / k12 - (P3.y - P1.y) / (t3 - t1) + (P3.y - P2.y) / (t3 - t2);
+    const b1x = P1.x + m1x * k12 / 3, b1y = P1.y + m1y * k12 / 3;
+    const b2x = P2.x - m2x * k12 / 3, b2y = P2.y - m2y * k12 / 3;
+    // quanti pezzi: con n pezzi uguali lo scarto e' al massimo 6M / (8 n²)
+    const M = Math.max(
+      _len(P1.x - 2 * b1x + b2x, P1.y - 2 * b1y + b2y),
+      _len(b1x - 2 * b2x + P2.x, b1y - 2 * b2y + P2.y));
+    let n = Math.ceil(Math.sqrt(3 * M / (4 * CLIP_CURVE_TOL_PX)));
+    if (!(n >= 1)) n = 1;
+    if (n > CLIP_SOFT_MAX_SEG) n = CLIP_SOFT_MAX_SEG;
+    const out = [];
+    for (let i = 1; i < n; i++) {
+      const u = i / n, v = 1 - u;
+      const w0 = v * v * v, w1 = 3 * u * v * v, w2 = 3 * u * u * v, w3 = u * u * u;
+      out.push({ x: w0 * P1.x + w1 * b1x + w2 * b2x + w3 * P2.x,
+                 y: w0 * P1.y + w1 * b1y + w2 * b2y + w3 * P2.y });
+    }
+    return out;
+  }
+
+  // I punti IN MEZZO al lato i (arrotondati, senza i due vertici).
+  function _sideInner(sh, i, closed) {
+    const n = sh.length;
+    const kind = _sideKind(sh, i, closed);
+    if (kind === "line" || kind === "none") return [];
+    const j = (i + 1) % n;
+    const A = sh[i], B = sh[j];
+    let raw = null;
+    if (kind === "arc") {
+      const r = _arcPointsRaw(A, B, A.a);
+      raw = r ? r.pts : [];
+    } else {
+      const hasPrev = closed || i > 0;
+      const hasNext = closed || j + 1 < n;
+      const P0 = (A.s === true && hasPrev) ? sh[(i - 1 + n) % n] : { x: 2 * A.x - B.x, y: 2 * A.y - B.y };
+      const P3 = (B.s === true && hasNext) ? sh[(j + 1) % n] : { x: 2 * B.x - A.x, y: 2 * B.y - A.y };
+      raw = _softPointsRaw(P0, A, B, P3);
+    }
+    return raw.map((q) => ({ x: _r2(q.x), y: _r2(q.y) }));
+  }
+  // La forma spianata. vIdx (se passato) riceve, per ogni vertice, il suo
+  // posto nel poligono spianato. Soli spigoli e lati dritti = i vertici, tali e
+  // quali (prova d'identita').
+  function _flatten(sh, closed, vIdx) {
+    const n = sh ? sh.length : 0;
+    if (!n) return [];
+    const out = [{ x: sh[0].x, y: sh[0].y }];
+    if (vIdx) vIdx.push(0);
+    const sides = closed ? n : n - 1;
+    for (let i = 0; i < sides; i++) {
+      const inner = _sideInner(sh, i, closed);
+      for (let k = 0; k < inner.length; k++) out.push(inner[k]);
+      const j = (i + 1) % n;
+      if (closed && j === 0) break;               // il ritorno al primo vertice
+      out.push({ x: sh[j].x, y: sh[j].y });
+      if (vIdx) vIdx.push(out.length - 1);
+    }
+    return out;
+  }
+
   // Lato piu' vicino a p, con il punto di appoggio. Null se troppo lontano.
-  // I lati sono quelli dell'anello CHIUSO (l'ultimo torna al primo).
+  // I lati sono quelli dell'anello CHIUSO (l'ultimo torna al primo), e dalla
+  // Fetta 3 sono quelli SPIANATI: il punto d'appoggio sta sulla curva che si
+  // vede, non sulla corda.
   function _nearestEdge(p) {
     if (editPoints.length < 2) return null;
-    const k = _screenK();
+    return _nearestSide(p, true);
+  }
+  // Lo stesso, sull'anello chiuso (fase maniglie) o sulla spezzata aperta
+  // (fase traccia: l'ultimo lato non c'e' ancora). Serve anche ai rombi.
+  function _nearestSide(p, closed) {
+    const n = editPoints.length;
+    const sides = closed ? n : n - 1;
+    if (!p || n < 2 || sides < 1) return null;
+    const k = _aimK();
     const maxD = CLIP_EDGE_INSERT_SNAP_PX * k;
     let best = null;
     let bestD2 = maxD * maxD;
-    for (let i = 0; i < editPoints.length; i++) {
-      const a = editPoints[i];
-      const b = editPoints[(i + 1) % editPoints.length];
-      const pr = _projectOnSegment(p, a, b);
-      const d2 = _dist2(p.x, p.y, pr.x, pr.y);
-      if (d2 <= bestD2) { bestD2 = d2; best = { index: i, point: pr }; }
+    for (let i = 0; i < sides; i++) {
+      const run = _sideRun(editPoints, i, closed);
+      for (let m = 0; m + 1 < run.length; m++) {
+        const pr = _projectOnSegment(p, run[m], run[m + 1]);
+        const d2 = _dist2(p.x, p.y, pr.x, pr.y);
+        if (d2 <= bestD2) { bestD2 = d2; best = { index: i, point: pr }; }
+      }
     }
     return best;
+  }
+  // Sposta il vertice i in (x, y) tenendo il suo tipo (morbido, arco).
+  function _moveVertex(i, x, y) {
+    const q = editPoints[i];
+    if (!q) return;
+    const r = { x: x, y: y };
+    if (q.s === true) r.s = true;
+    if (_validArc(q.a)) r.a = [q.a[0], q.a[1]];
+    editPoints[i] = r;
+  }
+
+  // ============================================================
+  //  I ROMBI (cantiere «Il Mirino», Fetta 4B, 14 ottobre 2026)
+  // ============================================================
+  // Il lato i della forma sh, come si vede: [A, punti in mezzo, B].
+  function _sideRun(sh, i, closed) {
+    const n = sh.length;
+    return [sh[i]].concat(_sideInner(sh, i, closed), [sh[(i + 1) % n]]);
+  }
+  // Quanti lati ha la sessione: tutti in fase maniglie (anello chiuso), uno
+  // di meno in fase traccia (il lato di chiusura non c'e' ancora).
+  function _sideCount() {
+    const n = editPoints.length;
+    if (mode === "handles") return n >= CLIP_MIN_VERTICES ? n : 0;
+    if (mode === "draw") return n >= 2 ? n - 1 : 0;
+    return 0;
+  }
+  // Dove sta il rombo del lato i. Su un arco e' il suo pallino (l'arco ci
+  // passa per costruzione); su un lato dritto o morbido e' a meta' strada
+  // lungo la linea che si vede.
+  function _knobPos(i) {
+    const n = editPoints.length;
+    const A = editPoints[i], B = editPoints[(i + 1) % n];
+    if (_validArc(A.a)) return _arcKnob(A, B, A.a);
+    const run = _sideRun(editPoints, i, mode === "handles");
+    let tot = 0;
+    for (let m = 0; m + 1 < run.length; m++) tot += _len(run[m + 1].x - run[m].x, run[m + 1].y - run[m].y);
+    let half = tot / 2;
+    for (let m = 0; m + 1 < run.length; m++) {
+      const L = _len(run[m + 1].x - run[m].x, run[m + 1].y - run[m].y);
+      if (L > 0 && L >= half) {
+        const t = half / L;
+        return { x: run[m].x + (run[m + 1].x - run[m].x) * t, y: run[m].y + (run[m + 1].y - run[m].y) * t };
+      }
+      half -= L;
+    }
+    return { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 };
+  }
+  // Quali rombi si vedono (§5.4 del cantiere: lo schermo non si riempie,
+  // anche con un punto ogni 7 mm): tutti gli archi; i due lati della maniglia
+  // selezionata; il rombo selezionato e quello che si sta tirando; e, a
+  // pulsante alzato, il lato sotto il punto p (il mirino) se li' non c'e'
+  // una maniglia. Indici dei lati, in ordine.
+  function _knobSides(p) {
+    const cnt = _sideCount();
+    const out = [];
+    if (!cnt) return out;
+    const n = editPoints.length;
+    const closed = mode === "handles";
+    const add = (i) => { if (i >= 0 && i < cnt && out.indexOf(i) < 0) out.push(i); };
+    for (let i = 0; i < cnt; i++) if (_validArc(editPoints[i].a)) add(i);
+    if (selectedHandle >= 0 && selectedHandle < n) {
+      add(selectedHandle);
+      add(closed ? (selectedHandle - 1 + n) % n : selectedHandle - 1);
+    }
+    add(selectedKnob);
+    add(knobGrab);
+    if (p && !pointerDown && _hitHandle(p) < 0) {
+      const s = _nearestSide(p, closed);
+      if (s) add(s.index);
+    }
+    return out.sort((x, y) => x - y);
+  }
+  // Il rombo sotto il punto p (coord logiche), o -1: fra quelli che si
+  // vedono, il piu' vicino, con la stessa presa delle maniglie (nel vetro
+  // della lente, se c'e': trappola 246).
+  function _hitKnob(p) {
+    if (!p) return -1;
+    const r = CLIP_HANDLE_GRAB_PX * _aimK();
+    let best = -1;
+    let bestD = r * r;
+    const sides = _knobSides(p);
+    for (let m = 0; m < sides.length; m++) {
+      const q = _knobPos(sides[m]);
+      const d = _dist2(q.x, q.y, p.x, p.y);
+      if (d <= bestD) { bestD = d; best = sides[m]; }
+    }
+    return best;
+  }
+  // Il lato i diventa l'arco che passa da P; se P sta sulla corda (l'arco
+  // starebbe entro 0,02 mm da lei) il lato torna senza arco. Il tipo del
+  // vertice resta. Il pallino si salva in proporzione al lato (trappola 251).
+  function _setKnob(i, P) {
+    const n = editPoints.length;
+    const A = editPoints[i], B = editPoints[(i + 1) % n];
+    if (!A || !B) return;
+    const a = _toArc(A, B, P);
+    const r = { x: A.x, y: A.y };
+    if (A.s === true) r.s = true;
+    if (a && _arcPointsRaw(A, B, a)) r.a = a;
+    editPoints[i] = r;
   }
 
   // ============================================================
@@ -978,12 +1686,51 @@
       if (isFirstTarget) fill = "rgba(255,255,255,0.95)";
       if (isSel) fill = CLIP_HANDLE_SEL_COLOR;
 
-      ctx.beginPath();
-      ctx.arc(pts[i].x, pts[i].y, r * k, 0, Math.PI * 2);
+      // Fetta 4A: quadrata = spigolo, tonda = morbido.
+      _traceHandle(ctx, pts[i].x, pts[i].y, r * k, pts[i].s === true);
       ctx.fillStyle = fill;
       ctx.fill();
       ctx.lineWidth = 1 * k;
       ctx.strokeStyle = isSel ? "rgba(255,255,255,0.95)" : CLIP_GUIDE_COLOR;
+      ctx.stroke();
+    }
+  }
+  // Il segno di una maniglia attorno a (x, y), r = raggio: un tondo per un
+  // punto morbido, un quadrato per uno spigolo (Fetta 4A).
+  function _traceHandle(ctx, x, y, r, soft) {
+    ctx.beginPath();
+    if (soft) { ctx.arc(x, y, r, 0, Math.PI * 2); return; }
+    const h = r * CLIP_SQUARE_K;
+    ctx.rect(x - h, y - h, 2 * h, 2 * h);
+  }
+  // Un rombo attorno a (x, y), r = mezza diagonale (Fetta 4B).
+  function _traceKnob(ctx, x, y, r) {
+    ctx.beginPath();
+    ctx.moveTo(x, y - r);
+    ctx.lineTo(x + r, y);
+    ctx.lineTo(x, y + r);
+    ctx.lineTo(x - r, y);
+    ctx.closePath();
+  }
+  // I rombi che si vedono (Fetta 4B): VUOTO (bianco, bordo arancione) = il lato
+  // non e' un arco e si puo' piegare; PIENO (arancione, bordo scuro) = e' un
+  // arco; ciano = selezionato o tirato adesso.
+  function _paintKnobs(ctx, k) {
+    const sides = _knobSides(hoverPoint);
+    for (let m = 0; m < sides.length; m++) {
+      const i = sides[m];
+      const q = _knobPos(i);
+      const isSel = i === selectedKnob || i === knobGrab;
+      const isHover = i === hoverKnob;
+      let r = CLIP_KNOB_RADIUS_PX;
+      if (isSel) r = CLIP_KNOB_SEL_RADIUS_PX;
+      else if (isHover) r = CLIP_KNOB_HOVER_RADIUS_PX;
+      const arc = _validArc(editPoints[i].a);
+      _traceKnob(ctx, q.x, q.y, r * k);
+      ctx.fillStyle = isSel ? CLIP_HANDLE_SEL_COLOR : (arc ? CLIP_GUIDE_COLOR : CLIP_KNOB_EMPTY_COLOR);
+      ctx.fill();
+      ctx.lineWidth = CLIP_KNOB_LINE_W * k;
+      ctx.strokeStyle = isSel ? CLIP_KNOB_EDGE_COLOR : (arc ? CLIP_KNOB_ARC_EDGE_COLOR : CLIP_GUIDE_COLOR);
       ctx.stroke();
     }
   }
@@ -999,19 +1746,22 @@
 
     // 2) Fase maniglie: anello chiuso + tutte le maniglie manovrabili.
     if (mode === "handles") {
-      _paintRing(ctx, k, editPoints);
+      _paintRing(ctx, k, _flatten(editPoints, true));
+      _paintKnobs(ctx, k);
       _paintHandles(ctx, k, editPoints, false);
       return;
     }
 
-    // 3) Fase tracciamento: spezzata aperta + elastico + maniglie.
+    // 3) Fase tracciamento: spezzata aperta + elastico + maniglie. La linea e'
+    // quella spianata (Fetta 3); le maniglie stanno sui vertici.
     const pts = editPoints;
+    const line = _flatten(pts, false);
     if (pts.length >= 1) {
       ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.moveTo(line[0].x, line[0].y);
+      for (let i = 1; i < line.length; i++) ctx.lineTo(line[i].x, line[i].y);
       // segmento "elastico" fino al cursore (se non sto trascinando nulla)
-      if (!dragStarted && grabIndex < 0 && hoverPoint) ctx.lineTo(hoverPoint.x, hoverPoint.y);
+      if (!dragStarted && grabIndex < 0 && knobGrab < 0 && hoverPoint) ctx.lineTo(hoverPoint.x, hoverPoint.y);
       ctx.lineWidth = CLIP_GUIDE_LINE_W * k;
       ctx.strokeStyle = CLIP_GUIDE_COLOR;
       ctx.setLineDash([CLIP_GUIDE_DASH[0] * k, CLIP_GUIDE_DASH[1] * k]);
@@ -1021,13 +1771,14 @@
       // velo interno se la sessione e' gia' un poligono plausibile
       if (pts.length >= CLIP_MIN_VERTICES) {
         ctx.beginPath();
-        ctx.moveTo(pts[0].x, pts[0].y);
-        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.moveTo(line[0].x, line[0].y);
+        for (let i = 1; i < line.length; i++) ctx.lineTo(line[i].x, line[i].y);
         ctx.closePath();
         ctx.fillStyle = CLIP_GUIDE_FILL;
         ctx.fill();
       }
     }
+    _paintKnobs(ctx, k);
     _paintHandles(ctx, k, pts, true);
   }
 
@@ -1191,19 +1942,24 @@
   // Il punto unico in cui la forma del perimetro cambia: aggiorna il poligono
   // globale, ri-ritaglia i tratti che lo seguivano, marca sporco per
   // autosalvataggio/annulla, e registra il passo per il CTRL+Z di sessione.
+  // Dalla Fetta 3 «pts» e' la FORMA (vertici col tipo): il poligono di taglio
+  // si ottiene spianandola. Il Ctrl+Z di sessione ricorda le FORME; le forme
+  // «viste» (per riconoscere i tratti) sono i poligoni SPIANATI.
   function _commitShape(pts, opts) {
     if (!_validPoly(pts)) return false;
     const previous = _validPoly(clipPolygon) ? _clonePoly(clipPolygon) : null;
+    const previousShape = previous ? _cloneShape(clipShape) : null;
 
     if (!(opts && opts.noUndo)) {
-      if (previous) {
-        shapeUndo.push(previous);
+      if (previousShape) {
+        shapeUndo.push(previousShape);
         if (shapeUndo.length > CLIP_SHAPE_UNDO_LIMIT) shapeUndo.shift();
       }
     }
     if (previous) _rememberShape(previous);
 
-    clipPolygon = _clonePoly(pts);
+    clipShape = _cloneShape(pts);
+    clipPolygon = _flatten(clipShape, true);
     window.freehandClipPolygon = clipPolygon;
     _rememberShape(clipPolygon);
     _rebakeClipPoly(clipPolygon);
@@ -1216,19 +1972,58 @@
   // ============================================================
   //  PERSISTENZA (lettori usati da renderer.js / autoSave.js)
   // ============================================================
+  // Il poligono SPIANATO, punto per punto. Se la forma ha curve, i punti che
+  // sono vertici veri portano v (1 spigolo, 2 morbido) e, se il lato che parte
+  // da li' e' un arco, a: [t, h] (Fetta 3, §5.5). Soli spigoli e lati dritti:
+  // nessun campo in piu', come prima.
   function getFreehandClipPolygon() {
-    return clipPolygon && clipPolygon.length >= CLIP_MIN_VERTICES ? _clonePoly(clipPolygon) : null;
+    if (!(clipPolygon && clipPolygon.length >= CLIP_MIN_VERTICES)) return null;
+    const out = _clonePoly(clipPolygon);
+    if (!_shapeHasCurves(clipShape)) return out;
+    const vIdx = [];
+    const flat = _flatten(clipShape, true, vIdx);
+    if (!_samePoly(flat, out)) return out;          // non dovrebbe mai succedere
+    for (let k = 0; k < vIdx.length; k++) {
+      const q = clipShape[k], o = out[vIdx[k]];
+      o.v = q.s === true ? 2 : 1;
+      if (_validArc(q.a)) o.a = [q.a[0], q.a[1]];
+    }
+    return out;
+  }
+  // La forma da un poligono letto dal file: se ha i vertici marcati (v) e il
+  // loro spianamento torna AL CENTESIMO col poligono del file, la forma e'
+  // quella; altrimenti (file vecchio, file risalvato da un Mosaica vecchio, o
+  // qualcosa che non torna) ogni punto e' uno spigolo e vince il file: si
+  // taglia esattamente quello che c'e' scritto.
+  function _shapeFromSaved(raw, plain) {
+    const verts = [];
+    for (let i = 0; i < raw.length; i++) {
+      const p = raw[i];
+      if (!p || (p.v !== 1 && p.v !== 2)) continue;
+      const x = +p.x, y = +p.y;
+      if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+      const q = { x: x, y: y };
+      if (p.v === 2) q.s = true;
+      if (Array.isArray(p.a) && p.a.length === 2 && Number.isFinite(+p.a[0]) && Number.isFinite(+p.a[1])) {
+        q.a = [+p.a[0], +p.a[1]];
+      }
+      verts.push(q);
+    }
+    if (verts.length >= CLIP_MIN_VERTICES && _samePoly(_flatten(verts, true), plain)) return verts;
+    return plain.map((p) => ({ x: p.x, y: p.y }));
   }
   // Imposta il poligono (es. al caricamento progetto). Non applica il clip:
   // chi chiama deve poi invocare applyFreehandClipToAll() quando gli oggetti
   // sono sul canvas. opts.silent = non mostrare toast.
   function setFreehandClipPolygon(poly, opts) {
+    _dropNudge();                   // la forma arriva da fuori: vince lei
     if (Array.isArray(poly) && poly.length >= CLIP_MIN_VERTICES) {
       clipPolygon = poly.map((p) => ({ x: +p.x, y: +p.y })).filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y));
       if (clipPolygon.length < CLIP_MIN_VERTICES) clipPolygon = null;
     } else {
       clipPolygon = null;
     }
+    clipShape = clipPolygon ? _shapeFromSaved(poly, clipPolygon) : null;
     window.freehandClipPolygon = clipPolygon;
     // Un poligono che arriva da fuori (apertura progetto, annulla) apre una
     // storia nuova: le forme della sessione precedente non c'entrano piu'.
@@ -1317,23 +2112,26 @@
     grabIndex = -1;
     grabMoved = false;
     hoverHandle = -1;
+    _knobReset();
     sessionChanged = false;
     shapeUndo = [];
     shapeSeen = [];
+    lastTap = null;
+    _endAim();
 
     if (_validPoly(clipPolygon)) {
       mode = "handles";
-      editPoints = _clonePoly(clipPolygon);
+      editPoints = _cloneShape(clipShape);
       selectedHandle = -1;
       _rememberShape(clipPolygon);
       _toast(_t("freehandClip.toast.handles",
-        "⬡ Maniglie: trascina per spostare, doppio-click su un lato = punto nuovo, CANC = togli, Invio = fine"));
+        "⬡ Maniglie: trascina per spostare, frecce = di fino, M = morbido/spigolo, rombo a metà lato = arco, doppio-click su un lato = punto nuovo, CANC = togli, Invio = fine"));
     } else {
       mode = "draw";
       editPoints = [];
       selectedHandle = -1;
       _toast(_t("freehandClip.toast.start",
-        "⬡ Perimetro: tap = vertice, trascina = mano libera, le maniglie si spostano, Invio/doppio-click = chiudi, ESC = annulla"));
+        "⬡ Perimetro: tap = vertice, Shift+tap = vertice morbido, con la lente tieni premuto = mira lenta (L spenta = mano libera), le maniglie si spostano, Invio/doppio-click = chiudi, ESC = annulla"));
     }
 
     const b = _btn();
@@ -1349,10 +2147,11 @@
       return false;
     }
     _commitShape(editPoints);
-    editPoints = _clonePoly(clipPolygon);
+    editPoints = _cloneShape(clipShape);
     mode = "handles";
     selectedHandle = -1;
     hoverHandle = -1;
+    _knobReset();
     dragStarted = false;
     grabIndex = -1;
     grabMoved = false;
@@ -1366,6 +2165,10 @@
   function exitMode(opts) {
     const c = _canvas();
     if (!mode) return;
+    _flushNudge();                  // le frecce in attesa valgono: si escono applicate
+    lastTap = null;
+    _endAim();                      // anche uscendo a pulsante premuto (ESC): il cursore torna
+    _clutchOff();
     const wasMode = mode;
     const changed = sessionChanged;
 
@@ -1377,6 +2180,7 @@
     grabMoved = false;
     selectedHandle = -1;
     hoverHandle = -1;
+    _knobReset();
     sessionChanged = false;
     shapeUndo = [];
 
@@ -1403,8 +2207,10 @@
   // Cancella un perimetro committato (click destro sul pulsante).
   function clearPerimeter(opts) {
     const had = !!(clipPolygon && clipPolygon.length >= CLIP_MIN_VERTICES);
+    _dropNudge();
     if (mode) exitMode({ silent: true });
     clipPolygon = null;
+    clipShape = null;
     window.freehandClipPolygon = null;
     shapeUndo = [];
     shapeSeen = [];
@@ -1428,19 +2234,41 @@
     // Se il punto di appoggio cade praticamente su una maniglia esistente non
     // si inserisce niente: sarebbe un doppione degenere (capita col
     // doppio-click fatto sopra una maniglia).
-    const k = _screenK();
+    const k = _aimK();
     const grab = CLIP_HANDLE_GRAB_PX * k;
     for (let i = 0; i < editPoints.length; i++) {
       if (_dist2(editPoints[i].x, editPoints[i].y, edge.point.x, edge.point.y) <= grab * grab) return false;
     }
-    const next = _clonePoly(editPoints);
-    next.splice(edge.index + 1, 0, { x: edge.point.x, y: edge.point.y });
+    const next = _cloneShape(editPoints);
+    next.splice(edge.index + 1, 0, _splitSide(next, edge.index, edge.point));
     _commitShape(next);
-    editPoints = _clonePoly(clipPolygon);
+    editPoints = _cloneShape(clipShape);
     selectedHandle = edge.index + 1;
+    _knobReset();
     _toast(_t("freehandClip.toast.vertexAdded", "⬡ Punto aggiunto al perimetro"));
     _redraw(true);
     return true;
+  }
+
+  // Il vertice nuovo N sul lato i (Fetta 3): su un lato morbido nasce morbido
+  // (la curva continua); su un arco l'arco si divide in due archi dello STESSO
+  // cerchio, e il vertice i prende il primo dei due. Su un lato dritto: uno
+  // spigolo, come sempre. N e' il punto d'appoggio sul lato spianato.
+  function _splitSide(sh, i, N) {
+    const n = sh.length;
+    const A = sh[i], B = sh[(i + 1) % n];
+    const v = { x: N.x, y: N.y };
+    const kind = _sideKind(sh, i, true);
+    if (kind === "soft") { v.s = true; return v; }
+    if (kind === "arc") {
+      const r = _arcPointsRaw(A, B, A.a);
+      if (!r) { delete A.a; return v; }
+      const a1 = _toArc(A, v, _arcMid(r.circle, A, v));
+      const a2 = _toArc(v, B, _arcMid(r.circle, v, B));
+      if (a1) A.a = a1; else delete A.a;
+      if (a2) v.a = a2;
+    }
+    return v;
   }
 
   function removeSelectedHandle() {
@@ -1450,15 +2278,114 @@
       _toast(_t("freehandClip.toast.minPoints", "⬡ Un perimetro ha bisogno di almeno 3 punti"));
       return false;
     }
-    const next = _clonePoly(editPoints);
+    const next = _cloneShape(editPoints);
     next.splice(selectedHandle, 1);
+    // Il lato che arrivava al punto tolto ora va al punto dopo: era un arco
+    // fatto per un altro lato, non vale piu' (Fetta 3).
+    const prev = next[(selectedHandle - 1 + next.length) % next.length];
+    if (prev && prev.a) delete prev.a;
     _commitShape(next);
-    editPoints = _clonePoly(clipPolygon);
+    editPoints = _cloneShape(clipShape);
     selectedHandle = -1;
     hoverHandle = -1;
+    _knobReset();
     _toast(_t("freehandClip.toast.vertexRemoved", "⬡ Punto rimosso dal perimetro"));
     _redraw(true);
     return true;
+  }
+
+  // ── Le due operazioni del motore delle curve (Fetta 3) ──
+  // Le useranno i gesti delle fette 4A (M, doppio-click, Shift+tap) e 4B (i
+  // rombi). Valgono solo dentro la modalita'. In fase maniglie cambiano la
+  // forma committata (un passo di Ctrl+Z, il taglio dei tratti segue); in
+  // fase traccia cambiano solo la sessione.
+  function _applyShapeEdit(next) {
+    if (mode === "handles") {
+      _flushNudge();
+      _commitShape(next);
+      editPoints = _cloneShape(clipShape);
+    } else {
+      editPoints = next;
+    }
+    _redraw(true);
+    _lensRefresh();
+    return true;
+  }
+  // Il vertice i diventa morbido (on = true) o spigolo (on = false).
+  function setVertexSoft(i, on) {
+    if (!mode || !(i >= 0 && i < editPoints.length)) return false;
+    const want = !!on;
+    if ((editPoints[i].s === true) === want) return false;
+    const next = _cloneShape(editPoints);
+    if (want) next[i].s = true; else delete next[i].s;
+    return _applyShapeEdit(next);
+  }
+  // Il lato che parte dal vertice i diventa un arco col pallino a = [t, h]
+  // (in proporzione al lato), oppure torna dritto (a = null). Un arco cosi'
+  // piatto da stare entro 0,02 mm dalla corda torna dritto da solo.
+  function setSideArc(i, a) {
+    if (!mode || !(i >= 0 && i < editPoints.length)) return false;
+    const n = editPoints.length;
+    const closed = mode === "handles";
+    if (!closed && i + 1 >= n) return false;       // in traccia l'ultimo lato non c'e' ancora
+    const next = _cloneShape(editPoints);
+    const had = _validArc(next[i].a);
+    if (a == null) {
+      if (!had) return false;
+      delete next[i].a;
+    } else {
+      if (!_validArc(a)) return false;
+      const B = next[(i + 1) % n];
+      if (_arcPointsRaw(next[i], B, a)) next[i].a = [a[0], a[1]];
+      else if (had) delete next[i].a;
+      else return false;
+    }
+    return _applyShapeEdit(next);
+  }
+
+  // ── I gesti delle curve (cantiere «Il Mirino», Fette 4A e 4B) ──
+  // Nessun rombo scelto, sotto il puntatore o in mano.
+  function _knobReset() {
+    selectedKnob = -1;
+    hoverKnob = -1;
+    knobGrab = -1;
+    knobMoved = false;
+  }
+  // Il punto i: spigolo ↔ morbido, con l'avviso che dice cosa e' diventato.
+  function _toggleSoft(i) {
+    if (!(i >= 0 && i < editPoints.length)) return false;
+    const on = editPoints[i].s !== true;
+    if (!setVertexSoft(i, on)) return false;
+    _toast(on
+      ? _t("freehandClip.toast.soft", "⬡ Punto morbido: la linea ci passa in curva")
+      : _t("freehandClip.toast.corner", "⬡ Punto spigolo: la linea ci fa l'angolo"));
+    return true;
+  }
+  // Il lato i perde il suo arco (torna dritto, o morbido se un suo estremo
+  // e' morbido: la regola per lato).
+  function _straighten(i) {
+    if (!(i >= 0 && i < editPoints.length) || !_validArc(editPoints[i].a)) return false;
+    if (!setSideArc(i, null)) return false;
+    _toast(_t("freehandClip.toast.arcRemoved", "⬡ Arco tolto: il lato torna com'era"));
+    return true;
+  }
+  // Il tasto M (la strada senza doppio-click, per la penna): sulla maniglia
+  // selezionata cambia spigolo ↔ morbido; sul rombo selezionato toglie
+  // l'arco. Senza niente di selezionato vale quello che sta sotto il mirino.
+  function _keyM() {
+    if (pointerDown) return;
+    if (selectedHandle >= 0 && selectedHandle < editPoints.length) { _toggleSoft(selectedHandle); return; }
+    if (selectedKnob >= 0 && selectedKnob < _sideCount()) {
+      if (!_straighten(selectedKnob)) {
+        _toast(_t("freehandClip.toast.notArc",
+          "⬡ Questo lato non è un arco: trascina il rombo (o usa le frecce) per piegarlo"));
+      }
+      return;
+    }
+    if (hoverHandle >= 0 && hoverHandle < editPoints.length) { _toggleSoft(hoverHandle); return; }
+    if (hoverKnob >= 0 && hoverKnob < _sideCount() && _straighten(hoverKnob)) return;
+    _toast(_t("freehandClip.toast.mHint",
+      "⬡ M: seleziona prima un punto (morbido/spigolo) o il rombo di un arco (torna dritto)"));
   }
 
   // CTRL+Z di sessione: torna alla forma precedente tenendo guida e taglio
@@ -1470,10 +2397,104 @@
     const prev = shapeUndo.pop();
     if (!_validPoly(prev)) return false;
     _commitShape(prev, { noUndo: true });
-    editPoints = _clonePoly(clipPolygon);
+    editPoints = _cloneShape(clipShape);
     selectedHandle = -1;
     hoverHandle = -1;
+    _knobReset();
     _redraw(true);
+    return true;
+  }
+
+  // ============================================================
+  //  LE FRECCE (cantiere «Il Mirino», Fetta 1)
+  // ============================================================
+  // Passo in mm come per le tessere (keyboardShortcuts.js): Ctrl 0,01,
+  // Shift 1, altrimenti 0,1. mm2px e' un const di renderer.js: si legge per
+  // nome, con il ripiego dei 96 PPI come fa la lente.
+  function _nudgeStepPx(evt) {
+    let mm = 0.1;
+    if (evt && (evt.ctrlKey || evt.metaKey)) mm = 0.01;
+    else if (evt && evt.shiftKey) mm = 1;
+    try {
+      if (typeof window.mm2px === "function") return window.mm2px(mm);
+      if (typeof mm2px === "function") return mm2px(mm);
+    } catch (e) {}
+    return mm * (96 / 25.4);
+  }
+  // Il commit in attesa (fase maniglie) si fa SUBITO: prima di qualunque
+  // altro gesto, cosi' guida, taglio e Ctrl+Z di sessione restano in fila.
+  function _flushNudge() {
+    if (!nudgeTimer) return false;
+    clearTimeout(nudgeTimer);
+    nudgeTimer = null;
+    if (mode === "handles" && _validPoly(editPoints)) {
+      _commitShape(editPoints);
+      editPoints = _cloneShape(clipShape);
+      _redraw(true);
+    }
+    return true;
+  }
+  // Il commit in attesa si butta: la forma arriva da fuori (apertura,
+  // annulla generale) o il perimetro si cancella.
+  function _dropNudge() {
+    if (nudgeTimer) { clearTimeout(nudgeTimer); nudgeTimer = null; }
+  }
+  // Sposta il punto selezionato. Ritorna true se la freccia e' stata
+  // usata qui (e allora non deve spostare anche la vista).
+  function nudgeSelected(direction, evt) {
+    if (!mode) return false;
+    // Fetta 4B: senza una maniglia selezionata le frecce muovono il rombo
+    // selezionato (l'arco si aggiusta di fino).
+    const onKnob = !(selectedHandle >= 0 && selectedHandle < editPoints.length) &&
+      selectedKnob >= 0 && selectedKnob < _sideCount();
+    if (!onKnob && (selectedHandle < 0 || selectedHandle >= editPoints.length)) return false;
+    if (pointerDown) return true;    // durante un gesto: ferma, ma niente pan
+    const step = _nudgeStepPx(evt);
+    let dx = 0, dy = 0;
+    if (direction === "left") dx = -step;
+    else if (direction === "right") dx = step;
+    else if (direction === "up") dy = -step;
+    else if (direction === "down") dy = step;
+    else return false;
+    if (onKnob) {
+      const q = _knobPos(selectedKnob);
+      _setKnob(selectedKnob, { x: q.x + dx, y: q.y + dy });
+    } else {
+      const q = editPoints[selectedHandle];
+      _moveVertex(selectedHandle, q.x + dx, q.y + dy);
+    }
+    if (mode === "handles") {
+      // La guida si muove subito; il ri-taglio dei tratti (e il passo di
+      // annulla) arriva dopo la pausa: una raffica = un passo solo.
+      if (nudgeTimer) clearTimeout(nudgeTimer);
+      nudgeTimer = setTimeout(() => {
+        nudgeTimer = null;
+        if (mode !== "handles" || !_validPoly(editPoints)) return;
+        _commitShape(editPoints);
+        editPoints = _cloneShape(clipShape);
+        _redraw(true);
+        _lensRefresh();
+      }, CLIP_NUDGE_COMMIT_MS);
+    }
+    _redraw(true);
+    _lensRefresh();
+    return true;
+  }
+  // ⚠ Le frecce NON passano tutte da keydown: inputMapping.js chiama
+  // window.handleArrowMovement direttamente per i tasti singoli mappati
+  // come frecce (trappola 249). Si avvolge la funzione su window (porta
+  // della Bottega §3.1): keyboardShortcuts.js non si tocca.
+  function _wrapArrowMovement() {
+    const orig = window.handleArrowMovement;
+    if (typeof orig !== "function") return false;
+    if (orig.__mirinoWrapped) return true;
+    const wrapped = function (direction, evt) {
+      if (nudgeSelected(direction, evt)) return;
+      return orig.apply(this, arguments);
+    };
+    wrapped.__mirinoWrapped = true;
+    wrapped.__mirinoOriginal = orig;
+    window.handleArrowMovement = wrapped;
     return true;
   }
 
@@ -1484,18 +2505,35 @@
     if (!mode) return;              // fuori modalita': non tocchiamo nulla
     const e = opt && opt.e;
     if (e && typeof e.button === "number" && e.button !== 0) return; // solo sinistro
+    _flushNudge();                  // frecce in attesa: prima si chiudono loro
 
-    const p = _pointer(e);
+    // Il punto della pressione e' il MIRINO, non la mano: con la frizione
+    // (Fetta 2-bis) i due sono scostati, e si preme dove si vede il pallino.
+    const p = _aimAt(e);
+    const h = _pointer(e);
+    // Una maniglia sotto il puntatore vince su tutto: si aggancia e si sposta,
+    // in entrambe le fasi. E' il cuore della Fetta 1. Se non c'e', un rombo
+    // (Fetta 4B). Si guarda PRIMA di segnare il pulsante premuto: il rombo
+    // del lato sotto il mirino si vede solo a pulsante alzato.
+    const hitH = _hitHandle(p);
+    const hitK = hitH < 0 ? _hitKnob(p) : -1;
     pointerDown = true;
     dragStarted = false;
     grabMoved = false;
+    knobMoved = false;
+    downShift = !!(e && e.shiftKey);
     downLogical = { x: p.x, y: p.y };
+    downHand = { x: h.x, y: h.y };
     downScreen = e ? { x: e.clientX, y: e.clientY } : { x: p.x, y: p.y };
     hoverPoint = { x: p.x, y: p.y };
-    // Una maniglia sotto il puntatore vince su tutto: si aggancia e si sposta,
-    // in entrambe le fasi. E' il cuore della Fetta 1.
-    grabIndex = _hitHandle(p);
+    grabIndex = hitH;
     hoverHandle = grabIndex;
+    knobGrab = hitK;
+    hoverKnob = knobGrab;
+    // La vite micrometrica (Fetta 2): con la lente a schermo, da qui al
+    // rilascio la mano e' demoltiplicata. Il punto di partenza e' quello
+    // della pressione, quindi un tap fermo resta dove si e' premuto (P2).
+    _beginAim();
     _redraw(true);
   }
 
@@ -1506,7 +2544,10 @@
     // --- MODALITA' PERIMETRO ---
     if (mode) {
       const c = _canvas();
-      const p = _pointer(e);
+      // Il punto di mira: il puntatore, oppure (tenendo premuto con la
+      // lente) il puntatore demoltiplicato. Maniglie, elastico e lente
+      // seguono LUI, non la mano.
+      const p = _aimAt(e);
       hoverPoint = { x: p.x, y: p.y };
 
       if (pointerDown) {
@@ -1515,10 +2556,22 @@
           // così un tap fermo resta un tap (chiusura / selezione).
           if (!grabMoved && _movedPastThreshold(e)) grabMoved = true;
           if (grabMoved && editPoints[grabIndex]) {
-            editPoints[grabIndex] = { x: p.x, y: p.y };
+            _moveVertex(grabIndex, p.x, p.y);
             selectedHandle = grabIndex;
+            selectedKnob = -1;
           }
-        } else if (mode === "draw") {
+        } else if (knobGrab >= 0) {
+          // Sto (forse) tirando un rombo (Fetta 4B): il lato diventa l'arco
+          // che passa dal mirino. Anche qui solo dopo la soglia della mano.
+          if (!knobMoved && _movedPastThreshold(e)) knobMoved = true;
+          if (knobMoved && knobGrab < _sideCount()) {
+            _setKnob(knobGrab, p);
+            selectedKnob = knobGrab;
+            selectedHandle = -1;
+          }
+        } else if (mode === "draw" && !aiming) {
+          // Mano libera: solo a lente spenta. Con la lente premere e
+          // trascinare a vuoto e' mira fine (B2): il punto nasce al rilascio.
           if (!dragStarted && _movedPastThreshold(e)) {
             dragStarted = true;
             // il primo punto della mano-libera e' il punto del down
@@ -1532,9 +2585,10 @@
           }
         }
       } else {
-        // Hover: evidenzia la maniglia agganciabile e cambia cursore.
+        // Hover: evidenzia la maniglia (o il rombo) agganciabile e cambia cursore.
         hoverHandle = _hitHandle(p);
-        _setCursor(c, hoverHandle >= 0 ? "move" : "crosshair");
+        hoverKnob = hoverHandle < 0 ? _hitKnob(p) : -1;
+        _setCursor(c, hoverHandle >= 0 || hoverKnob >= 0 ? "move" : "crosshair");
       }
       _redraw(true);
       return;
@@ -1562,12 +2616,23 @@
   function onMouseUp(opt) {
     if (!mode) return;
     const e = opt && opt.e;
-    const p = _pointer(e);
+    // Il punto del rilascio e' quello del MIRINO (Fetta 2): lo si legge
+    // prima di chiudere la mira.
+    const p = _aimAt(e);
+    const fine = aiming;
+    const n = aimN;
+    _endAim();
+    // La frizione (Fetta 2-bis): il mirino resta dov'e', la mano e' N volte
+    // piu' in la'. Da qui il mirino segue la mano, scostato: niente salto.
+    // E riparte lento, da 1/N (Fetta 2-ter): niente scatto al primo colpo.
+    if (fine) _clutchSet(p, _pointer(e), n);
 
     if (!pointerDown) {
       dragStarted = false;
       grabIndex = -1;
       grabMoved = false;
+      knobGrab = -1;
+      knobMoved = false;
       return;
     }
     pointerDown = false;
@@ -1580,13 +2645,14 @@
       grabMoved = false;
 
       if (moved) {
-        if (editPoints[idx]) editPoints[idx] = { x: p.x, y: p.y };
+        if (editPoints[idx]) _moveVertex(idx, p.x, p.y);
         selectedHandle = idx;
+        selectedKnob = -1;
         // Il ritaglio si aggiorna al RILASCIO, non ad ogni pixel del
         // trascinamento: durante il gesto si muove solo la guida.
         if (mode === "handles") {
           _commitShape(editPoints);
-          editPoints = _clonePoly(clipPolygon);
+          editPoints = _cloneShape(clipShape);
         }
         _redraw(true);
         return;
@@ -1598,6 +2664,30 @@
         return;
       }
       selectedHandle = idx;
+      selectedKnob = -1;
+      _redraw(true);
+      return;
+    }
+
+    // (a') Avevo agganciato un rombo (Fetta 4B): tirato = l'arco nuovo (in
+    // fase maniglie un passo di Ctrl+Z, e il taglio dei tratti segue al
+    // RILASCIO, come per le maniglie); fermo = lo seleziono (M, CANC, frecce).
+    if (knobGrab >= 0) {
+      const ki = knobGrab;
+      const kMoved = knobMoved;
+      knobGrab = -1;
+      knobMoved = false;
+      if (ki < _sideCount()) {
+        if (kMoved) {
+          _setKnob(ki, p);
+          if (mode === "handles") {
+            _commitShape(editPoints);
+            editPoints = _cloneShape(clipShape);
+          }
+        }
+        selectedKnob = ki;
+        selectedHandle = -1;
+      }
       _redraw(true);
       return;
     }
@@ -1611,25 +2701,53 @@
 
     // (c) Tap su area vuota.
     if (mode === "draw") {
+      // Il punto e' quello della PRESSIONE, non del rilascio (trappola 247).
+      // Con la mira fine e' quello del MIRINO al rilascio: si e' premuto
+      // proprio per portarlo li', e il tremolio del click e' gia' diviso
+      // per N.
+      const q = fine ? p : (downLogical || p);
+      // Il doppio-click arriva prima come DUE tap: il secondo, vicino nel
+      // tempo e nello spazio al primo, non e' un punto nuovo ma meta' del
+      // doppio-click (che poi chiude). Senza la lente lo fermava gia' la
+      // presa della maniglia; con la lente la presa e' piccola come il
+      // vetro vuole, e il secondo tap passerebbe (trappola 253).
+      const now = Date.now();
+      const scr = downScreen || { x: q.x, y: q.y };
+      if (lastTap && now - lastTap.t <= CLIP_DBL_TAP_MS &&
+          _dist2(lastTap.x, lastTap.y, scr.x, scr.y) <= CLIP_HANDLE_GRAB_PX * CLIP_HANDLE_GRAB_PX) {
+        lastTap = null;
+        _redraw(true);
+        return;
+      }
+      lastTap = { t: now, x: scr.x, y: scr.y };
       // Chiusura per vicinanza al 1° vertice: raggio piu' generoso di quello
       // di presa della maniglia, quindi resta utile anche se la maniglia non
-      // e' stata agganciata.
-      if (editPoints.length >= CLIP_MIN_VERTICES) {
+      // e' stata agganciata. ⚠ Solo SENZA lente: con la lente si mira a
+      // spigoli vicini fra loro, e uno spigolo accanto al 1° vertice
+      // chiudeva il perimetro invece di aggiungere il punto (P3).
+      if (editPoints.length >= CLIP_MIN_VERTICES && _lensMag() === 1) {
         const k = _screenK();
         const snapLogical = CLIP_CLOSE_SNAP_PX * k;
-        if (_dist2(editPoints[0].x, editPoints[0].y, p.x, p.y) <= snapLogical * snapLogical) {
+        if (_dist2(editPoints[0].x, editPoints[0].y, q.x, q.y) <= snapLogical * snapLogical) {
           closeRing();
           return;
         }
       }
-      editPoints.push({ x: p.x, y: p.y });
+      // Shift+tap = il punto nasce gia' morbido (Fetta 4A). Shift si guarda
+      // alla pressione e al rilascio: con la penna si tiene il tasto e si
+      // tocca, e l'ordine non deve contare.
+      const v = { x: q.x, y: q.y };
+      if (downShift || (e && e.shiftKey)) v.s = true;
+      editPoints.push(v);
       selectedHandle = editPoints.length - 1;
+      selectedKnob = -1;
       _redraw(true);
       return;
     }
 
     // Fase maniglie: tap a vuoto = deseleziona.
     selectedHandle = -1;
+    selectedKnob = -1;
     _redraw(true);
   }
 
@@ -1655,6 +2773,23 @@
 
   function _handleDoubleClick(p) {
     if (mode === "draw") { closeRing(); return; }
+    // Fette 4A e 4B: doppio-click SU una maniglia = spigolo ↔ morbido; sul
+    // rombo di un arco = l'arco si toglie; altrove sul lato = punto nuovo,
+    // come sempre. (In fase traccia il doppio-click chiude: li' il punto
+    // morbido si fa con M o con Shift+tap.)
+    const h = _hitHandle(p);
+    if (h >= 0) {
+      selectedHandle = h;
+      selectedKnob = -1;
+      _toggleSoft(h);
+      return;
+    }
+    const kn = _hitKnob(p);
+    if (kn >= 0 && _validArc(editPoints[kn].a)) {
+      selectedKnob = kn;
+      _straighten(kn);
+      return;
+    }
     insertVertexNear(p);
   }
 
@@ -1670,7 +2805,9 @@
     if (t !== el && !(el.contains && el.contains(t))) return;
     _stop(e);
     lastDblAt = Date.now();
-    _handleDoubleClick(c.getPointer(e));
+    // Il punto e' quello del mirino (Fetta 2-bis: con la frizione la mano
+    // sta altrove).
+    _handleDoubleClick(_aimAt(e));
   }
 
   // ⚠ DIFETTO B — trascinando si SELEZIONAVANO LE TESSERE sotto il mouse.
@@ -1709,7 +2846,7 @@
     // Se il doppio click e' gia' stato servito dal listener nativo in fase
     // capture — cioe' la via normale — non lo serviamo una seconda volta.
     if (Date.now() - lastDblAt < 400) return;
-    _handleDoubleClick(_pointer(opt && opt.e));
+    _handleDoubleClick(_aimAt(opt && opt.e));
   }
 
   function onAfterRender() {
@@ -1741,6 +2878,13 @@
 
   function onKeyDown(e) {
     if (!mode) return;
+    // Ogni tasto che non e' una freccia (ne' un modificatore) chiude prima
+    // la raffica di frecce in attesa: Ctrl+Z, CANC, Invio la trovano fatta.
+    const k0 = e.key || "";
+    if (k0.indexOf("Arrow") !== 0 && k0 !== "Shift" && k0 !== "Control" &&
+        k0 !== "Meta" && k0 !== "Alt") {
+      _flushNudge();
+    }
 
     // Non rubare tasti mentre si scrive in un campo.
     const ae = document.activeElement;
@@ -1765,10 +2909,11 @@
       return;
     }
     if ((e.key === "Delete" || e.key === "Del") && !typing) {
-      // In fase maniglie CANC e' della maniglia, non della tessera.
+      // In fase maniglie CANC e' della maniglia, non della tessera. Con un
+      // rombo selezionato toglie il suo arco (Fetta 4B).
       if (mode === "handles") {
         _stop(e);
-        removeSelectedHandle();
+        _deleteSelected();
       }
       return;
     }
@@ -1776,13 +2921,32 @@
       _stop(e);
       if (mode === "draw") {
         if (editPoints.length) editPoints.pop();
+        const tail = editPoints[editPoints.length - 1];
+        if (tail && tail.a) delete tail.a;           // il suo lato non c'e' piu' (Fetta 3)
         if (selectedHandle >= editPoints.length) selectedHandle = editPoints.length - 1;
+        if (selectedKnob >= _sideCount()) selectedKnob = -1;
         _redraw(true);
       } else {
-        removeSelectedHandle();
+        _deleteSelected();
       }
       return;
     }
+    // M = spigolo ↔ morbido sulla maniglia, via l'arco sul rombo (Fette 4A e
+    // 4B). La lettera fisica (e.code), come la L della lente: uguale su
+    // tastiera italiana e inglese. Senza Ctrl/Alt: Ctrl+M resta libero.
+    const isM = e.code === "KeyM" || (!e.code && (e.key === "m" || e.key === "M"));
+    if (isM && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      _stop(e);
+      _keyM();
+      return;
+    }
+  }
+  // CANC (e Backspace) in fase maniglie: via la maniglia selezionata, oppure
+  // l'arco del rombo selezionato.
+  function _deleteSelected() {
+    if (selectedHandle >= 0 && selectedHandle < editPoints.length) return removeSelectedHandle();
+    if (selectedKnob >= 0 && selectedKnob < _sideCount()) return _straighten(selectedKnob);
+    return removeSelectedHandle();
   }
 
   // ============================================================
@@ -1827,6 +2991,11 @@
       document.addEventListener("dblclick", onNativeDblClick, true);
       // Difetto B, seconda cintura: su window e DOPO renderer.js.
       window.addEventListener("mouseup", onWindowMouseUp);
+      // Fetta 2: se la finestra perde il fuoco mentre si tiene premuto
+      // (Alt+Tab, un avviso di Windows), il rilascio puo' non arrivare mai.
+      // Senza questa riga il cursore resterebbe nascosto su tutta Mosaica
+      // fino al prossimo click (trappola 255).
+      window.addEventListener("blur", () => { if (aiming) _endAim(); });
 
       // ── P5: quando il mouse ESCE dall'area del canvas, il cerchio dimensione
       //    tratto deve sparire (altrimenti resta "appeso" all'ultima posizione).
@@ -1836,9 +3005,15 @@
       if (upper && !upper.__ftLeaveBound) {
         upper.__ftLeaveBound = true;
         upper.addEventListener("mouseleave", () => {
+          // La frizione si stacca quando la mano esce dal foglio (Fetta
+          // 2-bis): fuori il cursore di Windows si vede, e al rientro il
+          // mirino deve stargli sotto. Non a pulsante premuto: li' comanda
+          // la vite.
+          if (!pointerDown) _clutchOff();
           if (_activeFreehandTool() || mode) {
             hoverPoint = null;
             hoverHandle = -1;
+            hoverKnob = -1;
             _redraw(true); // ridisegna senza cerchio; il perimetro resta
           }
         });
@@ -1846,6 +3021,10 @@
 
       _bound = true;
     }
+
+    // Le frecce sul punto selezionato (Fetta 1 del Mirino). Anche al
+    // caricamento del file, qui sotto: questo e' il secondo giro di chiave.
+    _wrapArrowMovement();
 
     // Pulsante strumento perimetro (click = apri/chiudi modalita', click destro
     // = cancella il perimetro).
@@ -1876,7 +3055,13 @@
     // Se renderer ha gia' un poligono caricato (impostato in applyProjectData
     // PRIMA di questo init durante l'apertura progetto), applicalo.
     if (window.freehandClipPolygon && Array.isArray(window.freehandClipPolygon) && window.freehandClipPolygon.length >= CLIP_MIN_VERTICES) {
-      clipPolygon = window.freehandClipPolygon.slice();
+      // Di solito e' il poligono che abbiamo messo noi (setFreehandClipPolygon
+      // all'apertura del progetto): la sua forma c'e' gia'. Se fosse un altro,
+      // lo si legge come dal file (Fetta 3).
+      if (!_samePoly(window.freehandClipPolygon, clipPolygon) || !_validPoly(clipShape)) {
+        clipPolygon = window.freehandClipPolygon.map((p) => ({ x: +p.x, y: +p.y }));
+        clipShape = _shapeFromSaved(window.freehandClipPolygon, clipPolygon);
+      }
       _rememberShape(clipPolygon);
       applyFreehandClipToAll();
     }
@@ -1897,6 +3082,9 @@
   window.startFreehandClipEdit = startEdit;
   window.exitFreehandClipEdit = exitMode;
   window.isFreehandClipEditing = () => mode !== null;
+  // keyboardShortcuts.js e' caricato PRIMA di questo file (index.html):
+  // handleArrowMovement c'e' gia'. Se non ci fosse, ci riprova l'init.
+  _wrapArrowMovement();
   // Stato in sola lettura della modalita' (serve alla lente della Fetta 2 e
   // all'harness: niente scrittura, niente scorciatoie).
   window.getFreehandClipState = () => ({
@@ -1905,8 +3093,54 @@
     selected: selectedHandle,
     hover: hoverHandle,
     changed: sessionChanged,
-    undoDepth: shapeUndo.length
+    undoDepth: shapeUndo.length,
+    // Fetta 2 del Mirino: la mira fine in corso, il suo riduttore, la
+    // maniglia agganciata (la lente non tira l'elastico mentre la si porta).
+    aiming: aiming,
+    aimN: aimN,
+    grab: grabIndex,
+    // Fetta 2-bis: lo scostamento della frizione (mirino - mano, punti
+    // logici), o null se il mirino e' sotto la mano.
+    clutch: clutch ? { x: clutch.x, y: clutch.y } : null,
+    // Fetta 3: la forma della sessione col tipo dei vertici (s = morbido,
+    // a = arco del lato che parte da li'), e la linea spianata che si vede
+    // (chiusa in fase maniglie, aperta in fase traccia). La lente la usera'
+    // dalla Fetta 4A.
+    shape: _cloneShape(editPoints),
+    path: _flatten(editPoints, mode === "handles"),
+    // Fetta 2-ter: px di schermo della mano che mancano alla velocita'
+    // piena (0 = frizione attaccata, o staccata).
+    slip: slipLeft,
+    // Fette 4A e 4B: i rombi che si vedono adesso (side = indice del lato,
+    // x/y = dove sta il rombo, arc = il lato e' un arco), il rombo
+    // selezionato, quello sotto il puntatore e quello tirato (-1 = nessuno).
+    // La lente li disegna uguali.
+    knobs: mode ? _knobSides(hoverPoint).map((i) => {
+      const q = _knobPos(i);
+      return { side: i, x: q.x, y: q.y, arc: _validArc(editPoints[i].a) };
+    }) : [],
+    knobSel: selectedKnob,
+    knobHover: hoverKnob,
+    knobGrab: knobGrab
   });
+  // Il punto di mira per un evento del mouse (Fetta 2 del Mirino): il
+  // puntatore, oppure il puntatore demoltiplicato mentre si tiene premuto con
+  // la lente, oppure (Fetta 2-bis) il puntatore piu' lo scostamento della
+  // frizione dopo il rilascio. La lente ci mette il centro del reticolo: e' la stessa funzione
+  // che decide dove va il punto, quindi i due non possono divergere, in
+  // qualunque ordine Fabric chiami i loro ascoltatori.
+  // Il motore delle curve (Fetta 3): le due operazioni sulla forma della
+  // sessione, e lo spianamento in sola lettura (una copia: la forma passata
+  // non si tocca).
+  window.freehandClipCurves = {
+    setVertexSoft: setVertexSoft,
+    setSideArc: setSideArc,
+    flatten: (sh, closed) => (Array.isArray(sh) ? _flatten(_cloneShape(sh), !!closed) : []),
+    tolerancePx: CLIP_CURVE_TOL_PX
+  };
+  window.freehandClipAimAt = (e) => {
+    try { return _aimAt(e); } catch (err) { return null; }
+  };
   window.setStrokeSizeCircleEnabled = (b) => { SHOW_STROKE_SIZE_CIRCLE = !!b; _redraw(true); };
   // Fetta 2C, SOLA LETTURA: com'e' fatto adesso l'anello dell'acquerello.
   // Serve all'harness e a chi volesse controllarlo dalla console. Non misura

@@ -571,6 +571,7 @@
   }
   .tips-box li { margin-bottom: 6px; }
   .tips-box li:last-child { margin-bottom: 0; }
+  .tips-box li strong { display: inline; margin: 0; font-size: inherit; color: inherit; }
 
 </style>
 </head>
@@ -581,7 +582,7 @@
   <div class="header-inner">
     <div class="logo-badge">
       <div class="logo-dot">🎨</div>
-      Guida Utente · V 09.2026
+      Guida Utente · V 10.2026
     </div>
     <h1>Mosaica<br><em>Workspace Pro</em></h1>
     <p class="header-sub">Guida completa all'uso dell'applicazione per la progettazione di mosaici in scala reale, disegno a mano libera, acquerello digitale ed esportazione per laser CAM.</p>
@@ -597,6 +598,8 @@
     <a href="#rotazione">Rotazione Canvas</a>
     <a href="#forme">Forme</a>
     <a href="#radiale">Menu Radiale</a>
+    <a href="#texture">Texture fantasma</a>
+    <a href="#colore">Colore e stampa</a>
     <a href="#lazo">Selezione Lazo</a>
     <a href="#disegno">Disegno Libero</a>
     <a href="#acquerello">Acquerello</a>
@@ -627,7 +630,7 @@
 
   <div class="ui-diagram">
     <div class="ui-diagram-inner">
-      <div class="uib topbar">Top Bar — File · Esporta · Undo/Redo · Zoom · Calibrazione · Schermo intero · Guida</div>
+      <div class="uib topbar">Top Bar — File · Esporta · Undo/Redo · Zoom · Prova di stampa · Calibrazione · Schermo intero · Guida</div>
       <div class="uib bgbar">BG Panel — Caricamento e gestione sfondo (Drop · Adatta · Riempi · Ruota · Rimuovi)</div>
       <div class="uib texturep">Texture Panel</div>
       <div class="uib lefttool">Left Toolbar</div>
@@ -641,7 +644,7 @@
   <div class="card-grid col2">
   <div class="card-mini">
       <h4>① Top Bar (in alto)</h4>
-      <p>Logo, dropdown <strong>File</strong> (Apri/Salva/Nuovo Progetto + auto-apertura), dropdown <strong>Esporta</strong> (PDF, PNG/SVG, mano libera), pulsanti <strong>Undo/Redo</strong>, controlli <strong>Zoom</strong> (+/−/reset con percentuale live e <strong>▣ inquadra la selezione</strong>), dropdown <strong>Calibrazione</strong>, toggle <strong>schermo intero</strong> (⛶/🗗), pulsante <strong>📖 Guida</strong>, pulsante <strong>🖊️ Wacom</strong> (impostazioni tavoletta con indicatore di stato connessione) e pulsante <strong>🖱️⌨️ Input</strong> (mappatura personalizzata mouse e tastiera).</p>
+      <p>Logo, dropdown <strong>File</strong> (Apri/Salva/Nuovo Progetto + auto-apertura), dropdown <strong>Esporta</strong> (PDF A4, per la stampa, PNG/SVG, mano libera, Tavola delle tessere), pulsanti <strong>Undo/Redo</strong>, controlli <strong>Zoom</strong> (+/−/reset con percentuale live e <strong>▣ inquadra la selezione</strong>), l'interruttore <strong>🖨️ Prova di stampa</strong> (col ▾ delle scelte), dropdown <strong>Calibrazione</strong>, toggle <strong>schermo intero</strong> (⛶/🗗), pulsante <strong>📖 Guida</strong>, pulsante <strong>🖊️ Wacom</strong> (impostazioni tavoletta con indicatore di stato connessione) e pulsante <strong>🖱️⌨️ Input</strong> (mappatura personalizzata mouse e tastiera).</p>
     </div>
     <div class="card-mini">
       <h4>② BG Panel (subito sotto)</h4>
@@ -649,7 +652,7 @@
     </div>
     <div class="card-mini">
       <h4>③ Texture Panel (sinistra estrema)</h4>
-      <p>Colonna verticale stretta con la <strong>griglia delle texture</strong> disponibili. Click su una miniatura applica la texture all'oggetto selezionato.</p>
+      <p>Colonna verticale stretta con la <strong>griglia delle texture</strong> disponibili. Click su una miniatura applica la texture all'oggetto selezionato. Il <strong>▦</strong> in cima la mette su tutte le tessere e tiene le <strong>texture fantasma 👻</strong> (vedi <a href="#texture" style="color:var(--blue);">Texture e texture fantasma</a>).</p>
     </div>
     <div class="card-mini">
       <h4>④ Left Toolbar (dopo le texture)</h4>
@@ -676,12 +679,15 @@
     <li><strong>🔄 Verifica aggiornamenti</strong> — controlla se sul repository GitHub ufficiale c'è una versione più recente e, su tua conferma, la scarica e installa (vedi sezione <a href="#sicurezza" style="color:var(--blue);">Sicurezza &amp; Aggiornamenti</a>).</li>
   </ul>
   <h3>Top Bar — dropdown Esporta</h3>
-  <p>Cliccando <strong>Esporta</strong> nella top bar si apre un menu con tre voci, ognuna delle quali apre un modale di scelta dettagliata:</p>
+  <p>Cliccando <strong>Esporta</strong> nella top bar si apre un menu con cinque voci, ognuna delle quali apre un modale di scelta dettagliata:</p>
   <ul>
     <li><strong>📄 Esporta PDF (A4)</strong> — 5 modalità di esportazione, vedi sezione "Esporta".</li>
+    <li><strong>🖨️ Esporta per la stampa (PDF/X)</strong> — il foglio intero a 300 DPI coi colori della stampa, per la copisteria: PDF/X-4, PDF/X-1a o PNG compatibile Adobe RGB (vedi <a href="#colore" style="color:var(--blue);">Colore e stampa</a>).</li>
     <li><strong>🖼️ Esporta PNG / SVG</strong> — PNG completo o SVG vettoriale (riempito o solo contorni).</li>
     <li><strong>✏️ Esporta disegno mano libera</strong> — esporta solo i tratti freehand e acquerello in SVG o PNG.</li>
+    <li><strong>🧩 Tavola delle tessere (laser)</strong> — i file per tagliare le tessere col laser (vedi <a href="#tavola" style="color:var(--blue);">Tavola delle Tessere</a>).</li>
   </ul>
+  <p>Accanto allo zoom c'è l'interruttore <strong>🖨️ Prova di stampa</strong>: mostra a video come uscirà il foglio dal plotter, senza cambiare niente del lavoro (vedi <a href="#colore" style="color:var(--blue);">Colore e stampa</a>).</p>
 
   <h3>Status Bar — leggere i numeri</h3>
   <p>La barra di stato in basso mostra in tempo reale:</p>
@@ -1066,14 +1072,14 @@
       <div class="radial-icon">🎨</div>
       <div>
         <div class="radial-label">Cambia colore</div>
-        <div class="radial-desc">Apre il selettore colore. Scegli un colore personalizzato o usa i tasti rapidi sotto il selettore.</div>
+        <div class="radial-desc">Apre la <strong>ruota dei colori</strong>: anello e quadrato, HEX, RGB e <strong>CMYK</strong> di stampa, il <strong>contagocce</strong> e i colori rapidi. Vedi <a href="#colore" style="color:var(--blue);">Colore e stampa</a>.</div>
       </div>
     </div>
     <div class="radial-item">
       <div class="radial-icon">🖌️</div>
       <div>
-        <div class="radial-label">Incolla colore</div>
-        <div class="radial-desc">Applica all'oggetto l'ultimo colore copiato. Comodo per propagare lo stesso colore a più forme.</div>
+        <div class="radial-label">Texture dalla cartella</div>
+        <div class="radial-desc">Apre la finestra per scegliere un'immagine dal disco (PNG, JPG, GIF, WebP, SVG) e la mette come texture sulla selezione. Mosaica copia l'immagine nella sua cartella delle texture.</div>
       </div>
     </div>
     <div class="radial-item">
@@ -1186,15 +1192,15 @@
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Il disegno sotto le tessere non si specchia mai.</strong> I tratti a <strong>penna</strong> e ad <strong>acquerello</strong> restano dove sono anche quando sono dentro la selezione — e basta un <kbd>Ctrl</kbd>+<kbd>A</kbd> distratto per portarli dentro. È voluto: l'acquerello è la guida su cui le tessere si posano, e con le mani si gira la tessera, non il foglio. Mosaica te lo dice con un avviso e ti conta quanti tratti ha lasciato fuori.</div></div>
 
   <h3>Applicare il colore</h3>
-  <p>Dopo aver cliccato 🎨 appare un pannello con un selettore colore e otto colori rapidi. Il colore si applica immediatamente all'oggetto. Clicca fuori dal pannello per chiuderlo.</p>
+  <p>Dopo aver cliccato 🎨 si apre la <strong>ruota dei colori</strong>: trascinando nell'anello o nel quadrato la tessera cambia dal vivo, e al rilascio è un passo solo di <kbd>Ctrl</kbd>+<kbd>Z</kbd>. Sotto ci sono i colori rapidi. Clicca fuori dal pannello (o <kbd>Esc</kbd>) per chiuderlo. CMYK, contagocce e il colore «in stampa» sono spiegati in <a href="#colore" style="color:var(--blue);">Colore e stampa</a>.</p>
 
   <h3>Applicare una texture</h3>
-  <p>Con un oggetto selezionato, clicca direttamente su una delle anteprime nel <strong>Texture Panel</strong> a sinistra estrema. La texture viene ripetuta (repeat) per riempire la forma.</p>
+  <p>Con un oggetto selezionato, clicca direttamente su una delle anteprime nel <strong>Texture Panel</strong> a sinistra estrema, oppure usa <strong>🖌️ Texture dalla cartella</strong>. La texture viene ripetuta per riempire la forma; grana e colore si regolano nell'Ispettore. Tutto sulle texture, e sulle <strong>texture fantasma 👻</strong> per i mosaici grandi, in <a href="#texture" style="color:var(--blue);">Texture e texture fantasma</a>.</p>
 
   <h3>Il menu radiale con più forme selezionate</h3>
   <p>Il menu radiale funziona anche in <strong>multi-selezione</strong>: quando hai più forme attive contemporaneamente, le azioni si applicano <strong>a tutte insieme</strong>. Per selezionare più forme hai quattro modi — riquadro trascinato, <kbd>Ctrl</kbd>+click una a una, Lazo o Pennello selezione (vedi la sezione successiva).</p>
   <ul>
-    <li><strong>Colore, Incolla colore e Texture</strong> → si applicano a <strong>tutte</strong> le forme selezionate in un colpo solo: comodissimo per colorare interi gruppi di tessere.</li>
+    <li><strong>Colore e Texture</strong> (dalla colonna o da 🖌️) → si applicano a <strong>tutte</strong> le forme selezionate in un colpo solo: comodissimo per colorare interi gruppi di tessere.</li>
     <li><strong>🔒 Blocca / Sblocca</strong> → agisce su tutta la selezione. Se anche <em>una sola</em> forma è bloccata, il pulsante mostra <strong>🔓 Sblocca</strong> (arancione) per liberarle tutte.</li>
     <li><strong>🗑️ Elimina</strong> → cancella tutte le forme selezionate (reversibile con <kbd>Ctrl</kbd>+<kbd>Z</kbd>).</li>
     <li><strong>⎇ Raggruppa</strong> → si <strong>attiva</strong> con due o più forme selezionate e le fonde in un gruppo unico. <strong>⎆ Separa</strong> si attiva invece quando hai selezionato un gruppo, e lo riporta a forme singole.</li>
@@ -1216,9 +1222,154 @@
   </ul></div></div>
 </section>
 
+<!-- ── TEXTURE E TEXTURE FANTASMA ── -->
+<section id="texture">
+  <div class="section-label">06</div>
+  <h2>Texture e texture fantasma 👻</h2>
+  <p>Una <strong>texture</strong> è un'immagine che riempie la tessera ripetendosi: il granito, il marmo, la gomma EVA. Nella <strong>colonna Texture</strong>, a sinistra, ci sono quelle generate dal codice (granito, marmo, cemento, murano, EVA, venature) e le immagini della cartella delle texture. Sotto trovi anche le <strong>texture fantasma</strong>: la texture che le tessere si portano dietro senza mostrarla, pensata per i mosaici grandi.</p>
+
+  <h3>Mettere una texture</h3>
+  <ul>
+    <li>Seleziona una o più tessere e clicca una <strong>miniatura</strong> della colonna Texture: la texture riempie la forma.</li>
+    <li>Oppure, dal menu radiale, <strong>🖌️ Texture dalla cartella</strong>: scegli un'immagine dal disco (PNG, JPG, GIF, WebP, SVG). Mosaica la copia nella sua cartella delle texture.</li>
+    <li>Con una tessera con texture selezionata, l'Ispettore mostra il blocco <strong>Texture</strong>:
+      <ul>
+        <li><strong>Grana</strong> (4–60 mm) — quanto è grande il disegno della texture sulla tessera: piccolo = grana fitta, grande = grana larga.</li>
+        <li><strong>Colora — dalla ruota colore</strong> — la texture tiene grana e pori e prende il colore che scegli con 🎨. Spenta, la texture ha i colori dell'immagine.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3>▦ Tutte le tessere</h3>
+  <p>Il pulsante <strong>▦</strong> in cima alla colonna Texture apre un pannello che mette una texture su <strong>tutte</strong> le tessere del foglio in un colpo solo, con la stessa grana e lo stesso «colora dalla ruota colore»; <strong>Togli da tutte</strong> le toglie. Non tocca penna, acquerello, sfondo e Palladiana. In fondo al pannello c'è la sezione <strong>👻 Texture fantasma</strong> (più sotto).</p>
+
+  <h3>Le copie di una tessera con texture</h3>
+  <ul>
+    <li>Texture <strong>non colorata</strong> (la vedi coi colori dell'immagine): la copia — <kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>Ctrl</kbd>+<kbd>V</kbd>, ⎘ Duplica, Duplica selezione — ha <strong>la stessa texture e la stessa grana</strong>. Prima nasceva grigia.</li>
+    <li>Texture <strong>colorata dalla ruota</strong>: la copia prende il <strong>colore</strong>, senza texture, come sempre. È il modo veloce di lavorare: la texture la rimetti tutta insieme alla fine, con le texture fantasma.</li>
+    <li><strong>🔄 Cambia forma</strong> e <strong>◔ Dividi cerchio</strong> tengono la texture della tessera di partenza, anche dopo un <kbd>Ctrl</kbd>+<kbd>Z</kbd>, e ogni settore ha la sua grana.</li>
+    <li>Se ricolori con la ruota una tessera con texture <strong>non colorata</strong>, la tessera diventa di quel colore pieno e la texture <strong>non torna fuori da sola</strong>: né con un <kbd>Ctrl</kbd>+<kbd>Z</kbd> fatto più tardi, né riaprendo il progetto. Un <kbd>Ctrl</kbd>+<kbd>Z</kbd> subito dopo la ricolorazione la riporta, com'è giusto.</li>
+  </ul>
+
+  <h3>Le texture fantasma 👻</h3>
+  <p>Mettere la texture tessera per tessera alla fine del lavoro va bene per un mosaico di qualche centinaio di tessere; con <strong>1 600 tessere piccole</strong> porta via ore. Con la texture fantasma la texture la metti <strong>una volta sola</strong>, su una tessera, e la tessera <strong>se la porta dietro senza mostrarla</strong>, come un segno a matita sul retro: lavori coi colori, e quando vuoi la texture compare su <strong>tutte le tessere nate da lei</strong>, ognuna col suo colore.</p>
+  <ol>
+    <li><strong>La capostipite.</strong> Fai una tessera nuova (doppio-click o ➕), di qualunque forma. Mettile la texture, regola la <strong>Grana</strong> e, se vuoi che prenda i colori delle tessere, accendi <strong>Colora — dalla ruota colore</strong>.</li>
+    <li><strong>👻 Fantasma.</strong> Nell'Ispettore, blocco <strong>👻 Texture fantasma</strong>, premi <strong>👻 Fantasma</strong>: la texture si nasconde e la tessera torna al colore che aveva prima della texture. Da adesso è la <strong>capostipite</strong> di una <strong>famiglia</strong>.</li>
+    <li><strong>Lavora come sempre.</strong> Le copie (<kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>Ctrl</kbd>+<kbd>V</kbd>, ⎘, Duplica selezione, anche le copie delle copie), le tessere cambiate di forma 🔄 e i settori ◔ <strong>entrano nella famiglia</strong>. I colori li cambi come sempre, con la ruota o coi colori rapidi.</li>
+    <li><strong>👻 Mostra la famiglia.</strong> Da una tessera qualunque della famiglia (Ispettore) o dal pannello <strong>▦</strong>: la texture compare su tutte le tessere della famiglia, <strong>ognuna tinta col suo colore</strong> (se la capostipite aveva «Colora»; altrimenti la texture coi colori dell'immagine). <strong>👻 Nascondi la famiglia</strong> le riporta ai loro colori.</li>
+  </ol>
+  <ul>
+    <li>Ogni <strong>Fantasma</strong>, <strong>Mostra</strong> e <strong>Nascondi</strong> è <strong>un passo</strong> di <kbd>Ctrl</kbd>+<kbd>Z</kbd>.</li>
+    <li>Nell'Ispettore la famiglia si riconosce dalla miniatura, dal nome (per esempio «Granito · 14.0 mm · 🎨», dove 🎨 vuol dire colorata) e dalla riga «tessere: N · nascosta» o «· mostrata». Con tessere di più famiglie selezionate i pulsanti diventano <strong>Mostra / Nascondi le famiglie</strong>.</li>
+    <li>Nel pannello <strong>▦</strong>: una riga per famiglia, con la miniatura, il numero di tessere e <strong>Mostra</strong> / <strong>Nascondi</strong>; sotto, <strong>Mostra tutte</strong> e <strong>Nascondi tutte</strong>.</li>
+    <li>Una tessera della famiglia che ha una texture <strong>sua</strong>, messa a mano, quando mostri la famiglia <strong>resta com'è</strong>: l'avviso ti dice quante sono.</li>
+    <li>Con la famiglia <strong>mostrata</strong>, le copie nuove entrano e mostrano la texture anche loro. Una tessera fatta col doppio-click o col ➕, o arrivata dalla Palladiana, non entra in nessuna famiglia. Una tessera sta in <strong>una famiglia sola</strong>: 👻 Fantasma su una tessera che ha già una famiglia ne fa una nuova.</li>
+    <li>Se cancelli la capostipite la famiglia vive: ogni tessera sa tutto della sua texture.</li>
+    <li>Mostrata, la texture fantasma è una <strong>texture normale</strong>: salvataggio, export (PDF, PNG, per la stampa), lente del perimetro e Tavola delle Tessere la trattano come sempre.</li>
+    <li>Con una famiglia grande, la <strong>prima</strong> volta Mosaica deve preparare la texture in tutti i colori: se ci vuole più di mezzo secondo compare l'avviso <strong>«⏳ Texture fantasma: preparo N colori per M tessere…»</strong>. Dopo, Nascondi e Mostra sono quasi istantanei, e un <kbd>Ctrl</kbd>+<kbd>Z</kbd> con la famiglia mostrata è svelto come con la famiglia nascosta.</li>
+  </ul>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>Un progetto con texture fantasma aperto con una <strong>versione vecchia</strong> di Mosaica si vede giusto: coi colori se la famiglia è nascosta, con la texture se è mostrata. Ma se quella versione lo <strong>risalva</strong>, le famiglie si perdono e le tessere restano come si vedevano.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li>Fai la capostipite <strong>all'inizio</strong>, prima di moltiplicare le tessere: tutte le copie che ne nascono entrano nella famiglia da sole.</li>
+    <li>Lavora con la famiglia <strong>nascosta</strong>: vedi i colori puliti, e la texture la guardi quando vuoi con un clic.</li>
+    <li>Per una texture diversa in una zona del mosaico, fai una seconda capostipite: ogni famiglia si mostra e si nasconde per conto suo.</li>
+    <li>Un colore della famiglia non ti convince con la texture sopra? Ricolora la tessera anche a famiglia mostrata: quando nascondi, quella tinta diventa il suo colore.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── COLORE E STAMPA ── -->
+<section id="colore">
+  <div class="section-label">07</div>
+  <h2>Colore e stampa</h2>
+  <p>Lo schermo fa i colori con la luce (<strong>RGB</strong>), la stampa con gli inchiostri (<strong>CMYK</strong>): certi colori accesi dello schermo la stampa non li sa fare, e la copisteria li schiaccia come può. Mosaica ha dentro un <strong>motore colore</strong> (Little CMS) che conosce i <strong>profili di stampa</strong> e ti fa vedere e scegliere i colori <strong>come usciranno</strong>: la ruota dei colori coi CMYK, la prova di stampa a video e i file per la copisteria.</p>
+
+  <h3>🎨 La ruota dei colori</h3>
+  <p>Si apre dal <strong>🎨</strong> del menu radiale, al posto della finestra colori di Windows:</p>
+  <ul>
+    <li>L'<strong>anello</strong> sceglie la tinta (rosso in alto, giro in senso orario); il <strong>quadrato</strong> quanto è piena (verso destra) e quanto è chiara (verso l'alto). Trascinando, la tessera cambia dal vivo; al rilascio è <strong>un passo solo</strong> di <kbd>Ctrl</kbd>+<kbd>Z</kbd>.</li>
+    <li>I tasselli <strong>«a video»</strong> e <strong>«in stampa»</strong> (col profilo, la resa e la carta della Prova di stampa) e una riga sempre presente: <strong>«⚠ fuori stampa · ΔE …»</strong> oppure <strong>«✓ la stampa ci arriva»</strong>.</li>
+    <li><strong>HEX</strong>, <strong>R G B</strong> e <strong>C M Y K (%)</strong> nel profilo di stampa scelto (il nome è sotto: «CMYK in: …»): si scrivono e si preme <kbd>Invio</kbd>. Scrivendo i <strong>CMYK</strong> Mosaica trova il colore che a stampa fa quei valori. Se il profilo divide gli inchiostri in un altro modo (stesso colore), o se gli inchiostri fanno un colore che lo schermo non sa mostrare, una nota lo dice.</li>
+    <li><strong>🖨️ Portalo in stampa</strong> — si accende col ⚠ e mette il colore più vicino che la stampa sa fare.</li>
+    <li><strong>Segna dove la stampa non arriva</strong> (spunta, si ricorda): nel quadrato, a righe, la zona fuori stampa per quella tinta. Scegliendo fuori dalle righe il colore esce giusto.</li>
+    <li>Sotto restano i <strong>colori rapidi</strong>. <kbd>Esc</kbd> o un clic fuori chiudono la ruota.</li>
+    <li>Vale per le tessere (anche multi-selezione e gruppi), per le texture con «Colora dalla ruota colore» e per il tratto selezionato.</li>
+  </ul>
+
+  <h3>🎯 Il contagocce</h3>
+  <p>Nella ruota, accanto ai tasselli, c'è la <strong>pipetta</strong>. Un clic la accende (diventa ciano): sul foglio compare la croce e, accanto alla mano, un tassellino col colore che c'è sotto e il suo codice.</p>
+  <ul>
+    <li><strong>Clic sul foglio</strong> = il colore di quel punto. <kbd>Shift</kbd>+<strong>clic</strong> = la <strong>media</strong> dei pixel attorno (5×5): meglio su una texture o su un bordo.</li>
+    <li>Prende tutto quello che vedi: tessere, sfondo, carta, penna, acquerello. Dove il foglio è vuoto prende il bianco della carta.</li>
+    <li>Il colore va dove va la ruota: alla tessera selezionata (un passo di <kbd>Ctrl</kbd>+<kbd>Z</kbd>) o alla penna. Il contagocce poi si spegne da solo. La tessera cliccata <strong>non</strong> si seleziona e non si muove; con la penna in mano nessun tratto parte.</li>
+    <li><strong>Annulla</strong>: <kbd>Esc</kbd>, clic destro, di nuovo la pipetta, o un clic fuori dal foglio. La <strong>rotella</strong> (zoom) e <kbd>Alt</kbd>+trascina (spostare il foglio) funzionano col contagocce acceso.</li>
+  </ul>
+
+  <h3>✏️ La ruota per la penna e l'acquerello</h3>
+  <p>Con penna o acquerello in mano, un clic sulla <strong>Tinta</strong> dell'Ispettore (blocco «Colore corrente») apre la stessa ruota, col titolo <strong>«✏️ Colore della penna e dell'acquerello»</strong> e il bordo ciano, accanto all'Ispettore. Così anche il disegno ha i suoi <strong>CMYK</strong>, il «in stampa» e il contagocce.</p>
+  <ul>
+    <li>Cambia solo il colore della penna e dell'acquerello: le tessere selezionate restano come sono, e <strong>non</strong> c'è un passo di <kbd>Ctrl</kbd>+<kbd>Z</kbd> (il colore della penna non sta sul foglio). Si ricorda come le altre impostazioni del disegno.</li>
+    <li>I <strong>colori rapidi</strong> qui vanno alla penna.</li>
+    <li>Con l'<strong>acquerello</strong> il colore scelto è il <strong>pigmento</strong>: Tono, Opacità e Miscelazione cambiano il colore che si posa sul foglio (la ruota lo ricorda con una nota).</li>
+    <li>Si chiude con la Tinta di nuovo, con <kbd>Esc</kbd> (che qui non fa uscire dallo schermo intero), con un clic fuori o spegnendo lo strumento. Chiusa, il 🎨 del radiale la riapre per le tessere, come sempre.</li>
+  </ul>
+
+  <h3>🖨️ Prova di stampa</h3>
+  <p>Nella barra in alto, subito dopo lo zoom. È un <strong>interruttore</strong>: acceso (bordo ambra), un velo ridipinge il foglio <strong>come uscirà dal plotter</strong>; spento, torna com'era. <strong>Il disegno, le tessere e i file non cambiano</strong>: cambia solo quello che vedi. Riparte spenta a ogni avvio. Il <strong>▾</strong> accanto apre le scelte, che invece si ricordano:</p>
+  <ul>
+    <li><strong>Stampa (profilo CMYK)</strong>, a gruppi: Di Mosaica (liberi) · Aggiunti da te · Installati in Windows · Profili Adobe · Del sistema. Quello di base è il primo: «FOGRA39 — ISO Coated v2 (basICColor, di base)».</li>
+    <li><strong>Resa dei colori</strong>: <em>Relativo colorimetrico (consigliato)</em> oppure <em>Percettivo (foto e sfumature)</em>.</li>
+    <li><strong>Simula la carta e il nero dell'inchiostro</strong> (di base sì): il bianco diventa quello della carta.</li>
+    <li><strong>Segna i colori che la stampa non raggiunge</strong> (di base no): righe diagonali, una col colore vero di stampa e una velata di grigio, così vedi ancora che colore uscirà.</li>
+    <li><strong>➕ Aggiungi profilo…</strong> (solo profili di stampa CMYK <code>.icc</code>/<code>.icm</code>: Mosaica ne fa una copia sua) e <strong>🔄 Cerca di nuovo</strong> (dopo aver installato un profilo in Windows: tasto destro sul file → Installa profilo).</li>
+    <li>In fondo, lo stato del velo: «Velo: scheda video · N ms» (o «processore (senza WebGL2)»).</li>
+  </ul>
+  <div class="callout tip"><div class="callout-icon"></div><div>Mentre giri la rotella dello zoom, per un istante vedi i colori veri. Maniglie, lazo e il tratto <strong>mentre lo disegni</strong> hanno i colori veri: sono strumenti, non vanno in stampa. Se il motore colore non parte, i pulsanti sono grigi e dicono di riavviare Mosaica.</div></div>
+
+  <h3>🖨️ Esporta per la stampa (PDF/X)</h3>
+  <p>Dal menu <strong>Esporta</strong>. Il <strong>foglio intero</strong>, come il PNG completo, a <strong>300 DPI</strong> sulla misura vera del foglio (A4 verticale = 2480 × 3508 pixel), sempre su bianco. Tre formati (l'ultimo scelto si ricorda):</p>
+  <div class="card-grid col3">
+    <div class="card-mini">
+      <h4>PDF/X-4 — consigliato</h4>
+      <p>I colori restano RGB «compatibile Adobe RGB (1998)» col loro profilo; dentro c'è il <strong>profilo di stampa</strong> scelto. La copisteria converte in CMYK come fa sempre (la resa la sceglie lei).</p>
+    </div>
+    <div class="card-mini">
+      <h4>PDF/X-1a — già in CMYK</h4>
+      <p>Mosaica converte in CMYK col profilo <strong>e</strong> la resa scelti: il file è pronto per la macchina. Vuole un profilo ICC <strong>versione 2</strong>: con un v4 te lo dice.</p>
+    </div>
+    <div class="card-mini">
+      <h4>PNG compatibile Adobe RGB</h4>
+      <p>Un'immagine col profilo dentro e i 300 DPI scritti, per chi chiede un file immagine invece del PDF.</p>
+    </div>
+  </div>
+  <ul>
+    <li>Profilo e resa sono <strong>gli stessi della Prova di stampa</strong> (cambiati qui, cambiano anche là): quello che vedi col velo acceso è quello che esce.</li>
+    <li>Il nome proposto è, per esempio, <code>progetto_PDFX-4_FOGRA39.pdf</code>, <code>progetto_PDFX-1a_FOGRA39.pdf</code> o <code>progetto_AdobeRGB.png</code>. Con un profilo che non è di una condizione di stampa registrata, nel PDF la condizione è «Custom» e il messaggio lo dice.</li>
+    <li>Ci vogliono pochi secondi. I PDF/X-4 e PDF/X-1a di Mosaica passano il Preflight di Adobe Acrobat Pro.</li>
+  </ul>
+
+  <h3>I profili di stampa</h3>
+  <p>Nell'installer ci sono i profili <strong>liberi</strong> «FOGRA39 — ISO Coated v2» al 330% e al 300% (basICColor, licenza zlib) e il <strong>compatibile Adobe RGB (1998)</strong> (CC0), con le licenze e un <code>LEGGIMI.txt</code> nella cartella <code>profili-icc</code>. Gli originali <strong>ECI</strong> (ISO Coated v2, anche 300%) e <strong>Adobe</strong> (Coated FOGRA39) non possono stare nell'installer per le loro licenze: Mosaica li <strong>trova da sola</strong> se sono installati sul PC (cartella colori di Windows, profili Adobe); altrimenti si scaricano da eci.org o adobe.com e si aggiungono con <strong>➕ Aggiungi profilo…</strong>. Dentro la stampa liberi e originali sono praticamente uguali; sui colori fuori stampa cambiano.</p>
+  <div class="callout tip"><div class="callout-icon"></div><div><strong>Chiedi alla copisteria quale profilo e quale resa usa</strong> per il suo plotter, e metti in Mosaica lo stesso: allora prova a video, ruota ed export coincidono anche sui colori fuori stampa.</div></div>
+
+  <h3>Il monitor</h3>
+  <p>La prova a video è fedele solo con un <strong>monitor calibrato</strong> con un colorimetro (bianco D65, luminosità 120 cd/m², gamma 2.2). Sui portatili i colori molto saturi restano più spenti del vero: la ruota e l'export fanno comunque i conti giusti, è lo schermo che non li sa mostrare.</p>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>La Prova di stampa e le scelte di stampa <strong>non vanno nel progetto</strong>: stanno nella cartella di Mosaica (<code>colore.json</code>). Un progetto si apre uguale anche con una versione vecchia di Mosaica. Il <strong>PNG completo</strong> di sempre ora porta l'etichetta <strong>sRGB</strong>: stessi pixel, ma chi lo apre non lo scambia più per Adobe RGB.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li>Per la copisteria esporta il <strong>PDF/X-4</strong>: è quello che le copisterie si aspettano, e la conversione la fanno loro col loro plotter.</li>
+    <li>Prima di esportare accendi la <strong>🖨️ Prova di stampa</strong> con «Segna i colori che la stampa non raggiunge»: le righe ti dicono subito quali tessere usciranno diverse.</li>
+    <li>Un colore ⚠ fuori stampa? Nella ruota premi <strong>🖨️ Portalo in stampa</strong>: vedi a video il colore che uscirà davvero.</li>
+    <li>Hai un campione di colore della copisteria in CMYK? Scrivi i quattro numeri nella ruota e premi <kbd>Invio</kbd>.</li>
+  </ul></div></div>
+</section>
+
 <!-- ── SELEZIONE LAZO ── -->
 <section id="lazo">
-  <div class="section-label">06</div>
+  <div class="section-label">08</div>
   <h2>Selezione Lazo (poligono libero)</h2>
   <p>Il <strong>Lazo</strong> è un metodo di selezione avanzato che permette di racchiudere forme con un <strong>poligono libero disegnato a mano</strong>. È pensato in particolare per i mosaici, dove le tessere sono spesso piccole, fitte e con fughe strette: con un riquadro rettangolare prenderesti troppo o troppo poco, mentre con il lazo segui il contorno reale dell'area che ti interessa.</p>
 
@@ -1340,7 +1491,7 @@
 
 <!-- ── DISEGNO LIBERO ── -->
 <section id="disegno">
-  <div class="section-label">07</div>
+  <div class="section-label">09</div>
   <h2>Disegno a mano libera</h2>
   <p>La <strong>Left Toolbar</strong> contiene tre strumenti di disegno modali: <strong>penna ✏️</strong>, <strong>gomma 🧼</strong> e <strong>acquerello 💧</strong>. Sono mutuamente esclusivi: attivando uno, gli altri si disattivano.</p>
   <p>Accanto a loro, dopo l'esagono ⬡, c'è il <strong>🖼️ Pennello Timbro</strong>, che copia lo sfondo invece di stendere colore: ha un capitolo suo, <a href="#timbro" style="color:var(--blue);">Pennello Timbro</a>.</p>
@@ -1371,7 +1522,7 @@
   <h3>Ispettore — Penna / Gomma</h3>
   <p>Quando penna o gomma sono attive, l'Ispettore mostra:</p>
   <ul>
-    <li><strong>Colore corrente</strong> (in alto, blocco condiviso con l'acquerello)</li>
+    <li><strong>Colore corrente</strong> (in alto, blocco condiviso con l'acquerello): un clic sulla <strong>Tinta</strong> apre la ruota dei colori della penna, coi CMYK e il contagocce — vedi <a href="#colore" style="color:var(--blue);">Colore e stampa</a>.</li>
     <li><strong>Larghezza</strong> — slider 1–60 px. Col mouse il tratto è largo esattamente quanto l'anello attorno al cursore; con la penna della tavoletta lo modula la pressione (vedi <a href="#wacom" style="color:var(--blue);">Tavoletta Wacom</a>).</li>
     <li><strong>Punta</strong> — il pulsante col nome della punta. Di partenza <strong>Tonda (vettoriale)</strong>, la penna di sempre. Cliccandolo si apre il modale <strong>✏️ Seleziona punta della penna</strong>.</li>
     <li><strong>Distanza</strong> — dal 5% al 200% della Larghezza (di partenza 25%): quanto sono vicini i timbri della punta. Bassa = tratto pieno; alta = i timbri si staccano.</li>
@@ -1411,28 +1562,31 @@
     <li>I tratti freehand (penna e acquerello) sono sempre renderizzati <strong>sotto le forme geometriche</strong>: se hai bisogno di un disegno sopra una forma, crea la forma prima del tratto.</li>
     <li>Quando hai finito di disegnare, clicca <strong>🖱️ Seleziona</strong> per tornare a lavorare con le forme.</li>
     <li><strong>Lo specchio delle tessere non tocca il tuo disegno.</strong> Se fai <kbd>Ctrl</kbd>+<kbd>A</kbd> e premi ◨ o ⬓, le tessere si rovesciano e i tratti a penna e ad acquerello restano dove sono: Mosaica ti avvisa e ti conta quanti ne ha lasciati fuori. L'acquerello è la guida sotto le tessere — con le mani si gira la tessera, non il foglio.</li>
-    <li>Il <strong>colore corrente</strong> mostrato nell'Ispettore è condiviso tra penna e acquerello: cambiandolo da uno cambia anche per l'altro.</li>
+    <li>Il <strong>colore corrente</strong> mostrato nell'Ispettore è condiviso tra penna e acquerello: cambiandolo da uno cambia anche per l'altro. Per scegliere il colore di un punto del foglio usa il <strong>🎯 contagocce</strong> della ruota.</li>
   </ul></div></div>
 
   <h3>Perimetro di contenimento (⬡)</h3>
   <p>Quando colori le <strong>fughe</strong> a mano libera o dipingi ad acquerello dentro un mosaico, è facile sbordare oltre l'area del lavoro. Il <strong>Perimetro di contenimento</strong> risolve il problema: definisci una volta un'area chiusa e da quel momento <strong>penna, acquerello e timbro colorano solo dentro</strong> di essa; ciò che esce viene tagliato via, esattamente come fa il bordo del foglio.</p>
 
   <h3>Come si disegna il perimetro</h3>
-  <p>Il pulsante è l'esagono <strong>⬡</strong> nella Left Toolbar: apre la <strong>modalità perimetro</strong>, che funziona qualunque sia lo strumento che hai in mano. Se un perimetro non c'è ancora, lo tracci combinando due modi, anche mescolandoli nello stesso perimetro:</p>
+  <p>Il pulsante è l'esagono <strong>⬡</strong> nella Left Toolbar: apre la <strong>modalità perimetro</strong>, che funziona qualunque sia lo strumento che hai in mano. Se un perimetro non c'è ancora, lo tracci combinando i gesti, anche mescolandoli nello stesso perimetro:</p>
   <ul>
-    <li><strong>Tap</strong> (click singolo) → aggiunge un <strong>vertice</strong>: perfetto per appoggiarsi agli spigoli esterni delle tessere di bordo.</li>
-    <li><strong>Trascina</strong> → traccia <strong>a mano libera</strong>, come il pennello selezione. Se invece premi su un punto già messo e trascini, <strong>sposti quel punto</strong>.</li>
-    <li><kbd>Invio</kbd>, <strong>doppio-click</strong> o <strong>tap vicino al primo vertice</strong> → <strong>chiude</strong> il perimetro.</li>
+    <li><strong>Tap</strong> (click singolo) → aggiunge un <strong>vertice</strong> nel punto dove hai <strong>premuto</strong> (non dove hai rilasciato: lo scivolone del dito che preme non conta). Perfetto per appoggiarsi agli spigoli esterni delle tessere di bordo.</li>
+    <li><kbd>Shift</kbd>+<strong>tap</strong> → aggiunge un vertice <strong>morbido</strong>: la linea ci passa in curva (vedi <em>Le curve</em> più sotto).</li>
+    <li><strong>Trascina</strong> → traccia <strong>a mano libera</strong>, come il pennello selezione, <strong>con la lente spenta</strong> (<kbd>L</kbd>). Con la lente accesa, premere e tenere è la <strong>mira lenta</strong> (vedi <em>Mirare di fino</em>). Se premi su un punto già messo e trascini, <strong>sposti quel punto</strong>.</li>
+    <li><kbd>Invio</kbd>, <strong>doppio-click</strong> o <strong>tap sul primo vertice</strong> → <strong>chiude</strong> il perimetro. Con la lente spenta basta un tap <strong>vicino</strong> al primo vertice; con la lente accesa no, perché si mira a spigoli vicini fra loro.</li>
     <li><kbd>Backspace</kbd> → rimuove l'<strong>ultimo punto</strong> messo.</li>
+    <li><strong>Frecce</strong> → spostano il punto selezionato (l'ultimo messo è già selezionato): vedi <em>Mirare di fino</em>.</li>
     <li><kbd>Esc</kbd> → esce dalla modalità: un tracciato non ancora chiuso si <strong>annulla</strong> (un perimetro già impostato non si tocca).</li>
   </ul>
   <p>Servono almeno <strong>3 punti</strong> per chiudere. Chiudendo, il perimetro è <strong>impostato</strong> e non esci dalla modalità: restano le sue <strong>maniglie</strong>, così lo aggiusti subito.</p>
 
   <h3>Le maniglie: correggere il perimetro</h3>
-  <p>Un clic su <strong>⬡</strong> quando un perimetro c'è già lo <strong>riapre con le sue maniglie</strong>. Dentro la modalità:</p>
+  <p>Un clic su <strong>⬡</strong> quando un perimetro c'è già lo <strong>riapre con le sue maniglie</strong>. La maniglia dice il tipo del punto: <strong>quadrata = spigolo</strong> (la linea ci fa l'angolo), <strong>tonda = morbido</strong> (la linea ci passa in curva). Dentro la modalità:</p>
   <ul>
-    <li><strong>Trascina</strong> una maniglia → la sposti. La presa non cambia con lo zoom, e il gesto parte solo dopo qualche pixel: un tocco leggero resta un click.</li>
-    <li><strong>Doppio-click su un lato</strong> → aggiunge un punto, appoggiato proprio sul lato.</li>
+    <li><strong>Trascina</strong> una maniglia → la sposti. Il gesto parte solo dopo qualche pixel: un tocco leggero resta un click.</li>
+    <li><strong>Doppio-click su una maniglia</strong> → la cambia da spigolo a morbido e viceversa.</li>
+    <li><strong>Doppio-click su un lato</strong> → aggiunge un punto, appoggiato proprio sulla linea. Su un lato morbido nasce morbido; su un arco, l'arco si divide in due archi dello stesso cerchio.</li>
     <li><strong>Click</strong> su una maniglia → la selezioni (diventa <strong>ciano</strong>); <kbd>Canc</kbd> o <kbd>Backspace</kbd> la tolgono. Un perimetro non scende mai sotto i 3 punti.</li>
     <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> → annulla un passo di <strong>forma</strong> del perimetro. Quando non ce ne sono più, il tasto torna all'annulla normale di Mosaica.</li>
     <li><kbd>Invio</kbd>, <kbd>Esc</kbd>, un altro clic su <strong>⬡</strong> o un altro strumento → escono dalla modalità; il perimetro resta.</li>
@@ -1440,15 +1594,36 @@
 
   <div class="callout success"><div class="callout-icon"></div><div>Spostando, aggiungendo o togliendo una maniglia, i tratti già disegnati dentro il perimetro <strong>seguono la forma nuova</strong>: allargandolo ricompare quello che era nascosto, stringendolo si nasconde. Il ritaglio si ricalcola quando <strong>rilasci</strong> la maniglia.</div></div>
 
+  <h3>Le curve: punti morbidi e archi</h3>
+  <p>Il perimetro può seguire una fuga curva senza cento punti fitti. Ci sono due modi di fare una curva:</p>
+  <ul>
+    <li><strong>Punto morbido</strong> (maniglia <strong>tonda</strong>): la linea ci passa in curva, senza angolo, e si raccorda coi punti vicini. Si fa con <kbd>Shift</kbd>+tap mentre tracci, col <strong>doppio-click sulla maniglia</strong>, oppure selezionando la maniglia e premendo <kbd>M</kbd> — in tutte e due le fasi: è la strada senza doppio-click, comoda con la penna. <kbd>M</kbd> di nuovo la riporta spigolo.</li>
+    <li><strong>Arco</strong>: a metà di ogni lato c'è un <strong>rombo</strong>. Trascinalo: il lato diventa un <strong>arco di cerchio</strong> che passa dal rombo. Rombo <strong>vuoto</strong> (bianco) = il lato non è un arco; rombo <strong>pieno</strong> (arancione) = è un arco. Un arco vince sui punti morbidi del suo lato.</li>
+    <li>Per non riempire lo schermo i rombi si vedono solo sul lato sotto il puntatore, sui due lati della maniglia selezionata, sul rombo selezionato e su tutti gli archi.</li>
+    <li>Rombo selezionato + <strong>frecce</strong> → l'arco si aggiusta di fino. <strong>Doppio-click sul rombo</strong> di un arco, oppure rombo selezionato + <kbd>M</kbd> o <kbd>Canc</kbd> → <strong>via l'arco</strong>: il lato torna dritto (o morbido, se un suo estremo è morbido). Riportando il rombo sulla linea il lato torna dritto da solo.</li>
+    <li>Dove una maniglia e un rombo si toccano, vince la maniglia.</li>
+    <li><kbd>M</kbd> vale solo dentro la modalità perimetro, senza <kbd>Ctrl</kbd> e <kbd>Alt</kbd>, e non mentre scrivi in un campo.</li>
+  </ul>
+  <div class="callout tip"><div class="callout-icon"></div><div>Il taglio segue la curva vera con uno scarto di <strong>0,02 mm</strong> al massimo. Un perimetro di soli spigoli e lati dritti si salva come sempre. Uno con le curve, aperto con una <strong>versione vecchia</strong> di Mosaica, taglia giusto lo stesso (curva compresa); ma se quella versione lo <strong>risalva</strong>, le maniglie morbide si perdono e resta un perimetro di tanti spigoli fitti: giusto, ma da rifare morbido se vuoi manovrarlo.</div></div>
+
   <div class="callout warning"><div class="callout-icon"></div><div>Con il <strong>lazo</strong> o il <strong>pennello selezione</strong> accesi la modalità perimetro <strong>non si apre</strong>, e te lo dice: usano lo stesso strato di disegno. Chiudili prima. Il perimetro impostato si vede come guida tratteggiata con uno strumento a mano libera in mano e dentro la modalità perimetro; in selezione normale resta invisibile.</div></div>
 
   <h3>La lente mirino</h3>
-  <p>Dentro la modalità perimetro, sotto il cursore compare una <strong>lente</strong> che ingrandisce quello che c'è sotto, con un <strong>reticolo in millimetri reali</strong>: serve a mettere i punti a distanze precise dalle tessere, non solo a vederci meglio. Il <strong>pallino ciano</strong> al centro del reticolo è esattamente il punto dove il click mette il vertice o la maniglia.</p>
+  <p>Dentro la modalità perimetro, sotto il cursore compare una <strong>lente</strong> che ingrandisce quello che c'è sotto, con un <strong>reticolo in millimetri reali</strong>: serve a mettere i punti a distanze precise dalle tessere, non solo a vederci meglio. Il <strong>pallino ciano</strong> al centro del reticolo è esattamente il punto dove il click mette il vertice o la maniglia. Nel vetro vedi la stessa guida del foglio: curve, maniglie quadrate e tonde, rombi.</p>
   <ul>
     <li>Il passo del reticolo si adatta all'ingrandimento, da un quarto di millimetro a 50 mm; ogni cinque passi c'è una tacca con la quota in mm.</li>
-    <li><strong>Ferma il puntatore</strong> un attimo: attorno alla lente compare un anello di comandi con due slider, <strong>⌀ diametro</strong> (90–460 px, di partenza 190) e <strong>🔍 ingrandimento</strong> (1,5×–12×, di partenza 4×), più il pulsante <strong>⊘</strong> che la spegne.</li>
+    <li>Con la lente accesa, le prese (maniglia, lato, rombo) si misurano <strong>nel vetro</strong>: due spigoli a 1 mm, lontani nella lente, non sono più «lo stesso punto».</li>
+    <li><strong>Ferma il puntatore</strong> un attimo: attorno alla lente compare un anello di comandi con due slider, <strong>⌀ diametro</strong> (90–460 px, di partenza 190) e <strong>🔍 ingrandimento</strong> (1,5×–12×, di partenza 4×), più il pulsante <strong>⊘</strong> che la spegne. L'anello non si apre se la mano ci sta sopra: si apre al fermo dopo.</li>
     <li><kbd>L</kbd> accende e spegne la lente, solo dentro la modalità perimetro.</li>
     <li>Diametro, ingrandimento e lente accesa o spenta si <strong>ricordano</strong> fra una sessione e l'altra.</li>
+  </ul>
+
+  <h3>Mirare di fino: le frecce, la vite micrometrica e la frizione</h3>
+  <ul>
+    <li><strong>Le frecce</strong> spostano il punto selezionato (o il rombo selezionato) come spostano le tessere: <strong>0,1 mm</strong>, con <kbd>Shift</kbd> <strong>1 mm</strong>, con <kbd>Ctrl</kbd> <strong>0,01 mm</strong>. Valgono anche i tasti che hai mappato come frecce. Senza niente di selezionato le frecce fanno quello di sempre. Con le maniglie, il taglio dei tratti si aggiorna dopo una breve pausa: una raffica di frecce è <strong>un passo solo</strong> di <kbd>Ctrl</kbd>+<kbd>Z</kbd>.</li>
+    <li><strong>La vite micrometrica</strong> (con la lente accesa): <strong>premi e tieni premuto</strong>, col mouse o con la punta della penna appoggiata, e la mano è <strong>demoltiplicata</strong>: il mirino fa 1/N della strada della mano, dove N è l'ingrandimento della lente. Nel vetro l'immagine si muove alla velocità della mano, come un foglio sotto un microscopio. Al <strong>rilascio</strong> il punto va dov'è il mirino. Premendo su una maniglia o su un rombo lo sposti piano; premendo a vuoto mentre tracci, il punto nuovo nasce al rilascio. Mentre tieni premuto il cursore di Windows sparisce: la mano può anche uscire dal foglio.</li>
+    <li><strong>La frizione</strong>: al rilascio il mirino <strong>resta dov'è</strong>, niente salto, e da lì segue la mano un po' scostato — come quando alzi il mouse dal tappetino e lo riappoggi. Riparte lento e riprende velocità in pochi millimetri di mano; lo scostamento si riassorbe da solo, un poco alla volta. Il mirino torna sotto la mano quando spegni la lente o la mano esce dal foglio.</li>
+    <li>La <strong>rotella</strong> zooma attorno alla mano, e il mirino resta sullo stesso punto della tessera.</li>
   </ul>
 
   <div class="callout tip"><div class="callout-icon"></div><div>Nella lente l'<strong>acquerello</strong> (e il timbro) si vedono <strong>ammorbiditi</strong>: sono immagini, non disegni vettoriali, e ingrandite perdono nitidezza. Non è un difetto. Tessere e tratti di penna restano nitidi a qualunque ingrandimento.</div></div>
@@ -1460,7 +1635,7 @@
 
 <!-- ── ACQUERELLO ── -->
 <section id="acquerello">
-  <div class="section-label">08</div>
+  <div class="section-label">10</div>
   <h2>Controlli Acquerello</h2>
   <p>La modalità acquerello ha un set di parametri avanzati per simulare il comportamento reale della pittura ad acquerello. Tutti i controlli sono nell'<strong>Ispettore a destra</strong> quando lo strumento è attivo. Ogni parametro agisce su un aspetto diverso del tratto.</p>
 
@@ -1549,6 +1724,8 @@
     </div>
   </div>
 
+  <div class="callout tip"><div class="callout-icon"></div><div>Il colore che scegli con la <strong>Tinta</strong> (anche coi CMYK della ruota) è il <strong>pigmento</strong>: <strong>Tono</strong>, <strong>Opacità</strong> e <strong>Miscelazione</strong> cambiano il colore che si posa davvero sul foglio. Per vedere come uscirà in stampa accendi la <a href="#colore" style="color:var(--blue);">🖨️ Prova di stampa</a>.</div></div>
+
   <h3>L'anello attorno al cursore</h3>
   <p>Con penna, gomma e acquerello un <strong>anello tratteggiato</strong> attorno al cursore mostra quanto sarà largo il tratto. Per l'acquerello l'anello è <strong>misurato sulla punta caricata</strong>: mostra la larghezza tipica del tratto, fin dove il colore scende a metà dell'intensità del centro, e si aggiorna quando cambi punta o larghezza. Il tratto cade <strong>centrato sul cursore</strong>; qualche timbro può uscire dall'anello per la dispersione del <strong>Jitter pos.</strong>, che sparpaglia di traverso al tratto. Con la penna l'anello è grande quanto la Larghezza (con una punta PNG, quanto il lato lungo della punta).</p>
 
@@ -1579,7 +1756,7 @@
 
 <!-- ── PUNTE PENNELLO ── -->
 <section id="punte">
-  <div class="section-label">09</div>
+  <div class="section-label">11</div>
   <h2>Punte: acquerello e penna</h2>
   <p>Le punte sono file <strong>PNG con la trasparenza</strong> che danno la <strong>forma di ogni timbro</strong>: l'acquerello e la penna a punte le timbrano lungo il tratto. Conta <strong>solo la trasparenza</strong>: dove la PNG è piena il colore esce pieno, dove è semitrasparente esce più leggero, dove è trasparente non esce niente. Il colore dei pixel non conta (lo dà Mosaica), quindi puoi disegnarle in nero. Acquerello e penna hanno <strong>ognuno la sua cartella</strong>:</p>
   <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;">
@@ -1635,7 +1812,7 @@
 
 <!-- ── PENNELLO TIMBRO ── -->
 <section id="timbro">
-  <div class="section-label">10</div>
+  <div class="section-label">12</div>
   <h2>Pennello Timbro</h2>
   <p>Il <strong>Pennello Timbro 🖼️</strong> copia un pezzo dello <strong>sfondo</strong> — l'immagine che hai caricato o la carta — e lo ridipinge dove passi il pennello. Serve a portarti la carta, la venatura o un pezzo d'immagine dentro le fughe e sulle zone da raccordare, senza uscire da Mosaica e senza perdere i millimetri: tutte le misure del timbro sono in <strong>millimetri reali</strong>, come quelle delle tessere.</p>
   <p>Il pulsante è <strong>🖼️</strong> nella Left Toolbar, subito dopo l'esagono ⬡. Il timbro copia lo sfondo <strong>come si vede sul foglio</strong>, e il suo tratto sta <strong>sopra lo sfondo e sotto penna e acquerello</strong> (e, come tutti i tratti, sotto le tessere).</p>
@@ -1775,7 +1952,7 @@
 
 <!-- ── SFONDO ── -->
 <section id="sfondo">
-  <div class="section-label">11</div>
+  <div class="section-label">13</div>
   <h2>Immagine di Sfondo</h2>
   <p>Il <strong>BG Panel</strong> (la barra orizzontale subito sotto la top bar) è dedicato all'immagine di sfondo. Puoi caricare una foto di riferimento, un disegno o un progetto fotografato per tracciare sopra il tuo mosaico.</p>
 
@@ -1824,7 +2001,7 @@
 
 <!-- ── PROGETTI ── -->
 <section id="progetti">
-  <div class="section-label">12</div>
+  <div class="section-label">14</div>
   <h2>Salvare e aprire progetti</h2>
   <p>I progetti Mosaica si salvano come file <strong>.msp.json</strong>. Contengono tutte le forme, i tratti freehand, gli acquerelli, i colori, le texture applicate, l'immagine di sfondo, l'orientamento del canvas (portrait/landscape) e i parametri correnti di penna e acquerello. La cartella predefinita è:</p>
 
@@ -1863,7 +2040,7 @@
 
 <!-- ── AUTO-SAVE ── -->
 <section id="autosave">
-  <div class="section-label">13</div>
+  <div class="section-label">15</div>
   <h2>Auto-salvataggio</h2>
   <p>Mosaica salva automaticamente il tuo lavoro <strong>in background</strong> ogni minuto e quando chiudi l'app. Nessuna interazione richiesta: succede da solo.</p>
 
@@ -1942,7 +2119,7 @@
 
 <!-- ── AUTO-OPEN ── -->
 <section id="autoopen">
-  <div class="section-label">14</div>
+  <div class="section-label">16</div>
   <h2>Apertura automatica dell'ultimo progetto</h2>
   <p>Mosaica può aprire automaticamente l'ultimo progetto salvato ogni volta che lanci l'app. La preferenza si configura dal dropdown <strong>File</strong> in topbar.</p>
 
@@ -1998,7 +2175,7 @@
 
 <!-- ── FULLSCREEN ── -->
 <section id="fullscreen">
-  <div class="section-label">15</div>
+  <div class="section-label">17</div>
   <h2>Modalità schermo intero</h2>
   <p>Mosaica si avvia <strong>sempre in modalità schermo intero</strong> per massimizzare lo spazio di lavoro. Puoi uscire ed entrare in qualsiasi momento.</p>
 
@@ -2022,14 +2199,18 @@
 
 <!-- ── ESPORTA ── -->
 <section id="esporta">
-  <div class="section-label">16</div>
+  <div class="section-label">18</div>
   <h2>Esportare il lavoro</h2>
-  <p>Il dropdown <strong>Esporta</strong> in topbar offre quattro voci, ciascuna con un modale dedicato. Le prime tre sono qui sotto; la quarta, <strong>🧩 Tavola delle tessere (laser)</strong>, prepara i file per tagliare le tessere col laser e ha un capitolo suo: <a href="#tavola" style="color:var(--blue);">Tavola delle Tessere</a>.</p>
+  <p>Il dropdown <strong>Esporta</strong> in topbar offre cinque voci, ciascuna con un modale dedicato. Quattro sono qui sotto; <strong>🧩 Tavola delle tessere (laser)</strong> prepara i file per tagliare le tessere col laser e ha un capitolo suo: <a href="#tavola" style="color:var(--blue);">Tavola delle Tessere</a>. Per <strong>🖨️ Esporta per la stampa</strong> i dettagli sono in <a href="#colore" style="color:var(--blue);">Colore e stampa</a>.</p>
 
   <div class="card-grid col3">
     <div class="card-mini">
       <h4>📄 PDF A4</h4>
       <p>Esporta in PDF formato A4 reale a <strong>300 DPI</strong>. Rispetta l'orientamento (portrait/landscape).</p>
+    </div>
+    <div class="card-mini">
+      <h4>🖨️ Per la stampa (PDF/X)</h4>
+      <p>Il foglio intero a <strong>300 DPI</strong> coi colori della stampa: <strong>PDF/X-4</strong> (consigliato per la copisteria), <strong>PDF/X-1a</strong> già in CMYK o PNG compatibile Adobe RGB.</p>
     </div>
     <div class="card-mini">
       <h4>🖼️ PNG / SVG</h4>
@@ -2070,7 +2251,7 @@
   <div class="card-grid col2">
     <div class="card-mini">
       <h4>🖼️ PNG completo del canvas</h4>
-      <p>Esporta tutto ciò che vedi: sfondo, texture carta, forme, mano libera, acquerello. Alta risoluzione.</p>
+      <p>Esporta tutto ciò che vedi: sfondo, texture carta, forme, mano libera, acquerello. Alta risoluzione. Porta l'etichetta <strong>sRGB</strong>: chi lo apre sa che colori sono e non lo scambia per Adobe RGB.</p>
     </div>
     <div class="card-mini">
       <h4>🧩 SVG con riempimento</h4>
@@ -2094,7 +2275,7 @@
   </ul>
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
-    <li>Per la <strong>stampa professionale</strong> usa il PDF A4 a 300 DPI in modalità "Tutto il canvas" oppure "Solo forme su texture carta": entrambi preservano le dimensioni reali in millimetri.</li>
+    <li>Per la <strong>copisteria</strong> usa <strong>🖨️ Esporta per la stampa</strong> in <strong>PDF/X-4</strong>: porta il profilo di stampa e i colori arrivano giusti. Il PDF A4 a 300 DPI in modalità "Tutto il canvas" o "Solo forme su texture carta" resta per la stampa di casa: tutti e due preservano le dimensioni reali in millimetri.</li>
     <li>Il formato <strong>SVG contorni</strong> è ideale per il <strong>taglio laser</strong> (LightBurn / Beam Studio / RDWorks) o il plotter da taglio: stroke nero per le texture, colore originale per i fill tinta unita.</li>
     <li>L'<strong>SVG con riempimento</strong> renderizza le texture come colore medio per garantire l'importazione nei software laser CAM: se ti serve la texture vera, esporta in PNG o PDF.</li>
     <li>Esportando i tratti freehand come <strong>SVG</strong>, il <code>mix-blend-mode</code> viene preservato: aprilo in un browser moderno o in Illustrator per vedere correttamente la sovrapposizione dei colori.</li>
@@ -2106,7 +2287,7 @@
   
 <!-- ── TAVOLA DELLE TESSERE ── -->
 <section id="tavola">
-  <div class="section-label">17</div>
+  <div class="section-label">19</div>
   <h2>Tavola delle Tessere — i file per il laser</h2>
   <p>Dal dropdown <strong>Esporta</strong> → <strong>🧩 Tavola delle tessere (laser)</strong> Mosaica prepara in un colpo solo i file per <strong>tagliare le tessere in gomma col laser</strong> e per lavorarle al banco. <strong>Sul mosaico non si muove niente</strong>: l'ordinamento, la rotazione azzerata e la distinta vivono solo dentro i file esportati.</p>
 
@@ -2189,7 +2370,7 @@
 
 <!-- ── TAVOLETTA WACOM ── -->
 <section id="wacom">
-  <div class="section-label">18</div>
+  <div class="section-label">20</div>
   <h2>Tavoletta Wacom — pressione, inclinazione, tasti penna</h2>
   <p>Mosaica integra un sistema completo per tavolette grafiche Wacom (e qualsiasi altra tavoletta che esponga <code>PointerEvent.pressure</code>). La pressione è <strong>vera, punto-per-punto</strong>: ogni segmento del tratto memorizza la propria pressione, viene serializzato nei progetti <code>.msp.json</code>, esportato in SVG, e partecipa a Undo/Redo come qualsiasi altro oggetto Fabric.</p>
 
@@ -2324,7 +2505,7 @@
 
 <!-- ── MAPPATURA MOUSE & TASTIERA ── -->
 <section id="inputmapping">
-  <div class="section-label">19</div>
+  <div class="section-label">21</div>
   <h2>Mappatura Mouse &amp; Tastiera</h2>
   <p>Le scorciatoie classiche di Mosaica (Ctrl+Z/C/V/X, Delete, Ctrl+/−, frecce, Ctrl+R, doppio click) sono <strong>protette e sempre attive</strong>. Il modulo Mappatura Input ti permette di aggiungere <em>oltre</em> a queste:</p>
   <ul>
@@ -2457,7 +2638,7 @@
 
 <!-- ── SCORCIATOIE ── -->
 <section id="scorciatoie">
-  <div class="section-label">20</div>
+  <div class="section-label">22</div>
   <h2>Scorciatoie da tastiera</h2>
 
   <h3>Cronologia e appunti</h3>
@@ -2516,11 +2697,27 @@
       <tr><td><kbd>Invio</kbd></td><td>⬡ Chiude il perimetro che stai tracciando; con le maniglie, esce dalla modalità</td></tr>
       <tr><td><kbd>Esc</kbd></td><td>⬡ Esce dalla modalità perimetro (un tracciato non chiuso si annulla)</td></tr>
       <tr><td><kbd>Backspace</kbd></td><td>⬡ Toglie l'ultimo punto tracciato, o la maniglia selezionata</td></tr>
-      <tr><td><kbd>Canc</kbd></td><td>⬡ Toglie la maniglia selezionata</td></tr>
+      <tr><td><kbd>Canc</kbd></td><td>⬡ Toglie la maniglia selezionata, o l'arco del rombo selezionato</td></tr>
+      <tr><td><kbd>Shift</kbd> + tap</td><td>⬡ Aggiunge un vertice morbido</td></tr>
+      <tr><td><kbd>M</kbd></td><td>⬡ Maniglia selezionata: spigolo ↔ morbido. Rombo selezionato: toglie l'arco</td></tr>
+      <tr><td>Frecce (<kbd>Shift</kbd>, <kbd>Ctrl</kbd>)</td><td>⬡ Spostano il punto o il rombo selezionato di 0,1 mm (1 mm, 0,01 mm)</td></tr>
+      <tr><td>Tieni premuto (lente accesa)</td><td>⬡ Mira lenta: la vite micrometrica</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>⬡ Dentro la modalità perimetro annulla un passo di forma del perimetro</td></tr>
       <tr><td><kbd>L</kbd></td><td>🔍 Accende e spegne la lente mirino (solo dentro la modalità perimetro)</td></tr>
       <tr><td><kbd>Ctrl</kbd> + Click</td><td>🖼️ Pennello Timbro: sceglie la sorgente fissa</td></tr>
       <tr><td><kbd>Esc</kbd></td><td>🖼️ Pennello Timbro: annulla il contagocce «Prendi sorgente»</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Colore: ruota e contagocce</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Tasto</th><th>Azione</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Invio</kbd></td><td>🎨 Nella ruota: applica HEX, RGB o CMYK scritti nei campi</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>🎨 Chiude la ruota (quella della penna senza uscire dallo schermo intero)</td></tr>
+      <tr><td>Clic sul foglio</td><td>🎯 Contagocce acceso: prende il colore di quel punto</td></tr>
+      <tr><td><kbd>Shift</kbd> + clic sul foglio</td><td>🎯 Contagocce acceso: prende la media dei pixel attorno (5×5)</td></tr>
+      <tr><td><kbd>Esc</kbd> / clic destro</td><td>🎯 Annulla il contagocce</td></tr>
     </tbody>
   </table>
 
@@ -2548,7 +2745,7 @@
 
 <!-- ── SICUREZZA & AGGIORNAMENTI ── -->
 <section id="sicurezza">
-  <div class="section-label">21</div>
+  <div class="section-label">23</div>
   <h2>Sicurezza &amp; Aggiornamenti online</h2>
   <p>Mosaica Workspace Pro è un'<strong>applicazione di disegno offline</strong>: l'unica cosa che fa in rete è <strong>controllare se esiste una nuova versione</strong> sul repository GitHub ufficiale e, su tua richiesta, scaricarne l'installer. Tutto il resto del programma non parla con internet. Questa sezione spiega come funzionano gli aggiornamenti e quali protezioni sono sempre attive.</p>
 
@@ -2593,7 +2790,7 @@
     <li><strong>Nessuna navigazione web</strong>: la finestra non può essere portata su pagine esterne; i link http(s) (es. la pagina del progetto) si aprono nel <strong>browser di sistema</strong>, mai dentro l'app. Niente popup, niente finestre annidate.</li>
     <li><strong>Permessi negati per principio</strong>: fotocamera, microfono, geolocalizzazione, notifiche e simili sono <strong>sempre rifiutati</strong> — Mosaica non ne ha bisogno.</li>
     <li><strong>Content-Security-Policy stretta</strong>: il programma carica solo le proprie risorse locali e non esegue codice arrivato dalla rete. Il renderer non parla mai direttamente con internet: ogni operazione di rete passa dal processo principale.</li>
-    <li><strong>Indipendente dal motore di disegno</strong>: questo strato di sicurezza non tocca Fabric ed è pienamente compatibile con <strong>Fabric.js da v5.1.0 a v5.3.0</strong>.</li>
+    <li><strong>Indipendente dal motore di disegno</strong>: questo strato di sicurezza non tocca Fabric ed è pienamente compatibile con <strong>Fabric.js 5.5.2</strong>, la versione che Mosaica usa (e con la 5.3.0).</li>
   </ul>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div>Al primo avvio dopo un aggiornamento, Windows Defender potrebbe mostrare l'avviso "Editore sconosciuto" perché l'installer non è firmato con certificato a pagamento. È normale: clicca <strong>Ulteriori informazioni → Esegui comunque</strong>. La verifica SHA-256 fatta da Mosaica garantisce comunque che il file scaricato sia identico a quello pubblicato.</div></div>
 
@@ -2610,7 +2807,7 @@
 <!-- ════════════════════════════════ FOOTER ════════════════════════════════ -->
 <footer>
   <strong>Mosaica Workspace Pro</strong> · Guida Utente · By Pico Mosaici<br>
-  <span style="margin-top:6px;display:block;">Aggiornata alla versione · V 09.2026</span>
+  <span style="margin-top:6px;display:block;">Aggiornata alla versione · V 10.2026</span>
   <span style="margin-top:6px;display:block;">© 2026 Pico Mosaici® di Pietro Coraggio | Venafro (IS) | Tutti i diritti riservati</span>
 </footer>
 

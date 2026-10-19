@@ -1,4 +1,98 @@
 ------------------------------------------------------------
+Versione 10.2026  (Ottobre 2026)
+------------------------------------------------------------
+
+NOVITA':
+  + Texture fantasma: si mette la texture una volta sola su
+    una tessera (la capostipite), si preme "Fantasma" e la
+    texture si nasconde. Le copie, i cambi di forma e i
+    settori del cerchio entrano nella sua famiglia e se la
+    portano dietro senza mostrarla. Con "Mostra la famiglia"
+    (Ispettore o pannello Tutte le tessere) la texture
+    compare su tutte, ognuna tinta col suo colore; con
+    "Nascondi" tornano ai loro colori. Pensata per i mosaici
+    grandi (1600 tessere e piu'): un passo di Ctrl+Z per
+    ogni comando
+  + Prova di stampa (barra in alto): un velo mostra a video
+    come uscira' il foglio dal plotter, col profilo di stampa
+    scelto (FOGRA39 di base o ISO Coated v2 300%), la carta
+    simulata e, a scelta, i colori che la stampa non
+    raggiunge segnati a righe. Il disegno e i file non
+    cambiano
+  + Esporta per la stampa (menu Esporta): il foglio intero a
+    300 DPI in PDF/X-4 (consigliato per la copisteria), in
+    PDF/X-1a gia' in CMYK o in PNG compatibile Adobe RGB
+    (1998) col profilo dentro
+  + Ruota dei colori di Mosaica nel popup del colore, al
+    posto della finestra di Windows: anello e quadrato, HEX,
+    RGB e CMYK del profilo di stampa, il colore "in stampa"
+    accanto a quello "a video", l'avviso fuori stampa e il
+    pulsante "Portalo in stampa"
+  + Contagocce nella ruota: prende il colore di un punto del
+    foglio (Shift+clic = la media dei pixel attorno)
+  + La ruota anche per la penna e l'acquerello: la Tinta
+    dell'Ispettore la apre, coi CMYK e il contagocce
+  + Profili di stampa: nell'installer i profili liberi
+    FOGRA39 (basICColor) e uno compatibile Adobe RGB (1998);
+    Mosaica trova da sola quelli installati in Windows o da
+    Adobe e fa aggiungere gli altri (es. ISO Coated v2 ECI)
+  + Perimetro di contenimento, le curve: punti morbidi
+    (maniglia tonda; Shift+tap, M o doppio clic) e archi
+    (si tira il rombo a meta' lato). Il taglio segue la
+    curva entro 0,02 mm
+  + Perimetro di contenimento, la mira: con la lente,
+    tenendo premuto, la mano si demoltiplica e il punto si
+    porta piano (la vite micrometrica); al rilascio il
+    mirino non salta. Le frecce spostano il punto o il rombo
+    selezionato di 0,1 mm (Shift 1 mm, Ctrl 0,01 mm)
+
+MIGLIORAMENTI:
+  * Perimetro: il tap mette il punto dove si e' premuto; con
+    la lente le distanze di presa si misurano nel vetro e la
+    chiusura per vicinanza al primo punto e' spenta (si
+    mirava a spigoli vicini e si chiudeva per sbaglio)
+  * La copia di una tessera con texture non colorata ha la
+    stessa texture e la stessa grana (prima nasceva grigia)
+  * Texture colorate: annulla, ripristina, incolla e
+    riapertura di mosaici grandi molto piu' veloci (le tinte
+    gia' fatte non si rifanno)
+  * PNG completo: ora porta l'etichetta sRGB. I colori sono
+    gli stessi, ma chi lo apre non lo scambia piu' per Adobe
+    RGB
+  * Guida utente: capitoli nuovi "Texture e texture
+    fantasma" e "Colore e stampa"; i grassetti nei consigli
+    pratici non vanno piu' a capo da soli
+
+CORREZIONI:
+  + Ricolorando con la ruota una tessera con texture non
+    colorata, la texture tornava fuori con un Ctrl+Z fatto
+    dopo o riaprendo il progetto
+  + Cambia forma su una tessera con texture: un Ctrl+Z
+    successivo perdeva la texture
+  + Dividi cerchio su un cerchio con texture: i quattro
+    settori avevano la stessa grana (cambiandone una
+    cambiavano tutte) e compariva anche un avviso d'errore
+  + Il colore di prima della texture si ritrova anche dopo
+    un Ctrl+Z o una riapertura ("Togli da tutte")
+
+NOTE TECNICHE:
+  - Versione interna: 10.2026.0
+  - Motore colore Little CMS 2 (lcms-wasm 1.0.5, licenza MIT)
+    dentro Mosaica: nessuna dipendenza npm nuova
+  - Profili nell'installer nella cartella profili-icc, con
+    le licenze (zlib basICColor, CC0) e un LEGGIMI
+  - PDF/X-1a:2001 e PDF/X-4 controllati col Preflight di
+    Adobe Acrobat Pro
+  - Fabric.js: 5.3.0 -> 5.5.2 (massima compatibile 5.5.2,
+    minima 5.3.0)
+  - 1050 chiavi di traduzione simmetriche IT + EN
+  - I progetti salvati con le versioni precedenti si aprono
+    normalmente. Un progetto con texture fantasma o con un
+    perimetro curvo si apre anche con una versione vecchia;
+    se quella lo risalva, famiglie e maniglie morbide si
+    perdono
+
+------------------------------------------------------------
 Versione 09.2026.2  (Settembre 2026)
 ------------------------------------------------------------
 

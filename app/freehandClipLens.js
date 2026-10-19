@@ -63,6 +63,13 @@
 //  con l'anello aperto; quando il cursore esce dal canvas per andare
 //  sugli slider i mouse:move finiscono e la lente resta dov'e' da sola:
 //  il "congelamento" e' una conseguenza, non un pezzo di codice.
+//  ⚠ Con la frizione (cantiere «Il Mirino», Fetta 2-bis) la mano nascosta
+//  puo' stare lontano dalla lente, proprio dove nasce un pezzo dell'anello.
+//  Se l'anello comparisse SOTTO la mano, per il foglio la mano «uscirebbe»
+//  senza essersi mossa: la frizione si staccherebbe e al primo movimento
+//  la lente salterebbe sotto la mano (trappola 260). Quindi l'anello non
+//  si apre se la mano sta sopra uno dei suoi pezzi: si aprira' al
+//  prossimo fermo, con la mano altrove (Fetta 2-ter).
 //
 //  ── DOVE NON C'E' ───────────────────────────────────────────────────
 //  Solo dentro la MODALITA' PERIMETRO (⬡). Non durante i tratti di penna
@@ -77,9 +84,18 @@
 //  lassoSelection.js). Scrittura su disco solo a fine trascinamento
 //  dello slider (evento "change"), non ad ogni pixel ("input").
 //
+//  ── LA GUIDA NEL VETRO (cantiere «Il Mirino», Fette 4A e 4B) ─────────
+//  Nella lente la guida e' la STESSA della guida grande: la linea spianata
+//  con le curve, le maniglie quadrate (spigolo) o tonde (morbido), i rombi a
+//  meta' lato (vuoto = lato senza arco, pieno = arco). Tutto letto dallo
+//  stato di freehandTools.js (path, shape, knobs): qui non si ricalcola
+//  niente, cosi' la lente non puo' mostrare una curva diversa da quella che
+//  taglia.
+//
 //  DIPENDENZE: legge lo stato del perimetro SOLO da
 //  window.getFreehandClipState() (sola lettura, esposto dalla Fetta 1) e
-//  non scrive niente in freehandTools.js. Usa window.mm2px per i
+//  il punto di mira da window.freehandClipAimAt(e) (cantiere «Il Mirino»,
+//  Fetta 2: la vite micrometrica), e non scrive niente in freehandTools.js. Usa window.mm2px per i
 //  millimetri veri e window.flashToast per gli avvisi. Nessuno dei cinque
 //  file protetti viene toccato.
 //
@@ -112,6 +128,7 @@
   const RING_GAP_PX = 16;             // distanza dell'anello dal bordo della lente
   const RING_KEEP_PX = 90;            // oltre questo scostamento dall'ancora l'anello si chiude
   const RING_MARGIN_PX = 10;          // margine minimo dai bordi della finestra
+  const RING_HAND_MARGIN_PX = 6;      // la mano a meno di cosi' da un pezzo dell'anello = ci sta sopra
   const SAVE_DEBOUNCE_MS = 450;       // ritardo di scrittura su calibration.json
 
   // --- Reticolo a millimetri reali ---
@@ -144,6 +161,16 @@
   const LENS_HANDLE_SEL_COLOR = "rgba(0,200,255,0.98)";
   const LENS_FIRST_R_PX = 6.6;
   const LENS_FIRST_COLOR = "rgba(255,255,255,0.95)";
+  // Le curve a mano (cantiere «Il Mirino», Fette 4A e 4B): come la guida
+  // grande, un filo piu' grandi come le maniglie della lente.
+  const LENS_SQUARE_K = 0.9;          // mezzo lato del quadrato = raggio × 0,9
+  const LENS_KNOB_R_PX = 5.4;         // rombo a riposo (mezza diagonale)
+  const LENS_KNOB_HOVER_R_PX = 6.6;
+  const LENS_KNOB_SEL_R_PX = 7.4;
+  const LENS_KNOB_LINE_W = 1.4;
+  const LENS_KNOB_EMPTY_COLOR = "rgba(255,255,255,0.92)";   // vuoto: bianco, bordo arancione
+  const LENS_KNOB_EDGE_COLOR = "rgba(255,255,255,0.95)";    // bordo del selezionato
+  const LENS_KNOB_ARC_EDGE_COLOR = "rgba(90,40,0,0.95)";    // bordo del pieno (arco): scuro
 
   // --- Bordo della lente ---
   const RIM_OUTER_W_PX = 3;
@@ -164,6 +191,7 @@
   let visible = false;                // la lente e' a schermo?
   let pointerDown = false;            // pulsante premuto sul canvas
   let ringAnchor = null;              // {x,y,r} in px schermo: dove l'anello e' comparso
+  let lastClient = null;              // {x,y} px della finestra: dov'e' la MANO (non il mirino)
   let dwellTimer = null;
   let saveTimer = null;
   let rafPending = false;             // un render e' gia' in coda per questo frame?
@@ -477,35 +505,33 @@
   // raggi sono in px SCHERMO, quindi vanno divisi per k: e' lo stesso
   // mestiere di _screenK() in freehandTools.js, con la scala della lente
   // al posto di quella della vista.
+  // Dalle fette 4A e 4B la lente disegna la STESSA linea della guida grande:
+  // quella spianata con le curve (st.path), le maniglie quadrate (spigolo)
+  // o tonde (morbido) e i rombi a meta' lato. Con un freehandTools.js che
+  // non li espone, si torna ai lati dritti fra i punti e alle maniglie tonde:
+  // com'era prima.
   function _paintGuide(ctx, k) {
     const st = _clipState();
     const pts = Array.isArray(st.points) ? st.points : [];
     if (!pts.length) return;
+    const line = Array.isArray(st.path) && st.path.length ? st.path : pts;
+    const shape = Array.isArray(st.shape) && st.shape.length === pts.length ? st.shape : null;
     const u = 1 / Math.max(0.0001, k);
     const closed = st.mode === "handles";
-
-    ctx.beginPath();
-    ctx.moveTo(pts[0].x, pts[0].y);
-    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-    if (closed) ctx.closePath();
-    else if (!pointerDown && center) ctx.lineTo(center.x, center.y);  // elastico fino alla croce
+    // L'elastico fino alla croce: a pulsante alzato, e anche tenendo premuto
+    // per mirare un punto nuovo (Fetta 2 del Mirino: il punto nascera' li').
+    // Non mentre si porta una maniglia o un rombo: li' l'elastico non c'entra.
+    const rubber = !!center && (!pointerDown ||
+      (st.aiming === true && !(st.grab >= 0) && !(st.knobGrab >= 0)));
 
     if (pts.length >= CLIP_MIN_VERTICES) {
       ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-      ctx.closePath();
+      _traceLine(ctx, line, true, false);
       ctx.fillStyle = LENS_GUIDE_FILL;
       ctx.fill();
       ctx.restore();
-      // Il tracciato del contorno e' stato consumato dal fill: rifallo.
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-      if (closed) ctx.closePath();
-      else if (!pointerDown && center) ctx.lineTo(center.x, center.y);
     }
+    _traceLine(ctx, line, closed, !closed && rubber);
 
     ctx.lineWidth = LENS_GUIDE_LINE_W * u;
     ctx.strokeStyle = LENS_GUIDE_COLOR;
@@ -513,9 +539,29 @@
     ctx.stroke();
     ctx.setLineDash([]);
 
+    // I rombi (Fetta 4B): vuoto (bianco, bordo arancione) = il lato non e' un
+    // arco, pieno (arancione, bordo scuro) = arco, ciano = selezionato o tirato. Sotto le maniglie: dove si toccano vince
+    // la maniglia, come per la presa.
+    const knobs = Array.isArray(st.knobs) ? st.knobs : [];
+    for (let m = 0; m < knobs.length; m++) {
+      const q = knobs[m];
+      if (!q || !Number.isFinite(q.x) || !Number.isFinite(q.y)) continue;
+      const isSel = q.side === st.knobSel || q.side === st.knobGrab;
+      const isHover = q.side === st.knobHover;
+      let r = LENS_KNOB_R_PX;
+      if (isSel) r = LENS_KNOB_SEL_R_PX;
+      else if (isHover) r = LENS_KNOB_HOVER_R_PX;
+      _traceKnob(ctx, q.x, q.y, r * u);
+      ctx.fillStyle = isSel ? LENS_HANDLE_SEL_COLOR : (q.arc ? LENS_GUIDE_COLOR : LENS_KNOB_EMPTY_COLOR);
+      ctx.fill();
+      ctx.lineWidth = LENS_KNOB_LINE_W * u;
+      ctx.strokeStyle = isSel ? LENS_KNOB_EDGE_COLOR : (q.arc ? LENS_KNOB_ARC_EDGE_COLOR : LENS_GUIDE_COLOR);
+      ctx.stroke();
+    }
+
     // Le maniglie. Stessa grammatica di colori della Fetta 1: selezionata
     // ciano, 1° vertice bianco grosso in fase di tracciamento, le altre
-    // arancioni come la guida.
+    // arancioni come la guida. Dalla 4A: quadrata = spigolo, tonda = morbido.
     const firstIsTarget = st.mode === "draw";
     for (let i = 0; i < pts.length; i++) {
       const isFirst = firstIsTarget && i === 0;
@@ -531,14 +577,39 @@
       if (isFirst) fill = LENS_FIRST_COLOR;
       if (isSel) fill = LENS_HANDLE_SEL_COLOR;
 
-      ctx.beginPath();
-      ctx.arc(pts[i].x, pts[i].y, r * u, 0, Math.PI * 2);
+      _traceHandle(ctx, pts[i].x, pts[i].y, r * u, !shape || shape[i].s === true);
       ctx.fillStyle = fill;
       ctx.fill();
       ctx.lineWidth = 1 * u;
       ctx.strokeStyle = isSel ? "rgba(255,255,255,0.95)" : LENS_GUIDE_COLOR;
       ctx.stroke();
     }
+  }
+  // La linea della guida: chiusa (fase maniglie, e per il velo) o aperta,
+  // con l'elastico fino alla croce in fondo se serve.
+  function _traceLine(ctx, line, closed, rubber) {
+    ctx.beginPath();
+    ctx.moveTo(line[0].x, line[0].y);
+    for (let i = 1; i < line.length; i++) ctx.lineTo(line[i].x, line[i].y);
+    if (closed) ctx.closePath();
+    else if (rubber) ctx.lineTo(center.x, center.y);  // elastico fino alla croce
+  }
+  // Maniglia: tonda (morbido) o quadrata (spigolo), r = raggio. Come la
+  // guida grande in freehandTools.js (_traceHandle).
+  function _traceHandle(ctx, x, y, r, soft) {
+    ctx.beginPath();
+    if (soft) { ctx.arc(x, y, r, 0, Math.PI * 2); return; }
+    const h = r * LENS_SQUARE_K;
+    ctx.rect(x - h, y - h, 2 * h, 2 * h);
+  }
+  // Rombo, r = mezza diagonale.
+  function _traceKnob(ctx, x, y, r) {
+    ctx.beginPath();
+    ctx.moveTo(x, y - r);
+    ctx.lineTo(x + r, y);
+    ctx.lineTo(x, y + r);
+    ctx.lineTo(x - r, y);
+    ctx.closePath();
   }
 
   // --- Il reticolo a millimetri reali ----------------------------------
@@ -682,7 +753,28 @@
       dwellTimer = null;
       if (!isActive() || !visible || pointerDown) return;
       _showRing();
+      // La mano nascosta sta sotto un pezzo dell'anello (frizione): niente
+      // anello adesso, altrimenti la mano «esce» dal foglio da ferma
+      // (trappola 260). Nello stesso giro di codice: non arriva a schermo.
+      if (_handUnderRing()) _hideRing();
     }, RING_DWELL_MS);
+  }
+
+  // La mano (l'ultimo punto visto dagli eventi, non il mirino) sta sopra
+  // uno dei pezzi dell'anello? Si chiede alla pagina dove sono davvero.
+  function _handUnderRing() {
+    if (!lastClient) return false;
+    const m = RING_HAND_MARGIN_PX;
+    const parts = [elSizeWrap, elMagWrap, elBtns];
+    for (let i = 0; i < parts.length; i++) {
+      const el = parts[i];
+      if (!el || typeof el.getBoundingClientRect !== "function") continue;
+      const r = el.getBoundingClientRect();
+      if (!(r.width > 0) || !(r.height > 0)) continue;
+      if (lastClient.x >= r.left - m && lastClient.x <= r.right + m &&
+          lastClient.y >= r.top - m && lastClient.y <= r.bottom + m) return true;
+    }
+    return false;
   }
 
   // L'anello nasce ancorato dov'e' la lente ADESSO e non si muove piu':
@@ -783,7 +875,7 @@
     else requestRender();
     if (changed && !(opts && opts.silent)) {
       _toast(enabled
-        ? _t("freehandClip.lens.on", "🔍 Lente mirino accesa — L per spegnerla")
+        ? _t("freehandClip.lens.on", "🔍 Lente mirino accesa — tieni premuto per mirare piano, L per spegnerla")
         : _t("freehandClip.lens.off", "🔍 Lente mirino spenta — L per riaccenderla"));
     }
     if (!opts || opts.persist !== false) _saveSettings();
@@ -838,14 +930,20 @@
     const c = _canvas();
     if (!c) return;
     const e = opt && opt.e;
-    // ⚠ Il punto viene da getPointer, come quello che onMouseUp di
-    // freehandTools.js usa per piazzare il vertice: e' la stessa
-    // sorgente, quindi il centro del reticolo e il vertice non possono
-    // divergere.
-    let p;
-    try { p = c.getPointer(e); } catch (err) { return; }
+    // ⚠ Il punto viene da freehandTools.js, che e' chi piazza il vertice:
+    // e' la stessa funzione, quindi il centro del reticolo e il vertice non
+    // possono divergere. A pulsante alzato e' getPointer; tenendo premuto e'
+    // il puntatore demoltiplicato della vite micrometrica (cantiere «Il
+    // Mirino», Fetta 2). Con un freehandTools.js che non la espone, si
+    // torna a getPointer: com'era prima.
+    let p = null;
+    try {
+      if (typeof window.freehandClipAimAt === "function") p = window.freehandClipAimAt(e);
+      if (!p) p = c.getPointer(e);
+    } catch (err) { return; }
     if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y)) return;
     center = { x: p.x, y: p.y };
+    _rememberHand(e);
 
     // L'anello ancorato resta dov'e' finche' il cursore gira nei suoi
     // paraggi; appena ci si allontana si chiude e ricomparira' al
@@ -875,9 +973,34 @@
     requestRender();
   }
 
-  function onMouseUp() {
+  function onMouseUp(opt) {
     pointerDown = false;
-    if (isActive()) { _armDwell(); requestRender(); }
+    if (!isActive()) return;
+    // Rilasciato con la mano FUORI dal foglio (con la vite micrometrica la
+    // mano corre N volte piu' del mirino e puo' uscire): da li' non arriva
+    // piu' nessun mouse:move del canvas, e la lente resterebbe appesa sopra
+    // i pannelli. Si chiude come all'uscita normale (onCanvasLeave).
+    const e = opt && opt.e;
+    if (e && !_ringShown() && _outsideCanvas(e)) { _hide(); return; }
+    _armDwell();
+    requestRender();
+  }
+
+  // Dov'e' la mano, in px della finestra (serve a _handUnderRing).
+  function _rememberHand(e) {
+    if (e && Number.isFinite(e.clientX) && Number.isFinite(e.clientY)) {
+      lastClient = { x: e.clientX, y: e.clientY };
+    }
+  }
+
+  // La mano e' fuori dal rettangolo vero dell'upper-canvas?
+  function _outsideCanvas(e) {
+    const c = _canvas();
+    const el = c && (c.upperCanvasEl || c.lowerCanvasEl);
+    if (!el || typeof el.getBoundingClientRect !== "function") return false;
+    if (!Number.isFinite(e.clientX) || !Number.isFinite(e.clientY)) return false;
+    const r = el.getBoundingClientRect();
+    return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
   }
 
   function onAfterRender() {
@@ -893,7 +1016,11 @@
     // Fuori dal canvas: se l'anello e' aperto il cursore sta probabilmente
     // andando sugli slider, e la lente deve restare dov'e' (congelata). Se
     // l'anello e' chiuso, la lente non ha piu' niente da inquadrare.
-    if (_ringShown()) return;
+    // ⚠ Tenendo premuto (vite micrometrica, Fetta 2 del Mirino) la mano corre
+    // piu' del mirino e puo' uscire dal foglio mentre il mirino e' ancora
+    // dentro: la lente resta, e i movimenti arrivano dal document
+    // (trappola 250). Si chiude al rilascio, se la mano e' ancora fuori.
+    if (_ringShown() || pointerDown) return;
     _hide();
   }
 
@@ -1046,6 +1173,10 @@
     setMag: setMag,
     getCenter: () => (center ? { x: center.x, y: center.y } : null),
     isRingShown: _ringShown,
+    // Ridisegno al prossimo frame. Serve a freehandTools.js quando un punto
+    // si muove senza un render del canvas (le frecce: cantiere «Il Mirino»,
+    // Fetta 1). Se la lente non e' attiva, render() la nasconde e basta.
+    requestRender: requestRender,
     // Solo per l'harness e per tararla dalla console: niente di questo
     // serve all'applicazione.
     _render: render,

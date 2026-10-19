@@ -230,6 +230,15 @@
       body.clip-lens-on #paper canvas {
         cursor: none !important;
       }
+      /* Cantiere «Il Mirino», Fetta 2 (la vite micrometrica): tenendo premuto
+         con la lente la mano corre N volte più del mirino e può uscire dal
+         foglio. Il cursore di sistema sparisce OVUNQUE finché si tiene
+         premuto, altrimenti comparirebbe lontano dal mirino a indicare un
+         punto che non conta. La classe la mette e la toglie freehandTools.js. */
+      body.clip-aim-hold,
+      body.clip-aim-hold * {
+        cursor: none !important;
+      }
       #clipLensRing[aria-hidden="true"] {
         display: none;
       }
@@ -314,7 +323,10 @@
       }
 
       /* ══════════════════════════════════════════════════════════
-         COLOR POPUP — INVARIATO
+         COLOR POPUP — la ruota dei colori (colorWheel.js, cantiere
+         «Tintometro», Fetta 4). Finché colorWheel.js non mette la classe
+         .cw-ready il popup resta quello di prima (pulsante + finestra di
+         Windows): se il file mancasse, il colore si sceglie lo stesso.
          ══════════════════════════════════════════════════════════ */
       #colorPopup {
         position: absolute;
@@ -333,6 +345,241 @@
         padding: 0;
         background: transparent;
         cursor: pointer;
+      }
+      #colorPopup .cw-fallback {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      #colorPopup.cw-ready .cw-fallback {
+        display: none;
+      }
+      #colorWheelBox {
+        display: none;
+        flex-direction: column;
+        gap: 6px;
+        width: 234px;
+        font-size: 12px;
+        color: var(--col-text);
+        user-select: none;
+      }
+      #colorPopup.cw-ready #colorWheelBox {
+        display: flex;
+      }
+      #colorWheelCanvas {
+        display: block;
+        width: 220px;
+        height: 220px;
+        margin: 0 auto 2px;
+        cursor: crosshair;
+        touch-action: none;
+      }
+      #colorWheelBox .cw-swatches {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      #colorWheelBox .cw-sw {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: var(--col-text-muted);
+        white-space: nowrap;
+      }
+      #colorWheelBox .cw-chip {
+        width: 30px;
+        height: 22px;
+        border-radius: 5px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+      }
+      #colorWheelBox .cw-chip.empty {
+        background: repeating-linear-gradient(135deg, #2a2a2a 0 4px, #333 4px 8px) !important;
+      }
+      #colorWheelBox .cw-gamut {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        min-height: 16px;
+        white-space: nowrap;
+      }
+      #colorWheelBox .cw-warn {
+        color: #ffb020;
+        font-weight: 600;
+      }
+      #colorWheelBox .cw-in-gamut {
+        color: #7fcf8f;
+      }
+      #colorWheelBox .cw-de {
+        color: var(--col-text-dim);
+        font-size: 11px;
+        font-variant-numeric: tabular-nums;
+      }
+      /* ⚠ [hidden] deve vincere: una classe con display lo terrebbe sempre acceso (trappola 289) */
+      #colorWheelBox [hidden] {
+        display: none !important;
+      }
+      #colorWheelBox .cw-row {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      #colorWheelBox .cw-lbl {
+        flex: 0 0 auto;
+        min-width: 12px;
+        color: var(--col-text-dim);
+        font-family: monospace;
+        font-size: 11px;
+        text-align: right;
+      }
+      #colorWheelBox .cw-in {
+        flex: 1 1 0;
+        min-width: 0;
+        width: 0;
+        background: #2b2b2b;
+        color: var(--col-text);
+        border: 1px solid #555;
+        border-radius: 5px;
+        padding: 3px 4px;
+        font-family: monospace;
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        outline: none;
+      }
+      #colorWheelBox .cw-in.cw-hex {
+        text-align: left;
+      }
+      #colorWheelBox .cw-in:focus {
+        border-color: var(--col-accent);
+        background: #1f1f1f;
+      }
+      #colorWheelBox .cw-in.bad {
+        border-color: #e74c3c;
+      }
+      #colorWheelBox .cw-in:disabled {
+        opacity: 0.4;
+      }
+      #colorWheelBox .cw-unit {
+        flex: 0 0 auto;
+        color: var(--col-text-dim);
+        font-size: 11px;
+      }
+      #colorWheelBox .cw-note {
+        font-size: 11px;
+        line-height: 1.4;
+        color: var(--col-text-muted);
+      }
+      #colorWheelBox .cw-profile {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: var(--col-text-dim);
+      }
+      #cwToPrintBtn {
+        flex: 1;
+        padding: 6px 8px;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 176, 32, 0.6);
+        background: rgba(255, 176, 32, 0.16);
+        color: #ffd27a;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      #cwToPrintBtn:hover:not(:disabled) {
+        background: rgba(255, 176, 32, 0.28);
+      }
+      #cwToPrintBtn:disabled {
+        opacity: 0.35;
+        cursor: default;
+        border-color: var(--col-border-strong);
+        background: transparent;
+        color: var(--col-text-muted);
+      }
+      #colorWheelBox .cw-check {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: var(--col-text-muted);
+        cursor: pointer;
+      }
+      #colorWheelBox .cw-check input {
+        accent-color: var(--col-accent);
+        margin: 0;
+      }
+      /* Fetta 4-bis (cantiere «Texture Ghost»): il contagocce, e la ruota aperta dalla Tinta della penna e
+         dell'acquerello (titolo in testa, bordo ciano). Il tassello che segue la mano (#cwPickChip) lo crea
+         colorWheel.js; il mirino a croce sul foglio vale solo mentre il contagocce è acceso. */
+      #colorWheelBox .cw-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--col-accent-hot);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      #colorPopup.cw-stroke {
+        border-color: rgba(0, 200, 255, 0.4);
+      }
+      #cwPickBtn {
+        flex: 0 0 auto;
+        margin-left: auto;
+        width: 32px;
+        height: 26px;
+        padding: 0;
+        border-radius: 6px;
+        border: 1px solid var(--col-border-strong);
+        background: #2b2b2b;
+        color: var(--col-text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      #cwPickBtn:hover {
+        border-color: var(--col-accent);
+      }
+      #cwPickBtn.armed {
+        background: #0090b8;
+        color: #fff;
+        box-shadow: inset 0 0 0 2px rgba(0, 200, 255, 0.95);
+      }
+      #cwPickBtn svg {
+        display: block;
+        width: 16px;
+        height: 16px;
+        pointer-events: none;
+      }
+      body.cw-picking #paper canvas {
+        cursor: crosshair !important;
+      }
+      #cwPickChip {
+        position: fixed;
+        z-index: 10020;
+        display: none;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 8px 3px 3px;
+        background: rgba(15, 15, 15, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+        pointer-events: none;
+        font-family: monospace;
+        font-size: 11px;
+        color: #fff;
+      }
+      #cwPickChip .cw-pick-sw {
+        width: 22px;
+        height: 22px;
+        border-radius: 4px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+      }
+      #colorPopup.cw-ready #quickColors {
+        border-top: 1px solid var(--col-border);
+        padding-top: 8px;
       }
 
       /* ── COLORI RAPIDI (pastiglie tonde) ──────────────────────────
@@ -571,6 +818,83 @@
         font-size: 12px;
         color: var(--col-text-muted);
         cursor: pointer;
+      }
+
+      /* ── PROVA DI STAMPA (softProof.js, cantiere «Tintometro», Fetta 3) ──
+         Un pulsante che si accende (come un interruttore) più un ▾ che apre le scelte.
+         Acceso = bordo e fondo ambra: si deve vedere a colpo d'occhio che il foglio
+         a video NON è quello vero ma la sua simulazione di stampa. */
+      #softProofDropdown {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+      }
+      #softProofToggle.on {
+        background: rgba(255, 176, 32, 0.22);
+        border-color: rgba(255, 176, 32, 0.75);
+        color: #ffd27a;
+      }
+      #softProofToggle:disabled,
+      #softProofMenuBtn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      #softProofDropdown .dropdown-content {
+        width: 320px;
+        padding: 12px;
+      }
+      /* ⚠ display solo con .open: un «display:flex» su #softProofPanel (un ID) vincerebbe
+         sul «display:none» di .dropdown-content (una classe) e il pannello resterebbe sempre aperto. */
+      #softProofPanel {
+        flex-direction: column;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--col-text);
+      }
+      #softProofDropdown.open #softProofPanel {
+        display: flex;
+      }
+      #softProofPanel h4 {
+        margin: 0 0 2px 0;
+        font-size: 14px;
+      }
+      #softProofPanel label.sp-field {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        color: #cfd8ff;
+      }
+      #softProofPanel select {
+        width: 100%;
+        background: var(--col-bg-panel);
+        color: var(--col-text);
+        border: 1px solid var(--col-border-strong);
+        border-radius: 6px;
+        padding: 5px 6px;
+        font-size: 12px;
+      }
+      #softProofPanel .dropdown-checkbox {
+        padding: 3px 0;
+      }
+      #softProofPanel .sp-buttons {
+        display: flex;
+        gap: 6px;
+      }
+      #softProofPanel .sp-buttons button {
+        flex: 1;
+        text-align: center;
+        border-color: var(--col-border);
+        margin: 0;
+        padding: 6px 8px;
+        font-size: 12px;
+      }
+      #softProofPanel .sp-note {
+        color: var(--col-text-muted);
+        line-height: 1.4;
+      }
+      #softProofStatus {
+        color: var(--col-text-muted);
+        font-variant-numeric: tabular-nums;
       }
 
       /* Calibrazione popover (più largo + striscia visibile) */
@@ -873,6 +1197,70 @@
       .mwp-pop-btn:hover { border-color: var(--col-border-strong); background: rgba(255, 255, 255, 0.06); }
       .mwp-pop-btn.danger { border-color: #7a2a2a; background: rgba(180, 40, 40, 0.18); color: #ffd9d9; }
       .mwp-pop-btn.primary { border-color: var(--col-accent); color: #fff; background: rgba(43, 108, 255, 0.18); }
+      .mwp-pop-btn:disabled { opacity: 0.45; cursor: default; }
+
+      /* ── 👻 Texture fantasma (cantiere «Texture Ghost», Fetta 2): le righe le
+         scrive textureGhost.js, nell'ispettore e nel popover ▦ ── */
+      .tg-thumb {
+        display: block;
+        flex: 0 0 22px;
+        width: 22px;
+        height: 22px;
+        border-radius: 4px;
+        overflow: hidden;
+        background: #2b2b2b;
+        border: 1px solid var(--col-border);
+      }
+      #ghostFamilyThumb { display: flex; flex: 0 0 auto; }
+      .tg-thumb canvas,
+      .tg-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+      .tg-fam {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+      .tg-fam-text {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-width: 0;
+        line-height: 1.3;
+      }
+      .tg-fam-name {
+        font-size: 12px;
+        color: var(--col-text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .tg-fam-sub { font-size: 11px; color: var(--col-text-muted); }
+      .inspector-btn.tg-secondary {
+        background: var(--col-bg-section);
+        border: 1px solid var(--col-border-strong);
+        color: var(--col-text);
+      }
+      .tg-pop {
+        border-top: 1px solid var(--col-border);
+        margin-top: 10px;
+        padding-top: 8px;
+      }
+      .tg-pop-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--col-accent-hot);
+        margin-bottom: 6px;
+      }
+      .tg-pop-list { max-height: 168px; overflow-y: auto; scrollbar-width: thin; }
+      .tg-pop-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 2px;
+        border-radius: 6px;
+      }
+      .tg-pop-row.on .tg-thumb { border-color: var(--col-accent); }
+      .tg-pop-row .tg-pop-toggle { flex: 0 0 auto; padding: 4px 8px; }
       #calibPanel #applyCalib {
         margin-top: 6px;
         width: 100%;
@@ -1620,6 +2008,57 @@
         opacity: 0.72;
         line-height: 1.35;
       }
+
+      /* ── ESPORTA PER LA STAMPA (printColor.js, cantiere «Tintometro», Fetta 2) ── */
+      #printExportModal .prOpt {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 10px 12px;
+        background: #2a2a2a;
+        border: 1px solid #3a3a3a;
+        border-radius: 8px;
+        cursor: pointer;
+        transition:
+          background 0.12s,
+          border-color 0.12s;
+      }
+      #printExportModal .prOpt:hover {
+        background: #333;
+        border-color: #4a90e2;
+      }
+      #printExportModal .prOpt input[type="radio"] {
+        margin-top: 3px;
+        cursor: pointer;
+      }
+      #printExportModal .prOptTitle {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 3px;
+      }
+      #printExportModal .prOptDesc {
+        font-size: 12px;
+        opacity: 0.72;
+        line-height: 1.35;
+      }
+      #printExportModal .prField {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 12px;
+        color: #cfd8ff;
+      }
+      #printExportModal select {
+        background: #1b1b1b;
+        color: #eee;
+        border: 1px solid #555;
+        border-radius: 6px;
+        padding: 6px 8px;
+        font-size: 13px;
+      }
+      #printExportModal select:disabled {
+        opacity: 0.45;
+      }
     </style>
 
     <!-- App loader (invariato) -->
@@ -1834,7 +2273,7 @@
       <div class="radial-btn" data-action="duplicate" data-i18n-tooltip="radial.tooltip.duplicate" data-tooltip="Duplica oggetto">⎘</div>
       <div class="radial-btn" data-action="scale" data-i18n-tooltip="radial.tooltip.scale" data-tooltip="Ridimensiona liberamente">⤢</div>
       <div class="radial-btn" data-action="copyColor" data-i18n-tooltip="radial.tooltip.copyColor" data-tooltip="Cambia colore attuale">🎨</div>
-      <div class="radial-btn" data-action="pasteColor" data-i18n-tooltip="radial.tooltip.pasteColor" data-tooltip="Incolla colore copiato">🖌️</div>
+      <div class="radial-btn" data-action="pasteColor" data-i18n-tooltip="radial.tooltip.pasteColor" data-tooltip="Texture: scegli dalla cartella">🖌️</div>
       <div class="radial-btn" data-action="changeShape" data-i18n-tooltip="radial.tooltip.changeShape" data-tooltip="Cambia forma (triangolo/trapezio/settore)">
         🔄
       </div>
@@ -1881,10 +2320,90 @@
     <div id="radialTooltip"></div>
 
     <!-- ════════════════════════════════════════════════════════
-         COLOR POPUP — INVARIATO
+         COLOR POPUP — la ruota dei colori (colorWheel.js, cantiere
+         «Tintometro», Fetta 4). Il popup lo apre e lo chiude renderer.js
+         come sempre; la ruota scrive #colorInput e manda input/change come
+         le pastiglie. #colorInput e #openColorBtn restano: sono il ripiego
+         se colorWheel.js manca, e #colorInput è il colore che leggono
+         renderer.js, la penna e le texture.
+         Fetta 4-bis (cantiere «Texture Ghost»): il contagocce (#cwPickBtn) e
+         la ruota aperta dalla Tinta della penna e dell'acquerello (titolo
+         #cwTitle, nota #cwStrokeNote): in quel giro la ruota scrive
+         #strokeColorPicker e non #colorInput.
          ════════════════════════════════════════════════════════ -->
     <div id="colorPopup" aria-hidden="true">
-      <div style="display: flex; gap: 8px; align-items: center">
+      <div id="colorWheelBox">
+        <div id="cwTitle" class="cw-title" hidden data-i18n="colorWheel.stroke.title">✏️ Colore della penna e dell'acquerello</div>
+        <canvas
+          id="colorWheelCanvas"
+          width="220"
+          height="220"
+          data-i18n-aria-label="colorWheel.aria"
+          aria-label="Ruota dei colori"
+          data-i18n-title="colorWheel.tooltip"
+          title="Anello = la tinta. Quadrato = quanto è piena (verso destra) e quanto è chiara (verso l'alto). A righe: dove la stampa non arriva."></canvas>
+        <div class="cw-swatches">
+          <div class="cw-sw" data-i18n-title="colorWheel.swatch.screen.tooltip" title="Il colore scelto, come lo vedi sullo schermo">
+            <span id="cwSwatchScreen" class="cw-chip"></span><span data-i18n="colorWheel.swatch.screen">a video</span>
+          </div>
+          <div class="cw-sw" data-i18n-title="colorWheel.swatch.print.tooltip" title="Come lo farà la stampa, col profilo e la resa della 🖨️ Prova di stampa">
+            <span id="cwSwatchPrint" class="cw-chip empty"></span><span data-i18n="colorWheel.swatch.print">in stampa</span>
+          </div>
+          <button
+            id="cwPickBtn"
+            type="button"
+            aria-pressed="false"
+            data-i18n-title="colorWheel.pick.tooltip"
+            data-i18n-aria-label="colorWheel.pick.aria"
+            aria-label="Contagocce"
+            title="Contagocce: prendi un colore dal foglio (tessere, sfondo, disegno). Clic sul foglio = quel punto, Shift+clic = la media dei pixel attorno. Esc o clic destro annullano.">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M13.9 2.1a1.9 1.9 0 0 0-2.7 0L9.6 3.7 8.9 3 7.8 4.1l.7.7-5.7 5.7a1.5 1.5 0 0 0-.4.8l-.3 1.8-1 1.4.9.9 1.4-1 1.8-.3a1.5 1.5 0 0 0 .8-.4l5.7-5.7.7.7 1.1-1.1-.7-.7 1.6-1.6a1.9 1.9 0 0 0 0-2.7zM4.3 12.6l-1.2.2.2-1.2 5.6-5.6 1 1z" /></svg>
+          </button>
+        </div>
+        <!-- sempre una riga (anche vuota): se comparisse e sparisse, trascinando il popup cambierebbe altezza -->
+        <div class="cw-gamut">
+          <span id="cwGamutWarn" class="cw-warn" hidden data-i18n="colorWheel.gamut.out">⚠ fuori stampa</span>
+          <span id="cwGamutIn" class="cw-in-gamut" hidden data-i18n="colorWheel.gamut.in">✓ la stampa ci arriva</span>
+          <span id="cwGamutDe" class="cw-de"></span>
+        </div>
+        <div class="cw-row" data-i18n-title="colorWheel.hex.tooltip" title="Il colore in esadecimale (#rrggbb). Invio per applicarlo.">
+          <label class="cw-lbl" for="cwHex">HEX</label>
+          <input id="cwHex" class="cw-in cw-hex" type="text" maxlength="7" spellcheck="false" autocomplete="off" />
+        </div>
+        <div class="cw-row" data-i18n-title="colorWheel.rgb.tooltip" title="Rosso, verde e blu dello schermo, da 0 a 255. Invio per applicarli.">
+          <label class="cw-lbl" for="cwR">R</label><input id="cwR" class="cw-in" type="text" inputmode="numeric" maxlength="3" autocomplete="off" />
+          <label class="cw-lbl" for="cwG">G</label><input id="cwG" class="cw-in" type="text" inputmode="numeric" maxlength="3" autocomplete="off" />
+          <label class="cw-lbl" for="cwB">B</label><input id="cwB" class="cw-in" type="text" inputmode="numeric" maxlength="3" autocomplete="off" />
+        </div>
+        <div
+          class="cw-row"
+          data-i18n-title="colorWheel.cmyk.tooltip"
+          title="Ciano, magenta, giallo e nero (%) nel profilo di stampa scelto. Scrivili e premi Invio: Mosaica trova il colore che a stampa fa quei valori.">
+          <label class="cw-lbl" for="cwC">C</label><input id="cwC" class="cw-in" type="text" inputmode="decimal" maxlength="5" autocomplete="off" />
+          <label class="cw-lbl" for="cwM">M</label><input id="cwM" class="cw-in" type="text" inputmode="decimal" maxlength="5" autocomplete="off" />
+          <label class="cw-lbl" for="cwY">Y</label><input id="cwY" class="cw-in" type="text" inputmode="decimal" maxlength="5" autocomplete="off" />
+          <label class="cw-lbl" for="cwK">K</label><input id="cwK" class="cw-in" type="text" inputmode="decimal" maxlength="5" autocomplete="off" />
+          <span class="cw-unit">%</span>
+        </div>
+        <div id="cwProfile" class="cw-note cw-profile"></div>
+        <div id="cwNote" class="cw-note" hidden></div>
+        <div id="cwStrokeNote" class="cw-note" hidden data-i18n="colorWheel.stroke.watercolorNote">💧 Acquerello: Tono, Opacità e Miscelazione cambiano il colore che si posa sul foglio.</div>
+        <div class="cw-row">
+          <button
+            id="cwToPrintBtn"
+            type="button"
+            disabled
+            data-i18n="colorWheel.toPrint.label"
+            data-i18n-title="colorWheel.toPrint.tooltip"
+            title="Si accende col ⚠: sostituisce il colore col più vicino che la stampa sa fare">
+            🖨️ Portalo in stampa
+          </button>
+        </div>
+        <label class="cw-check" data-i18n-title="colorWheel.map.tooltip" title="Nel quadrato, a righe, la zona che la stampa non sa fare con questo profilo">
+          <input type="checkbox" id="cwGamutMap" checked /> <span data-i18n="colorWheel.map.label">Segna dove la stampa non arriva</span>
+        </label>
+      </div>
+      <div class="cw-fallback">
         <button
           id="openColorBtn"
           class="smallbtn"
@@ -1976,6 +2495,22 @@
     <button type="button" class="mwp-pop-btn danger" id="textureAllRemoveBtn"
             data-i18n="texturePanel.all.remove">Togli da tutte</button>
   </div>
+
+  <!-- 👻 Texture fantasma (cantiere «Texture Ghost», Fetta 2): le righe le
+       scrive textureGhost.js quando il popover si apre -->
+  <div class="tg-pop" id="ghostPopSection">
+    <div class="tg-pop-title" data-i18n="texturePanel.ghost.title">👻 Texture fantasma</div>
+    <div class="tg-pop-list" id="ghostPopList"></div>
+    <p class="mwp-pop-hint" id="ghostPopEmpty" data-i18n="texturePanel.ghost.empty">
+      Nessuna famiglia. Seleziona una tessera con texture e premi «👻 Fantasma» nell'ispettore.
+    </p>
+    <div class="mwp-pop-actions" id="ghostPopAllActions" style="display: none">
+      <button type="button" class="mwp-pop-btn" id="ghostShowAllBtn"
+              data-i18n="texturePanel.ghost.showAll">Mostra tutte</button>
+      <button type="button" class="mwp-pop-btn" id="ghostHideAllBtn"
+              data-i18n="texturePanel.ghost.hideAll">Nascondi tutte</button>
+    </div>
+  </div>
 </div>
 
     <!-- ════════════════════════════════════════════════════════
@@ -2066,6 +2601,7 @@
           <button class="topbar-btn has-dropdown" id="exportMenuToggle" data-i18n="menu.export.title">Esporta</button>
           <div class="dropdown-content">
             <button id="exportPdfBtn" data-i18n="menu.export.pdf.label" data-i18n-title="menu.export.pdf.tooltip" title="Esporta su PDF A4">📄 Esporta PDF (A4)</button>
+            <button id="exportPrintBtn" data-i18n="menu.export.print.label" data-i18n-title="menu.export.print.tooltip" title="Il foglio intero coi colori della stampa: PDF/X-4, PDF/X-1a o PNG compatibile Adobe RGB, per la copisteria">🖨️ Esporta per la stampa (PDF/X)</button>
             <button id="exportPngBtn" data-i18n="menu.export.png.label" data-i18n-title="menu.export.png.tooltip" title="Esporta immagine PNG/SVG">🖼️ Esporta PNG / SVG</button>
             <button id="exportFreehandBtn" data-i18n="menu.export.freehand.label" data-i18n-title="menu.export.freehand.tooltip" title="Esporta solo linee a mano libera">
               ✏️ Esporta disegno mano libera
@@ -2099,6 +2635,40 @@
              ⚠ Icona ▣ e NON ⛶: quella è già del pulsante schermo
              intero, cinquanta righe più su. -->
         <button id="zoomFitSelection" class="topbar-icon-btn" data-i18n-title="topbar.zoom.fitSelection.tooltip" title="Inquadra la selezione">▣</button>
+      </div>
+
+      <!-- ── PROVA DI STAMPA (softProof.js, cantiere «Tintometro», Fetta 3) ──
+           Sta vicino allo zoom perché, come lo zoom, cambia come GUARDI il foglio
+           e non il foglio: il disegno, le tessere e i file restano quelli.
+           Il pannello lo apre e chiude softProof.js (non bootMosaicaUI): qui il
+           pulsante principale è un interruttore, non un menu. -->
+      <div class="topbar-section">
+        <div class="topbar-dropdown" id="softProofDropdown">
+          <button class="topbar-btn" id="softProofToggle" aria-pressed="false" data-i18n-title="softProof.toggle.tooltip" title="Prova di stampa: mostra a video come uscirà il foglio dal plotter">
+            🖨️ <span data-i18n="softProof.toggle.label">Prova di stampa</span>
+          </button>
+          <button class="topbar-icon-btn" id="softProofMenuBtn" data-i18n-title="softProof.menu.tooltip" title="Scelte della prova di stampa">▾</button>
+          <div class="dropdown-content" id="softProofPanel">
+            <h4 data-i18n="softProof.panel.title">Prova di stampa</h4>
+            <label class="sp-field"><span data-i18n="softProof.panel.profile">Stampa (profilo CMYK)</span>
+              <select id="softProofProfile"></select>
+            </label>
+            <label class="sp-field"><span data-i18n="softProof.panel.intent">Resa dei colori</span>
+              <select id="softProofIntent">
+                <option value="relativo" data-i18n="softProof.intent.relative">Relativo colorimetrico (consigliato)</option>
+                <option value="percettivo" data-i18n="softProof.intent.perceptual">Percettivo (foto e sfumature)</option>
+              </select>
+            </label>
+            <label class="dropdown-checkbox"><input type="checkbox" id="softProofPaper" /> <span data-i18n="softProof.panel.paper">Simula la carta e il nero dell'inchiostro</span></label>
+            <label class="dropdown-checkbox"><input type="checkbox" id="softProofGamut" /> <span data-i18n="softProof.panel.gamut">Segna i colori che la stampa non raggiunge</span></label>
+            <div class="sp-buttons">
+              <button id="softProofAddBtn" data-i18n="softProof.panel.add">➕ Aggiungi profilo…</button>
+              <button id="softProofRescanBtn" data-i18n="softProof.panel.rescan">🔄 Cerca di nuovo</button>
+            </div>
+            <div class="sp-note" data-i18n="softProof.panel.note">La prova è fedele solo se il monitor è calibrato. Il disegno e i file non cambiano: cambia solo quello che vedi.</div>
+            <div id="softProofStatus"></div>
+          </div>
+        </div>
       </div>
 
       <div class="topbar-spacer"></div>
@@ -2241,7 +2811,7 @@
       <button id="freehandBtn" class="tool-btn" data-i18n-title="leftToolbar.freehand.tooltip" title="Penna — disegno a mano libera">✏️</button>
       <button id="eraserBtn" class="tool-btn" data-i18n-title="leftToolbar.eraser.tooltip" title="Gomma — cancella tratti freehand">🧼</button>
       <button id="watercolorBtn" class="tool-btn" data-i18n-title="leftToolbar.watercolor.tooltip" title="Acquerello — pennellata con bleed">💧</button>
-      <button id="freehandClipBtn" class="tool-btn" data-i18n-title="leftToolbar.freehandClip.tooltip" title="Perimetro di contenimento del disegno (penna/acquerello): colora solo dentro l'area. Tap = vertice, trascina = mano libera, le maniglie si spostano, doppio-click su un lato = punto nuovo, CANC = togli, Invio = chiudi/fine, ESC = esci. Click destro = cancella. L = lente mirino.">⬡</button>
+      <button id="freehandClipBtn" class="tool-btn" data-i18n-title="leftToolbar.freehandClip.tooltip" title="Perimetro di contenimento del disegno (penna/acquerello): colora solo dentro l'area. Tap = vertice, Shift+tap = vertice morbido, trascina = mano libera (a lente spenta), con la lente tieni premuto = mira lenta, le maniglie si spostano, doppio-click su un lato = punto nuovo, CANC = togli, Invio = chiudi/fine, ESC = esci. Frecce = sposta il punto selezionato (0,1 mm; Shift 1 mm; Ctrl 0,01 mm). Curve: M o doppio-click su una maniglia = morbido/spigolo (quadrata = spigolo, tonda = morbido); trascina il rombo a metà lato = arco; M o doppio-click sul rombo = via l'arco. Click destro = cancella. L = lente mirino.">⬡</button>
       <button id="stampBtn" class="tool-btn" aria-pressed="false" data-i18n-title="leftToolbar.stamp.tooltip" title="Pennello Timbro — copia un pezzo dello sfondo (immagine o carta) e lo ridipinge dove passi il pennello. Ctrl+Click sceglie il pezzo da copiare. Sta sopra lo sfondo e sotto penna e acquerello.">🖼️</button>
       <div class="tool-divider"></div>
       <button id="selectFreehandBtn" class="tool-btn" data-i18n-title="leftToolbar.selectFreehand.tooltip" title="Lista linee disegnate (selettore)">📋</button>
@@ -2264,7 +2834,7 @@
           <p class="inspector-section-title" data-i18n="inspector.colorBlock.title">Colore corrente</p>
           <div class="inspector-row">
             <span class="lbl" data-i18n="inspector.colorBlock.tinta">Tinta</span>
-            <input type="color" id="strokeColorPicker" value="#1a1a1a" data-i18n-title="inspector.colorBlock.tinta.tooltip" title="Colore linea / acquerello" />
+            <input type="color" id="strokeColorPicker" value="#1a1a1a" data-i18n-title="inspector.colorBlock.tinta.tooltip" title="Colore della penna e dell'acquerello: clicca per la ruota dei colori (CMYK e contagocce)" />
             <span style="flex: 1"></span>
           </div>
           <div class="inspector-divider"></div>
@@ -2326,6 +2896,35 @@
               <span data-i18n="inspector.texture.colorize.hint">dalla ruota colore</span>
             </label>
           </div>
+          <div class="inspector-divider"></div>
+        </div>
+
+        <!-- ── 👻 TEXTURE FANTASMA (cantiere «Texture Ghost», Fetta 2): lo mostra
+             e lo riempie textureGhost.js ── -->
+        <div id="inspectorGhostBlock" style="display: none">
+          <p class="inspector-section-title" data-i18n="inspector.ghost.title">👻 Texture fantasma</p>
+          <div class="tg-fam" id="ghostFamilyInfo" style="display: none">
+            <span id="ghostFamilyThumb"></span>
+            <span class="tg-fam-text">
+              <span class="tg-fam-name" id="ghostFamilyName"></span>
+              <span class="tg-fam-sub" id="ghostFamilySub"></span>
+            </span>
+          </div>
+          <button
+            type="button"
+            id="ghostToggleBtn"
+            class="inspector-btn"
+            style="display: none"
+            data-i18n-title="inspector.ghost.toggle.tooltip"
+            title="Mette o toglie la texture su tutte le tessere della famiglia, ognuna col suo colore. Un passo di Ctrl+Z.">👻 Mostra la famiglia</button>
+          <button
+            type="button"
+            id="ghostMakeBtn"
+            class="inspector-btn tg-secondary"
+            style="display: none"
+            data-i18n="inspector.ghost.make"
+            data-i18n-title="inspector.ghost.make.tooltip"
+            title="La tessera torna al colore che aveva prima della texture e diventa la capostipite di una famiglia: le sue copie si portano dietro la texture senza mostrarla. Un passo di Ctrl+Z.">👻 Fantasma</button>
           <div class="inspector-divider"></div>
         </div>
 
@@ -3360,6 +3959,125 @@
     </div>
 
     <!-- ════════════════════════════════════════════════════════
+         MODALE: Esporta per la stampa (printColor.js, cantiere «Tintometro»,
+         Fetta 2). tabindex="-1": il modale prende il fuoco all'apertura, così
+         Backspace/Canc non arrivano alle tessere selezionate dietro (trappola 193).
+         ════════════════════════════════════════════════════════ -->
+    <div
+      id="printExportModal"
+      tabindex="-1"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.92);
+        z-index: 20002;
+        align-items: center;
+        justify-content: center;
+        outline: none;
+      ">
+      <div
+        style="
+          background: #1f1f1f;
+          padding: 22px 24px;
+          border-radius: 12px;
+          width: 560px;
+          max-width: 92vw;
+          max-height: 90vh;
+          overflow: auto;
+          color: #eee;
+          box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
+        ">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px">
+          <h3 style="margin: 0; font-size: 17px" data-i18n="printExport.modal.title">🖨️ Esporta per la stampa</h3>
+          <button
+            id="printExportCloseBtn"
+            data-i18n-title="printExport.modal.close.tooltip"
+            title="Chiudi"
+            style="background: none; border: none; color: #aaa; font-size: 26px; cursor: pointer; line-height: 1">
+            ×
+          </button>
+        </div>
+        <div style="font-size: 12px; opacity: 0.8; margin-bottom: 6px" data-i18n="printExport.modal.subtitle">
+          Il foglio intero, come il PNG completo, a 300 DPI e coi colori della stampa: il file da portare in copisteria.
+        </div>
+        <div id="printExportSheet" style="font-size: 12px; color: #cfe; margin-bottom: 12px"></div>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px">
+          <label class="prOpt">
+            <input type="radio" name="printFormat" value="x4" checked />
+            <div>
+              <div class="prOptTitle" data-i18n="printExport.format.x4.title">PDF/X-4 — consigliato per la copisteria</div>
+              <div class="prOptDesc" data-i18n="printExport.format.x4.desc">
+                I colori restano RGB (compatibile Adobe RGB) col loro profilo; dentro c'è il profilo di stampa scelto: la
+                copisteria converte in CMYK come fa sempre.
+              </div>
+            </div>
+          </label>
+          <label class="prOpt">
+            <input type="radio" name="printFormat" value="x1a" />
+            <div>
+              <div class="prOptTitle" data-i18n="printExport.format.x1a.title">PDF/X-1a — già in CMYK</div>
+              <div class="prOptDesc" data-i18n="printExport.format.x1a.desc">
+                Mosaica converte in CMYK col profilo e la resa scelti: il file è pronto per la macchina.
+              </div>
+            </div>
+          </label>
+          <label class="prOpt">
+            <input type="radio" name="printFormat" value="png" />
+            <div>
+              <div class="prOptTitle" data-i18n="printExport.format.png.title">PNG compatibile Adobe RGB (1998)</div>
+              <div class="prOptDesc" data-i18n="printExport.format.png.desc">
+                Un'immagine col profilo dentro, per chi chiede un file immagine invece del PDF.
+              </div>
+            </div>
+          </label>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px">
+          <label class="prField"
+            ><span data-i18n="printExport.profile">Stampa (profilo CMYK)</span>
+            <select id="printExportProfile"></select>
+          </label>
+          <label class="prField"
+            ><span data-i18n="printExport.intent">Resa dei colori</span>
+            <select id="printExportIntent">
+              <option value="relativo" data-i18n="softProof.intent.relative">Relativo colorimetrico (consigliato)</option>
+              <option value="percettivo" data-i18n="softProof.intent.perceptual">Percettivo (foto e sfumature)</option>
+            </select>
+          </label>
+        </div>
+        <div id="printExportNote" style="font-size: 12px; opacity: 0.8; line-height: 1.4; margin-bottom: 6px"></div>
+        <div
+          style="font-size: 12px; margin-bottom: 4px; padding: 8px 10px; background: rgba(255, 176, 32, 0.1); border-left: 3px solid #ffb020; border-radius: 4px"
+          data-i18n="printExport.note.shared">
+          Profilo e resa sono gli stessi della 🖨️ Prova di stampa: quello che vedi col velo acceso è quello che esce.
+        </div>
+        <div id="printExportStatus" style="font-size: 12px; min-height: 18px; margin-top: 8px"></div>
+        <div style="margin-top: 14px; display: flex; gap: 12px; justify-content: flex-end">
+          <button
+            id="printExportCancelBtn"
+            style="padding: 9px 18px; background: #555; border: 0; border-radius: 6px; color: #fff; cursor: pointer"
+            data-i18n="printExport.cancel">
+            Annulla
+          </button>
+          <button
+            id="printExportConfirmBtn"
+            style="
+              padding: 9px 22px;
+              background: #2e8b57;
+              border: 0;
+              border-radius: 6px;
+              color: #fff;
+              cursor: pointer;
+              font-weight: 600;
+            "
+            data-i18n="printExport.confirm">
+            ✅ Esporta
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
          MODALE: Tavola delle tessere (cantiere «La Tavola delle
          Tessere», Fetta 1). Lo accende tileSheet.js. tabindex="-1":
          il modale prende il fuoco all'apertura, così Backspace/Canc
@@ -4006,10 +4724,11 @@
     <!-- ════════════════════════════════════════════════
           SCRIPT: !!! RISPETTARE ORDINE DEI LINK !!! 
           Versione di fabric stabile per Mosiaca V 5.3.0 
-          (<script src="libs/index.min.js"></script>)
+          Versione in uso 5.5.2 
+          (<script src="libs/fabricV5.5.2.min.js"></script>)
           dalla V6.0.0 in poi non sono più compatibili 
     ══════════════════════════════════════════════════════ -->
-    <script src="libs/index.min.js"></script>
+    <script src="libs/fabricV5.5.2.min.js"></script>
     <script src="i18n.js"></script>
     <script src="proceduralTextures.js"></script>
     <script src="renderer.js"></script>
@@ -4036,6 +4755,10 @@
     <script src="customShapeBuilder.js"></script>
     <script src="csb-image.js"></script>
     <script src="selectionTools.js"></script>
+    <script src="textureGhost.js"></script>
+    <script src="softProof.js"></script>
+    <script src="printColor.js"></script>
+    <script src="colorWheel.js"></script>
 
     <!-- ════════════════════════════════════════════════════════
          BOOT-UI (NUOVO): apre/chiude dropdown, sincronizza Inspector

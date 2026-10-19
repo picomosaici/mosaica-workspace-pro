@@ -1,0 +1,12 @@
+Little CMS in WebAssembly per il motore colore di Mosaica (colorEngine.js).
+
+lcms.mjs, lcms.wasm  = pacchetto npm "lcms-wasm" 1.0.5 (dist/lcms.js rinominato in .mjs, senza altre modifiche)
+                       https://github.com/mattdesl/lcms-wasm  - licenza MIT (LICENSE-lcms-wasm.txt)
+                       contiene Little CMS 2 di Marti Maria Saguer - licenza MIT (LICENSE-LittleCMS.txt)
+                       https://github.com/mm2/Little-CMS
+
+Perche' copiato qui e non installato con npm: il pacchetto npm si porta dietro
+"tape" (un programma di prove) con circa 420 pacchetti; a Mosaica servono solo
+questi due file. Il nome .mjs serve perche' Node lo carichi come modulo ES.
+⚠ Trappola 281: l'aiutante cmsDoTransform di questo file sbaglia la lunghezza
+dell'uscita; colorEngine.js non lo usa.

@@ -799,7 +799,16 @@ ipcMain.handle("export-full-png", async (_, dataURL) => {
   const base64Data = dataURL.split(",")[1];
   const buffer = Buffer.from(base64Data, "base64");
 
-  fs.writeFileSync(filePath, buffer);
+  // Cantiere «Tintometro», Fetta 2 (B2): l'etichetta sRGB. I pixel restano gli stessi; chi apre il PNG
+  // sa cosa vogliono dire i numeri e non lo prende per Adobe RGB. Se pdfx.js manca, il PNG esce come prima.
+  let out = buffer;
+  try {
+    out = require("./pdfx").addSrgbChunk(buffer);
+  } catch (_) {
+    out = buffer;
+  }
+
+  fs.writeFileSync(filePath, out);
   return filePath;
 });
 
@@ -977,6 +986,57 @@ ipcMain.handle("export-freehand", async (_, payload) => {
   }
   return true;
 });
+
+/* ===============================
+   🎨 MOTORE COLORE (cantiere «Tintometro», Fetta 1)
+   ------------------------------------------------------------
+   Little CMS (app/libs/lcms) e i profili di stampa: quelli liberi
+   di Mosaica (app/profili-icc → risorse dell'installer), quelli già
+   installati sul PC (cartella colori di Windows, profili Adobe) e
+   quelli aggiunti a mano (userData/profili-icc). Canali «color:*»,
+   API «colorAPI» nel preload. Tutto in colorEngine.js.
+   Se il motore non parte, Mosaica funziona come prima: si perdono
+   solo soft-proof ed export di stampa.
+   ⚠ File del processo principale: dopo averlo installato bisogna
+   RIAVVIARE Mosaica, non basta ricaricare la finestra.
+================================ */
+let colorEngine = null;
+try {
+  colorEngine = require("./colorEngine").registerColorIpc(ipcMain, {
+    app,
+    dialog,
+    getMainWindow: () => mainWindow,
+    getUserDataSubdir,
+    appendLog
+  });
+} catch (e) {
+  console.error("[colore] motore colore non registrato:", e);
+  appendLog(`${new Date().toISOString()}  motore colore non registrato: ${e && e.message}`);
+}
+
+/* ===============================
+   🖨️ ESPORTA PER LA STAMPA (cantiere «Tintometro», Fetta 2)
+   ------------------------------------------------------------
+   PDF/X-4, PDF/X-1a e PNG compatibile Adobe RGB del foglio intero
+   (canale «color:exportPrint», tutto in pdfx.js). Serve il motore
+   colore: senza, il canale non c'è e la finestra dice di riavviare.
+   ⚠ File del processo principale: dopo averlo installato bisogna
+   RIAVVIARE Mosaica, non basta ricaricare la finestra.
+================================ */
+if (colorEngine) {
+  try {
+    require("./pdfx").registerPrintIpc(ipcMain, {
+      engine: colorEngine,
+      app,
+      dialog,
+      getMainWindow: () => mainWindow,
+      appendLog
+    });
+  } catch (e) {
+    console.error("[stampa] export per la stampa non registrato:", e);
+    appendLog(`${new Date().toISOString()}  export per la stampa non registrato: ${e && e.message}`);
+  }
+}
 
 /* ===============================
    🔄 RESTART APP (CTRL + R)

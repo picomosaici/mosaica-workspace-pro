@@ -1,0 +1,32 @@
+PROFILI COLORE DI MOSAICA WORKSPACE PRO / MOSAICA COLOUR PROFILES
+=================================================================
+
+Questa cartella contiene i profili ICC che Mosaica porta con se'. Sono tutti a
+licenza libera e si possono ridistribuire.
+
+ISOcoated_v2_bas.ICC      "ISO Coated v2 (basICColor)"      - FOGRA39L, carta patinata, inchiostro 330%
+ISOcoated_v2_300_bas.ICC  "ISO Coated v2 300% (basICColor)" - FOGRA39L, carta patinata, inchiostro 300%
+    Copyright (c) 2007-2010 basICColor GmbH - licenza zlib/libpng
+    (LICENSE-ZLIB-basICColor.txt). Origine: pacchetto OpenICC
+    icc-profiles-basiccolor-printing2009 (www.colormanagement.org).
+    Licenza: http://lists.freedesktop.org/archives/openicc/2010q3/002218.html
+    I profili non sono stati modificati.
+
+AdobeCompat-v2.icc        profilo compatibile con Adobe RGB (1998)
+    dalla raccolta Compact ICC Profiles (saucecontrol) - dominio pubblico (CC0 1.0,
+    LICENSE-CC0-AdobeCompat.txt).
+    https://github.com/saucecontrol/Compact-ICC-Profiles
+    "Adobe RGB (1998)" e' un marchio di Adobe: il profilo e' COMPATIBILE con
+    quello spazio colore, non e' il profilo di Adobe.
+
+I profili originali ECI (ISO Coated v2 (ECI), ISO Coated v2 300% (ECI)) e Adobe
+(Coated FOGRA39) NON sono inclusi: le loro licenze non ne permettono la
+ridistribuzione. Se sono installati sul PC (cartella colori di Windows o
+profili Adobe) Mosaica li trova da sola; altrimenti si aggiungono con
+"Aggiungi profilo...".
+
+-----------------------------------------------------------------
+The ICC profiles in this folder are freely redistributable: the two basICColor
+FOGRA39 profiles (zlib licence) and an Adobe RGB (1998)-compatible profile
+(CC0 public domain, Compact ICC Profiles by saucecontrol). ECI and Adobe original profiles are not included; Mosaica
+finds them if they are installed on the computer.

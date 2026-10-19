@@ -118,6 +118,27 @@ contextBridge.exposeInMainWorld("paperTextureAPI", {
 });
 
 /* ===============================
+   🎨 COLORE DI STAMPA (cantiere «Tintometro», Fetta 1)
+   ------------------------------------------------------------
+   Profili di stampa, preferenze (profilo, intento, simula carta),
+   tabella del soft-proof, analisi dei colori della ruota.
+   Il renderer chiede per «id» di profilo: i percorsi restano nel
+   processo principale (colorEngine.js).
+================================ */
+contextBridge.exposeInMainWorld("colorAPI", {
+   listProfiles: (rescan) => ipcRenderer.invoke("color:list", !!rescan),
+   getSettings: () => ipcRenderer.invoke("color:getSettings"),
+   setSettings: (s) => ipcRenderer.invoke("color:setSettings", s),
+   proofLut: (args) => ipcRenderer.invoke("color:proofLut", args || {}),
+   analyze: (colors, args) => ipcRenderer.invoke("color:analyze", Object.assign({}, args || {}, { colors })),
+   cmykToRgb: (cmyk, args) => ipcRenderer.invoke("color:cmykToRgb", Object.assign({}, args || {}, { cmyk })),
+   addProfile: () => ipcRenderer.invoke("color:addProfile"),
+   removeProfile: (id) => ipcRenderer.invoke("color:removeProfile", id),
+   // Fetta 2: esporta per la stampa (pdfx.js). I pixel del foglio arrivano come Uint8Array RGBA.
+   exportPrint: (args) => ipcRenderer.invoke("color:exportPrint", args || {})
+});
+
+/* ===============================
    📁 PROJECTS + AUTO-OPEN (Feature B)
 ================================ */
 contextBridge.exposeInMainWorld("projectAPI", {

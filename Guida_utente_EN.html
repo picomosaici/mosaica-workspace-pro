@@ -571,6 +571,7 @@
   }
   .tips-box li { margin-bottom: 6px; }
   .tips-box li:last-child { margin-bottom: 0; }
+  .tips-box li strong { display: inline; margin: 0; font-size: inherit; color: inherit; }
 
 </style>
 <base target="_blank">
@@ -582,7 +583,7 @@
   <div class="header-inner">
     <div class="logo-badge">
       <div class="logo-dot">🎨</div>
-      User Guide · V 09.2026
+      User Guide · V 10.2026
     </div>
     <h1>Mosaica<br><em>Workspace Pro</em></h1>
     <p class="header-sub">Complete guide to using the application for to-scale mosaic design, freehand drawing, digital watercolor, and laser CAM export.</p>
@@ -598,6 +599,8 @@
     <a href="#rotazione">Canvas Rotation</a>
     <a href="#forme">Shapes</a>
     <a href="#radiale">Radial Menu</a>
+    <a href="#texture">Ghost Textures</a>
+    <a href="#colore">Color &amp; Print</a>
     <a href="#lazo">Lasso</a>
     <a href="#disegno">Freehand Drawing</a>
     <a href="#acquerello">Watercolor</a>
@@ -628,7 +631,7 @@
 
   <div class="ui-diagram">
     <div class="ui-diagram-inner">
-      <div class="uib topbar">Top Bar — File · Export · Undo/Redo · Zoom · Calibration · Full Screen · Guide</div>
+      <div class="uib topbar">Top Bar — File · Export · Undo/Redo · Zoom · Print preview · Calibration · Full Screen · Guide</div>
       <div class="uib bgbar">BG Panel — Background loading and management (Drop · Contain · Cover · Rotate · Remove)</div>
       <div class="uib texturep">Texture Panel</div>
       <div class="uib lefttool">Left Toolbar</div>
@@ -642,7 +645,7 @@
   <div class="card-grid col2">
   <div class="card-mini">
       <h4>① Top Bar (at the top)</h4>
-      <p>Logo, <strong>File</strong> dropdown (Open/Save/New Project + auto-open), <strong>Export</strong> dropdown (PDF, PNG/SVG, freehand), <strong>Undo/Redo</strong> buttons, <strong>Zoom</strong> controls (+/−/reset with live percentage and <strong>▣ fit selection</strong>), <strong>Calibration</strong> dropdown, <strong>full screen</strong> toggle (⛶/🗗), <strong>📖 Guide</strong> button, <strong>🖊️ Wacom</strong> button (tablet settings with connection status indicator), and <strong>🖱️⌨️ Input</strong> button (custom mouse and keyboard mapping).</p>
+      <p>Logo, <strong>File</strong> dropdown (Open/Save/New Project + auto-open), <strong>Export</strong> dropdown (A4 PDF, for print, PNG/SVG, freehand, Tile sheet), <strong>Undo/Redo</strong> buttons, <strong>Zoom</strong> controls (+/−/reset with live percentage and <strong>▣ fit selection</strong>), the <strong>🖨️ Print preview</strong> switch (with its ▾ options), <strong>Calibration</strong> dropdown, <strong>full screen</strong> toggle (⛶/🗗), <strong>📖 Guide</strong> button, <strong>🖊️ Wacom</strong> button (tablet settings with connection status indicator), and <strong>🖱️⌨️ Input</strong> button (custom mouse and keyboard mapping).</p>
     </div>
     <div class="card-mini">
       <h4>② BG Panel (right below)</h4>
@@ -650,7 +653,7 @@
     </div>
     <div class="card-mini">
       <h4>③ Texture Panel (far left)</h4>
-      <p>Narrow vertical column with the <strong>available texture grid</strong>. Click a thumbnail to apply the texture to the selected object.</p>
+      <p>Narrow vertical column with the <strong>available texture grid</strong>. Click a thumbnail to apply the texture to the selected object. The <strong>▦</strong> at the top puts it on every tile and holds the <strong>ghost textures 👻</strong> (see <a href="#texture" style="color:var(--blue);">Textures and ghost textures</a>).</p>
     </div>
     <div class="card-mini">
       <h4>④ Left Toolbar (after textures)</h4>
@@ -677,12 +680,15 @@
     <li><strong>🔄 Check for updates</strong> — checks the official GitHub repository for a newer version and, with your confirmation, downloads and installs it (see the <a href="#sicurezza" style="color:var(--blue);">Security &amp; Updates</a> section).</li>
   </ul>
   <h3>Top Bar — Export Dropdown</h3>
-  <p>Clicking <strong>Export</strong> in the top bar opens a menu with three items, each opening a detailed choice modal:</p>
+  <p>Clicking <strong>Export</strong> in the top bar opens a menu with five items, each opening a detailed choice modal:</p>
   <ul>
     <li><strong>📄 Export PDF (A4)</strong> — 5 export modes, see "Export" section.</li>
+    <li><strong>🖨️ Export for print (PDF/X)</strong> — the whole sheet at 300 DPI with print colors, for the print shop: PDF/X-4, PDF/X-1a or Adobe RGB compatible PNG (see <a href="#colore" style="color:var(--blue);">Color and print</a>).</li>
     <li><strong>🖼️ Export PNG / SVG</strong> — full PNG or vector SVG (filled or outlines only).</li>
     <li><strong>✏️ Export freehand drawing</strong> — exports only freehand and watercolor strokes as SVG or PNG.</li>
+    <li><strong>🧩 Tile sheet (laser)</strong> — the files to cut the tiles with the laser (see <a href="#tavola" style="color:var(--blue);">Tile Sheet</a>).</li>
   </ul>
+  <p>Next to the zoom there is the <strong>🖨️ Print preview</strong> switch: it shows on screen how the sheet will come out of the plotter, without changing anything of your work (see <a href="#colore" style="color:var(--blue);">Color and print</a>).</p>
 
   <h3>Status Bar — Reading the Numbers</h3>
   <p>The status bar at the bottom shows in real time:</p>
@@ -1067,14 +1073,14 @@
       <div class="radial-icon">🎨</div>
       <div>
         <div class="radial-label">Change Color</div>
-        <div class="radial-desc">Opens the color picker. Choose a custom color or use the quick keys below the picker.</div>
+        <div class="radial-desc">Opens the <strong>color wheel</strong>: ring and square, HEX, RGB and print <strong>CMYK</strong>, the <strong>eyedropper</strong> and the quick colors. See <a href="#colore" style="color:var(--blue);">Color and print</a>.</div>
       </div>
     </div>
     <div class="radial-item">
       <div class="radial-icon">🖌️</div>
       <div>
-        <div class="radial-label">Paste Color</div>
-        <div class="radial-desc">Applies the last copied color to the object. Handy for propagating the same color to multiple shapes.</div>
+        <div class="radial-label">Texture from folder</div>
+        <div class="radial-desc">Opens the window to pick an image from the disk (PNG, JPG, GIF, WebP, SVG) and puts it as a texture on the selection. Mosaica copies the image into its textures folder.</div>
       </div>
     </div>
     <div class="radial-item">
@@ -1187,15 +1193,15 @@
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>The drawing under the tiles never mirrors.</strong> <strong>Pen</strong> and <strong>watercolor</strong> strokes stay where they are even when they sit inside the selection — and an absent-minded <kbd>Ctrl</kbd>+<kbd>A</kbd> is enough to pull them in. This is on purpose: the watercolor is the guide the tiles are laid onto, and with your hands you turn the tile, not the sheet. Mosaica tells you with a notice and counts how many strokes it left out.</div></div>
 
   <h3>Applying Color</h3>
-  <p>After clicking 🎨 a panel appears with a color picker and eight quick colors. The color is applied immediately to the object. Click outside the panel to close it.</p>
+  <p>After clicking 🎨 the <strong>color wheel</strong> opens: while you drag in the ring or the square the tile changes live, and on release it is a single <kbd>Ctrl</kbd>+<kbd>Z</kbd> step. The quick colors are below. Click outside the panel (or <kbd>Esc</kbd>) to close it. CMYK, the eyedropper and the "in print" color are explained in <a href="#colore" style="color:var(--blue);">Color and print</a>.</p>
 
   <h3>Applying a Texture</h3>
-  <p>With an object selected, click directly on one of the previews in the <strong>Texture Panel</strong> on the far left. The texture is repeated (repeat) to fill the shape.</p>
+  <p>With an object selected, click directly on one of the previews in the <strong>Texture Panel</strong> on the far left, or use <strong>🖌️ Texture from folder</strong>. The texture is repeated to fill the shape; grain and color are set in the Inspector. Everything about textures, and about <strong>ghost textures 👻</strong> for large mosaics, is in <a href="#texture" style="color:var(--blue);">Textures and ghost textures</a>.</p>
 
   <h3>The radial menu with multiple shapes selected</h3>
   <p>The radial menu also works in <strong>multi-selection</strong>: when several shapes are active at once, the actions apply to <strong>all of them together</strong>. There are four ways to select multiple shapes — dragged box, <kbd>Ctrl</kbd>+click one by one, Lasso, or Brush selection (see the next section).</p>
   <ul>
-    <li><strong>Color, Paste color and Texture</strong> → apply to <strong>all</strong> selected shapes in one go: very handy for coloring whole groups of tiles.</li>
+    <li><strong>Color and Texture</strong> (from the column or from 🖌️) → apply to <strong>all</strong> selected shapes in one go: very handy for coloring whole groups of tiles.</li>
     <li><strong>🔒 Lock / Unlock</strong> → acts on the whole selection. If even <em>one</em> shape is locked, the button shows <strong>🔓 Unlock</strong> (orange) to free them all.</li>
     <li><strong>🗑️ Delete</strong> → removes all selected shapes (reversible with <kbd>Ctrl</kbd>+<kbd>Z</kbd>).</li>
     <li><strong>⎇ Group</strong> → <strong>enables</strong> with two or more shapes selected and merges them into a single group. <strong>⎆ Ungroup</strong> enables instead when you have a group selected, and returns it to single shapes.</li>
@@ -1217,9 +1223,154 @@
   </ul></div></div>
 </section>
 
+<!-- ── TEXTURES AND GHOST TEXTURES ── -->
+<section id="texture">
+  <div class="section-label">06</div>
+  <h2>Textures and ghost textures 👻</h2>
+  <p>A <strong>texture</strong> is an image that fills the tile by repeating itself: granite, marble, EVA foam. The <strong>Texture column</strong> on the left holds the ones generated by code (granite, marble, concrete, murano, EVA, veins) and the images in the textures folder. Further down you will also find the <strong>ghost textures</strong>: the texture that tiles carry with them without showing it, made for large mosaics.</p>
+
+  <h3>Putting on a texture</h3>
+  <ul>
+    <li>Select one or more tiles and click a <strong>thumbnail</strong> in the Texture column: the texture fills the shape.</li>
+    <li>Or, from the radial menu, <strong>🖌️ Texture from folder</strong>: pick an image from the disk (PNG, JPG, GIF, WebP, SVG). Mosaica copies it into its textures folder.</li>
+    <li>With a textured tile selected, the Inspector shows the <strong>Texture</strong> block:
+      <ul>
+        <li><strong>Grain</strong> (4–60 mm) — how large the texture pattern is on the tile: small = fine grain, large = coarse grain.</li>
+        <li><strong>Tint — from color wheel</strong> — the texture keeps its grain and pores and takes the color you pick with 🎨. Off, the texture has the image's own colors.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3>▦ All tiles</h3>
+  <p>The <strong>▦</strong> button at the top of the Texture column opens a panel that puts a texture on <strong>all</strong> the tiles of the sheet in one go, with the same grain and the same "tint from color wheel"; <strong>Remove from all</strong> takes it off. It does not touch pen, watercolor, background and Palladiana. At the bottom of the panel there is the <strong>👻 Ghost texture</strong> section (see below).</p>
+
+  <h3>Copies of a textured tile</h3>
+  <ul>
+    <li><strong>Untinted</strong> texture (you see it with the image's colors): the copy — <kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>Ctrl</kbd>+<kbd>V</kbd>, ⎘ Duplicate, Duplicate selection — has <strong>the same texture and the same grain</strong>. It used to come out grey.</li>
+    <li>Texture <strong>tinted from the wheel</strong>: the copy takes the <strong>color</strong>, without the texture, as always. It is the fast way to work: you put the texture back on all at once at the end, with the ghost textures.</li>
+    <li><strong>🔄 Change shape</strong> and <strong>◔ Divide circle</strong> keep the texture of the starting tile, even after a <kbd>Ctrl</kbd>+<kbd>Z</kbd>, and each sector has its own grain.</li>
+    <li>If you recolor with the wheel a tile with an <strong>untinted</strong> texture, the tile becomes that plain color and the texture <strong>does not come back by itself</strong>: neither with a later <kbd>Ctrl</kbd>+<kbd>Z</kbd> nor when you reopen the project. A <kbd>Ctrl</kbd>+<kbd>Z</kbd> right after the recoloring brings it back, as it should.</li>
+  </ul>
+
+  <h3>Ghost textures 👻</h3>
+  <p>Putting the texture on tile by tile at the end of the work is fine for a mosaic of a few hundred tiles; with <strong>1,600 small tiles</strong> it takes hours. With the ghost texture you put the texture on <strong>only once</strong>, on one tile, and the tile <strong>carries it along without showing it</strong>, like a pencil mark on its back: you work with the colors, and whenever you like the texture appears on <strong>all the tiles born from it</strong>, each with its own color.</p>
+  <ol>
+    <li><strong>The founder.</strong> Make a new tile (double-click or ➕), of any shape. Put the texture on it, set the <strong>Grain</strong> and, if you want it to take the colors of the tiles, turn on <strong>Tint — from color wheel</strong>.</li>
+    <li><strong>👻 Ghost.</strong> In the Inspector, <strong>👻 Ghost texture</strong> block, press <strong>👻 Ghost</strong>: the texture hides and the tile goes back to the color it had before the texture. From now on it is the <strong>founder</strong> of a <strong>family</strong>.</li>
+    <li><strong>Work as usual.</strong> Copies (<kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>Ctrl</kbd>+<kbd>V</kbd>, ⎘, Duplicate selection, copies of copies too), tiles changed with 🔄 and ◔ sectors <strong>join the family</strong>. You change the colors as always, with the wheel or the quick colors.</li>
+    <li><strong>👻 Show the family.</strong> From any tile of the family (Inspector) or from the <strong>▦</strong> panel: the texture appears on every tile of the family, <strong>each tinted with its own color</strong> (if the founder had "Tint"; otherwise the texture with the image's colors). <strong>👻 Hide the family</strong> brings them back to their colors.</li>
+  </ol>
+  <ul>
+    <li>Every <strong>Ghost</strong>, <strong>Show</strong> and <strong>Hide</strong> is <strong>one</strong> <kbd>Ctrl</kbd>+<kbd>Z</kbd> step.</li>
+    <li>In the Inspector you recognise the family by its thumbnail, its name (for example "Granite · 14.0 mm · 🎨", where 🎨 means tinted) and the line "tiles: N · hidden" or "· shown". With tiles of several families selected the buttons become <strong>Show / Hide the families</strong>.</li>
+    <li>In the <strong>▦</strong> panel: one row per family, with the thumbnail, the number of tiles and <strong>Show</strong> / <strong>Hide</strong>; below, <strong>Show all</strong> and <strong>Hide all</strong>.</li>
+    <li>A tile of the family with a texture of <strong>its own</strong>, put on by hand, <strong>stays as it is</strong> when you show the family: the message tells you how many.</li>
+    <li>With the family <strong>shown</strong>, new copies join and show the texture too. A tile made with double-click or ➕, or coming from the Palladiana, joins no family. A tile belongs to <strong>one family only</strong>: 👻 Ghost on a tile that already has a family makes a new one.</li>
+    <li>If you delete the founder the family lives on: every tile knows everything about its texture.</li>
+    <li>Once shown, the ghost texture is an <strong>ordinary texture</strong>: saving, export (PDF, PNG, for print), the perimeter lens and the Tile Sheet treat it as always.</li>
+    <li>With a large family, the <strong>first</strong> time Mosaica has to prepare the texture in every color: if it takes more than half a second the message <strong>"⏳ Ghost texture: preparing N colours for M tiles…"</strong> appears. After that, Hide and Show are almost instant, and a <kbd>Ctrl</kbd>+<kbd>Z</kbd> with the family shown is as quick as with the family hidden.</li>
+  </ul>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>A project with ghost textures opened with an <strong>older version</strong> of Mosaica looks right: with the colors if the family is hidden, with the texture if it is shown. But if that version <strong>saves it again</strong>, the families are lost and the tiles stay as they looked.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li>Make the founder <strong>at the start</strong>, before multiplying the tiles: every copy born from it joins the family by itself.</li>
+    <li>Work with the family <strong>hidden</strong>: you see clean colors, and you look at the texture whenever you like with one click.</li>
+    <li>For a different texture in one area of the mosaic, make a second founder: each family is shown and hidden on its own.</li>
+    <li>Not happy with a color once the texture is on? Recolor the tile even with the family shown: when you hide it, that tint becomes its color.</li>
+  </ul></div></div>
+</section>
+
+<!-- ── COLOR AND PRINT ── -->
+<section id="colore">
+  <div class="section-label">07</div>
+  <h2>Color and print</h2>
+  <p>The screen makes colors with light (<strong>RGB</strong>), print makes them with inks (<strong>CMYK</strong>): some bright screen colors cannot be printed, and the print shop squeezes them as best it can. Mosaica has a <strong>color engine</strong> inside (Little CMS) that knows the <strong>print profiles</strong> and lets you see and choose colors <strong>as they will come out</strong>: the color wheel with CMYK, the on-screen print preview and the files for the print shop.</p>
+
+  <h3>🎨 The color wheel</h3>
+  <p>It opens from the <strong>🎨</strong> of the radial menu, instead of the Windows color window:</p>
+  <ul>
+    <li>The <strong>ring</strong> picks the hue (red at the top, going clockwise); the <strong>square</strong> how full it is (to the right) and how light (upwards). While you drag, the tile changes live; on release it is <strong>a single</strong> <kbd>Ctrl</kbd>+<kbd>Z</kbd> step.</li>
+    <li>The <strong>"on screen"</strong> and <strong>"in print"</strong> swatches (with the profile, rendering and paper of the Print preview) and a line that is always there: <strong>"⚠ out of print · ΔE …"</strong> or <strong>"✓ the print can make it"</strong>.</li>
+    <li><strong>HEX</strong>, <strong>R G B</strong> and <strong>C M Y K (%)</strong> in the chosen print profile (its name is below: "CMYK in: …"): type them and press <kbd>Enter</kbd>. When you type the <strong>CMYK</strong> values Mosaica finds the color that prints with those values. If the profile splits the inks in another way (same color), or if the inks make a color the screen cannot show, a note says so.</li>
+    <li><strong>🖨️ Bring into print</strong> — lights up with the ⚠ and puts in the nearest color the print can make.</li>
+    <li><strong>Mark where the print cannot reach</strong> (checkbox, remembered): in the square, striped, the out-of-print area for that hue. Picking outside the stripes, the color comes out right.</li>
+    <li>The <strong>quick colors</strong> are still below. <kbd>Esc</kbd> or a click outside close the wheel.</li>
+    <li>It works for tiles (also multi-selection and groups), for textures with "Tint from color wheel" and for the selected stroke.</li>
+  </ul>
+
+  <h3>🎯 The eyedropper</h3>
+  <p>In the wheel, next to the swatches, there is the <strong>pipette</strong>. One click turns it on (it turns cyan): a crosshair appears on the sheet and, next to your hand, a small swatch with the color underneath and its code.</p>
+  <ul>
+    <li><strong>Click on the sheet</strong> = the color of that spot. <kbd>Shift</kbd>+<strong>click</strong> = the <strong>average</strong> of the pixels around it (5×5): better on a texture or an edge.</li>
+    <li>It takes everything you see: tiles, background, paper, pen, watercolor. Where the sheet is empty it takes the white of the paper.</li>
+    <li>The color goes where the wheel goes: to the selected tile (one <kbd>Ctrl</kbd>+<kbd>Z</kbd> step) or to the pen. Then the eyedropper turns itself off. The clicked tile is <strong>not</strong> selected and does not move; with the pen in hand no stroke starts.</li>
+    <li><strong>Cancel</strong>: <kbd>Esc</kbd>, right click, the pipette again, or a click outside the sheet. The <strong>wheel</strong> (zoom) and <kbd>Alt</kbd>+drag (moving the sheet) work with the eyedropper on.</li>
+  </ul>
+
+  <h3>✏️ The wheel for the pen and the watercolor</h3>
+  <p>With the pen or the watercolor in hand, a click on the <strong>Hue</strong> in the Inspector ("Current color" block) opens the same wheel, titled <strong>"✏️ Pen and watercolour colour"</strong> with a cyan border, next to the Inspector. So the drawing has its <strong>CMYK</strong>, its "in print" and the eyedropper too.</p>
+  <ul>
+    <li>It only changes the color of the pen and the watercolor: the selected tiles stay as they are, and there is <strong>no</strong> <kbd>Ctrl</kbd>+<kbd>Z</kbd> step (the pen color is not on the sheet). It is remembered like the other drawing settings.</li>
+    <li>Here the <strong>quick colors</strong> go to the pen.</li>
+    <li>With the <strong>watercolor</strong> the chosen color is the <strong>pigment</strong>: Tone, Opacity and Mixing change the color that lands on the sheet (the wheel reminds you with a note).</li>
+    <li>It closes with the Hue again, with <kbd>Esc</kbd> (which here does not leave full screen), with a click outside or by turning the tool off. Once closed, the 🎨 of the radial menu opens it for the tiles, as always.</li>
+  </ul>
+
+  <h3>🖨️ Print preview</h3>
+  <p>In the top bar, right after the zoom. It is a <strong>switch</strong>: on (amber border), an overlay repaints the sheet <strong>as it will come out of the plotter</strong>; off, it goes back as it was. <strong>The drawing, the tiles and the files do not change</strong>: only what you see does. It starts off at every launch. The <strong>▾</strong> next to it opens the options, which are remembered:</p>
+  <ul>
+    <li><strong>Printing (CMYK profile)</strong>, in groups: Mosaica's own (free) · Added by you · Installed in Windows · Adobe profiles · System. The default one comes first: "FOGRA39 — ISO Coated v2 (basICColor, di base)".</li>
+    <li><strong>Colour rendering</strong>: <em>Relative colorimetric (recommended)</em> or <em>Perceptual (photos and gradients)</em>.</li>
+    <li><strong>Simulate paper and ink black</strong> (on by default): the white becomes the white of the paper.</li>
+    <li><strong>Mark colours the print cannot reach</strong> (off by default): diagonal stripes, one with the real print color and one veiled in grey, so you still see what color will come out.</li>
+    <li><strong>➕ Add profile…</strong> (only CMYK print profiles <code>.icc</code>/<code>.icm</code>: Mosaica keeps its own copy) and <strong>🔄 Search again</strong> (after installing a profile in Windows: right click on the file → Install profile).</li>
+    <li>At the bottom, the overlay status: "Overlay: graphics card · N ms" (or "processor (no WebGL2)").</li>
+  </ul>
+  <div class="callout tip"><div class="callout-icon"></div><div>While you turn the zoom wheel, for an instant you see the real colors. Handles, lasso and the stroke <strong>while you draw it</strong> have the real colors: they are tools, they do not go to print. If the color engine does not start, the buttons are grey and say to restart Mosaica.</div></div>
+
+  <h3>🖨️ Export for print (PDF/X)</h3>
+  <p>From the <strong>Export</strong> menu. The <strong>whole sheet</strong>, like the full PNG, at <strong>300 DPI</strong> on the real size of the sheet (portrait A4 = 2480 × 3508 pixels), always on white. Three formats (the last one chosen is remembered):</p>
+  <div class="card-grid col3">
+    <div class="card-mini">
+      <h4>PDF/X-4 — recommended</h4>
+      <p>Colors stay RGB "Adobe RGB (1998) compatible" with their profile; the chosen <strong>print profile</strong> is inside. The print shop converts to CMYK as usual (the rendering is up to them).</p>
+    </div>
+    <div class="card-mini">
+      <h4>PDF/X-1a — already CMYK</h4>
+      <p>Mosaica converts to CMYK with the chosen profile <strong>and</strong> rendering: the file is ready for the press. It needs an ICC <strong>version 2</strong> profile: with a v4 it tells you.</p>
+    </div>
+    <div class="card-mini">
+      <h4>Adobe RGB compatible PNG</h4>
+      <p>An image with its profile inside and the 300 DPI written in, for those who ask for an image file instead of a PDF.</p>
+    </div>
+  </div>
+  <ul>
+    <li>Profile and rendering are <strong>the same as the Print preview</strong> (changed here, they change there too): what you see with the overlay on is what comes out.</li>
+    <li>The proposed name is, for example, <code>project_PDFX-4_FOGRA39.pdf</code>, <code>project_PDFX-1a_FOGRA39.pdf</code> or <code>project_AdobeRGB.png</code>. With a profile that is not of a registered printing condition, in the PDF the condition is "Custom" and the message says so.</li>
+    <li>It takes a few seconds. Mosaica's PDF/X-4 and PDF/X-1a pass the Adobe Acrobat Pro Preflight.</li>
+  </ul>
+
+  <h3>Print profiles</h3>
+  <p>The installer contains the <strong>free</strong> profiles "FOGRA39 — ISO Coated v2" at 330% and 300% (basICColor, zlib license) and the <strong>Adobe RGB (1998) compatible</strong> one (CC0), with the licenses and a <code>LEGGIMI.txt</code> in the <code>profili-icc</code> folder. The <strong>ECI</strong> originals (ISO Coated v2, also 300%) and <strong>Adobe</strong>'s (Coated FOGRA39) cannot be in the installer because of their licenses: Mosaica <strong>finds them by itself</strong> if they are installed on the PC (Windows color folder, Adobe profiles); otherwise download them from eci.org or adobe.com and add them with <strong>➕ Add profile…</strong>. Inside the print gamut free and original profiles are practically the same; on out-of-print colors they differ.</p>
+  <div class="callout tip"><div class="callout-icon"></div><div><strong>Ask the print shop which profile and which rendering they use</strong> for their plotter, and put the same one in Mosaica: then on-screen preview, wheel and export match even on the out-of-print colors.</div></div>
+
+  <h3>The monitor</h3>
+  <p>The on-screen preview is faithful only with a <strong>monitor calibrated</strong> with a colorimeter (D65 white, 120 cd/m² brightness, gamma 2.2). On laptops very saturated colors stay duller than the real thing: the wheel and the export still do the right maths, it is the screen that cannot show them.</p>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>The Print preview and the print choices <strong>are not saved in the project</strong>: they live in Mosaica's folder (<code>colore.json</code>). A project opens the same even with an older version of Mosaica. The usual <strong>full PNG</strong> now carries the <strong>sRGB</strong> tag: same pixels, but whoever opens it no longer mistakes it for Adobe RGB.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
+    <li>For the print shop export the <strong>PDF/X-4</strong>: it is what print shops expect, and they do the conversion with their own plotter.</li>
+    <li>Before exporting turn on the <strong>🖨️ Print preview</strong> with "Mark colours the print cannot reach": the stripes tell you straight away which tiles will come out different.</li>
+    <li>A color ⚠ out of print? In the wheel press <strong>🖨️ Bring into print</strong>: you see on screen the color that will really come out.</li>
+    <li>Got a color sample from the print shop in CMYK? Type the four numbers in the wheel and press <kbd>Enter</kbd>.</li>
+  </ul></div></div>
+</section>
+
 <!-- ── LASSO SELECTION ── -->
 <section id="lazo">
-  <div class="section-label">06</div>
+  <div class="section-label">08</div>
   <h2>Lasso Selection (Freehand Polygon)</h2>
   <p>The <strong>Lasso</strong> is an advanced selection method that lets you enclose shapes with a <strong>freehand drawn polygon</strong>. It is designed especially for mosaics, where tiles are often small, dense, and have tight joints: with a rectangular box you would catch too much or too little, while with the lasso you follow the real contour of the area you are interested in.</p>
 
@@ -1341,7 +1492,7 @@
 
 <!-- ── FREEHAND DRAWING ── -->
 <section id="disegno">
-  <div class="section-label">07</div>
+  <div class="section-label">09</div>
   <h2>Freehand Drawing</h2>
   <p>The <strong>Left Toolbar</strong> contains three modal drawing tools: <strong>pen ✏️</strong>, <strong>eraser 🧼</strong>, and <strong>watercolor 💧</strong>. They are mutually exclusive: activating one deactivates the others.</p>
   <p>Next to them, after the hexagon ⬡, is the <strong>🖼️ Clone Stamp</strong>, which copies the background instead of laying down color: it has a chapter of its own, <a href="#timbro" style="color:var(--blue);">Clone Stamp</a>.</p>
@@ -1372,7 +1523,7 @@
   <h3>Inspector — Pen / Eraser</h3>
   <p>When pen or eraser are active, the Inspector shows:</p>
   <ul>
-    <li><strong>Current color</strong> (at the top, block shared with watercolor)</li>
+    <li><strong>Current color</strong> (at the top, block shared with watercolor): a click on the <strong>Hue</strong> opens the pen color wheel, with CMYK and the eyedropper — see <a href="#colore" style="color:var(--blue);">Color and print</a>.</li>
     <li><strong>Width</strong> — slider 1–60 px. With the mouse the stroke is exactly as wide as the ring around the cursor; with the tablet pen the pressure modulates it (see <a href="#wacom" style="color:var(--blue);">Wacom Tablet</a>).</li>
     <li><strong>Tip</strong> — the button with the name of the tip. By default <strong>Round (vector)</strong>, the usual pen. Clicking it opens the <strong>✏️ Select pen tip</strong> modal.</li>
     <li><strong>Distance</strong> — from 5% to 200% of the Width (25% by default): how close together the stamps of the tip are. Low = solid stroke; high = the stamps come apart.</li>
@@ -1412,28 +1563,31 @@
     <li>Freehand strokes (pen and watercolor) are always rendered <strong>under the geometric shapes</strong>: if you need a drawing above a shape, create the shape before the stroke.</li>
     <li>When you are done drawing, click <strong>🖱️ Select</strong> to return to working with shapes.</li>
     <li><strong>Mirroring the tiles does not touch your drawing.</strong> If you press <kbd>Ctrl</kbd>+<kbd>A</kbd> and then ◨ or ⬓, the tiles flip and the pen and watercolor strokes stay where they are: Mosaica warns you and counts how many it left out. The watercolor is the guide under the tiles — with your hands you turn the tile, not the sheet.</li>
-    <li>The <strong>current color</strong> shown in the Inspector is shared between pen and watercolor: changing it in one also changes it for the other.</li>
+    <li>The <strong>current color</strong> shown in the Inspector is shared between pen and watercolor: changing it in one also changes it for the other. To take the color of a spot on the sheet use the wheel's <strong>🎯 eyedropper</strong>.</li>
   </ul></div></div>
 
   <h3>Containment perimeter (⬡)</h3>
   <p>When you color the <strong>grout</strong> freehand or paint with watercolor inside a mosaic, it is easy to spill over the work area. The <strong>Containment perimeter</strong> solves this: you define a closed area once, and from then on <strong>pen, watercolor and clone stamp color only inside</strong> it; whatever goes outside is clipped away, exactly like the sheet border does.</p>
 
   <h3>Drawing the perimeter</h3>
-  <p>The button is the hexagon <strong>⬡</strong> in the Left Toolbar: it opens the <strong>perimeter mode</strong>, which works whatever tool you have in hand. If there is no perimeter yet, you trace it by combining two ways, which you can even mix within the same perimeter:</p>
+  <p>The button is the hexagon <strong>⬡</strong> in the Left Toolbar: it opens the <strong>perimeter mode</strong>, which works whatever tool you have in hand. If there is no perimeter yet, you trace it by combining the gestures, which you can even mix within the same perimeter:</p>
   <ul>
-    <li><strong>Tap</strong> (single click) → adds a <strong>vertex</strong>: perfect for snapping onto the outer corners of border tiles.</li>
-    <li><strong>Drag</strong> → traces <strong>freehand</strong>, like the brush selection. If instead you press on a point already placed and drag, you <strong>move that point</strong>.</li>
-    <li><kbd>Enter</kbd>, <strong>double-click</strong> or a <strong>tap near the first vertex</strong> → <strong>closes</strong> the perimeter.</li>
+    <li><strong>Tap</strong> (single click) → adds a <strong>vertex</strong> at the spot where you <strong>pressed</strong> (not where you released: the little slip of the pressing finger does not count). Perfect for snapping onto the outer corners of border tiles.</li>
+    <li><kbd>Shift</kbd>+<strong>tap</strong> → adds a <strong>soft</strong> vertex: the line goes through it in a curve (see <em>Curves</em> below).</li>
+    <li><strong>Drag</strong> → traces <strong>freehand</strong>, like the brush selection, <strong>with the lens off</strong> (<kbd>L</kbd>). With the lens on, pressing and holding is the <strong>slow aim</strong> (see <em>Fine aiming</em>). If you press on a point already placed and drag, you <strong>move that point</strong>.</li>
+    <li><kbd>Enter</kbd>, <strong>double-click</strong> or a <strong>tap on the first vertex</strong> → <strong>closes</strong> the perimeter. With the lens off a tap <strong>near</strong> the first vertex is enough; with the lens on it is not, because you aim at corners close to each other.</li>
     <li><kbd>Backspace</kbd> → removes the <strong>last point</strong> added.</li>
+    <li><strong>Arrow keys</strong> → move the selected point (the last one added is already selected): see <em>Fine aiming</em>.</li>
     <li><kbd>Esc</kbd> → leaves the mode: an outline not yet closed is <strong>cancelled</strong> (a perimeter already set is left alone).</li>
   </ul>
   <p>At least <strong>3 points</strong> are needed to close. Closing <strong>sets</strong> the perimeter without leaving the mode: its <strong>handles</strong> stay, so you can adjust it right away.</p>
 
   <h3>Handles: correcting the perimeter</h3>
-  <p>A click on <strong>⬡</strong> when a perimeter already exists <strong>reopens it with its handles</strong>. Inside the mode:</p>
+  <p>A click on <strong>⬡</strong> when a perimeter already exists <strong>reopens it with its handles</strong>. The handle tells the kind of point: <strong>square = corner</strong> (the line makes an angle there), <strong>round = soft</strong> (the line curves through it). Inside the mode:</p>
   <ul>
-    <li><strong>Drag</strong> a handle → you move it. The grab does not change with zoom, and the gesture starts only after a few pixels: a light touch stays a click.</li>
-    <li><strong>Double-click on a side</strong> → adds a point, placed right on the side.</li>
+    <li><strong>Drag</strong> a handle → you move it. The gesture starts only after a few pixels: a light touch stays a click.</li>
+    <li><strong>Double-click on a handle</strong> → switches it from corner to soft and back.</li>
+    <li><strong>Double-click on a side</strong> → adds a point, placed right on the line. On a soft side it is born soft; on an arc, the arc splits into two arcs of the same circle.</li>
     <li><strong>Click</strong> a handle → you select it (it turns <strong>cyan</strong>); <kbd>Del</kbd> or <kbd>Backspace</kbd> remove it. A perimeter never goes below 3 points.</li>
     <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> → undoes one <strong>shape</strong> step of the perimeter. When there are none left, the key goes back to Mosaica's normal undo.</li>
     <li><kbd>Enter</kbd>, <kbd>Esc</kbd>, another click on <strong>⬡</strong> or another tool → leave the mode; the perimeter stays.</li>
@@ -1441,15 +1595,36 @@
 
   <div class="callout success"><div class="callout-icon"></div><div>Moving, adding or removing a handle, the strokes already drawn inside the perimeter <strong>follow the new shape</strong>: widening it brings back what was hidden, narrowing it hides it. The clip is recomputed when you <strong>release</strong> the handle.</div></div>
 
+  <h3>Curves: soft points and arcs</h3>
+  <p>The perimeter can follow a curved grout line without a hundred close points. There are two ways to make a curve:</p>
+  <ul>
+    <li><strong>Soft point</strong> (<strong>round</strong> handle): the line goes through it in a curve, with no angle, and blends with the neighbouring points. You make it with <kbd>Shift</kbd>+tap while tracing, with a <strong>double-click on the handle</strong>, or by selecting the handle and pressing <kbd>M</kbd> — in both phases: it is the way without double-click, handy with the pen. <kbd>M</kbd> again turns it back into a corner.</li>
+    <li><strong>Arc</strong>: in the middle of every side there is a <strong>diamond</strong>. Drag it: the side becomes a <strong>circular arc</strong> through the diamond. <strong>Empty</strong> diamond (white) = the side is not an arc; <strong>full</strong> diamond (orange) = it is an arc. An arc wins over the soft points of its side.</li>
+    <li>To keep the screen clear, diamonds show only on the side under the pointer, on the two sides of the selected handle, on the selected diamond and on every arc.</li>
+    <li>Selected diamond + <strong>arrow keys</strong> → fine-tunes the arc. <strong>Double-click on the diamond</strong> of an arc, or selected diamond + <kbd>M</kbd> or <kbd>Del</kbd> → <strong>removes the arc</strong>: the side goes back straight (or soft, if one of its ends is soft). Bringing the diamond back onto the line makes the side straight by itself.</li>
+    <li>Where a handle and a diamond touch, the handle wins.</li>
+    <li><kbd>M</kbd> works only inside the perimeter mode, without <kbd>Ctrl</kbd> and <kbd>Alt</kbd>, and not while you type in a field.</li>
+  </ul>
+  <div class="callout tip"><div class="callout-icon"></div><div>The clip follows the real curve within <strong>0.02 mm</strong> at most. A perimeter of only corners and straight sides is saved as always. One with curves, opened with an <strong>older version</strong> of Mosaica, still clips correctly (curve included); but if that version <strong>saves it again</strong>, the soft handles are lost and what is left is a perimeter of many close corners: correct, but to be made soft again if you want to handle it.</div></div>
+
   <div class="callout warning"><div class="callout-icon"></div><div>With the <strong>lasso</strong> or the <strong>brush selection</strong> on, the perimeter mode <strong>does not open</strong>, and tells you so: they share the same drawing layer. Close them first. The perimeter you set shows as a dashed guide with a freehand tool in hand and inside the perimeter mode; in plain selection it stays invisible.</div></div>
 
   <h3>The crosshair lens</h3>
-  <p>Inside the perimeter mode, a <strong>lens</strong> appears under the cursor that magnifies what lies beneath, with a <strong>reticle in real millimeters</strong>: it lets you place points at precise distances from the tiles, not just see better. The <strong>cyan dot</strong> at the center of the reticle is exactly where the click places the vertex or the handle.</p>
+  <p>Inside the perimeter mode, a <strong>lens</strong> appears under the cursor that magnifies what lies beneath, with a <strong>reticle in real millimeters</strong>: it lets you place points at precise distances from the tiles, not just see better. The <strong>cyan dot</strong> at the center of the reticle is exactly where the click places the vertex or the handle. In the glass you see the same guide as on the sheet: curves, square and round handles, diamonds.</p>
   <ul>
     <li>The reticle step adapts to the magnification, from a quarter of a millimeter to 50 mm; every five steps there is a tick with its value in mm.</li>
-    <li><strong>Hold the pointer still</strong> for a moment: a ring of controls appears around the lens with two sliders, <strong>⌀ diameter</strong> (90–460 px, 190 to begin with) and <strong>🔍 magnification</strong> (1.5×–12×, 4× to begin with), plus the <strong>⊘</strong> button that turns it off.</li>
+    <li>With the lens on, grabbing distances (handle, side, diamond) are measured <strong>in the glass</strong>: two corners 1 mm apart, far apart in the lens, are no longer "the same point".</li>
+    <li><strong>Hold the pointer still</strong> for a moment: a ring of controls appears around the lens with two sliders, <strong>⌀ diameter</strong> (90–460 px, 190 to begin with) and <strong>🔍 magnification</strong> (1.5×–12×, 4× to begin with), plus the <strong>⊘</strong> button that turns it off. The ring does not open if your hand is over it: it opens at the next pause.</li>
     <li><kbd>L</kbd> turns the lens on and off, only inside the perimeter mode.</li>
     <li>Diameter, magnification and lens on or off are <strong>remembered</strong> from one session to the next.</li>
+  </ul>
+
+  <h3>Fine aiming: arrow keys, the micrometer screw and the clutch</h3>
+  <ul>
+    <li><strong>The arrow keys</strong> move the selected point (or the selected diamond) like they move tiles: <strong>0.1 mm</strong>, with <kbd>Shift</kbd> <strong>1 mm</strong>, with <kbd>Ctrl</kbd> <strong>0.01 mm</strong>. The keys you mapped as arrows work too. With nothing selected the arrows do what they always do. With the handles, the clip of the strokes updates after a short pause: a burst of arrows is <strong>a single</strong> <kbd>Ctrl</kbd>+<kbd>Z</kbd> step.</li>
+    <li><strong>The micrometer screw</strong> (with the lens on): <strong>press and hold</strong>, with the mouse or with the pen tip resting, and your hand is <strong>geared down</strong>: the crosshair travels 1/N of your hand's path, where N is the lens magnification. In the glass the image moves at the speed of your hand, like a sheet under a microscope. On <strong>release</strong> the point goes where the crosshair is. Pressing on a handle or a diamond moves it slowly; pressing on empty space while tracing, the new point is born on release. While you hold, the Windows cursor disappears: your hand can even leave the sheet.</li>
+    <li><strong>The clutch</strong>: on release the crosshair <strong>stays where it is</strong>, no jump, and from there it follows your hand slightly offset — like lifting the mouse off the pad and putting it down again. It starts slowly and picks up speed within a few millimeters of hand movement; the offset fades away by itself, a little at a time. The crosshair returns under your hand when you turn the lens off or your hand leaves the sheet.</li>
+    <li>The <strong>wheel</strong> zooms around your hand, and the crosshair stays on the same spot of the tile.</li>
   </ul>
 
   <div class="callout tip"><div class="callout-icon"></div><div>In the lens the <strong>watercolor</strong> (and the clone stamp) look <strong>softened</strong>: they are images, not vector drawings, and magnified they lose sharpness. It is not a defect. Tiles and pen strokes stay sharp at any magnification.</div></div>
@@ -1461,7 +1636,7 @@
 
 <!-- ── WATERCOLOR ── -->
 <section id="acquerello">
-  <div class="section-label">08</div>
+  <div class="section-label">10</div>
   <h2>Watercolor Controls</h2>
   <p>Watercolor mode has an advanced set of parameters to simulate the real behavior of watercolor painting. All controls are in the <strong>Inspector on the right</strong> when the tool is active. Each parameter acts on a different aspect of the stroke.</p>
 
@@ -1550,6 +1725,8 @@
     </div>
   </div>
 
+  <div class="callout tip"><div class="callout-icon"></div><div>The color you choose with the <strong>Hue</strong> (CMYK from the wheel included) is the <strong>pigment</strong>: <strong>Tone</strong>, <strong>Opacity</strong> and <strong>Mixing</strong> change the color that really lands on the sheet. To see how it will print, turn on the <a href="#colore" style="color:var(--blue);">🖨️ Print preview</a>.</div></div>
+
   <h3>The ring around the cursor</h3>
   <p>With pen, eraser and watercolor a <strong>dashed ring</strong> around the cursor shows how wide the stroke will be. For the watercolor the ring is <strong>measured on the loaded tip</strong>: it shows the typical width of the stroke, out to where the color drops to half the intensity of the center, and it updates when you change tip or width. The stroke lands <strong>centered on the cursor</strong>; a few stamps may fall outside the ring because of the <strong>Pos. jitter</strong> spread, which scatters them across the stroke. With the pen the ring is as large as the Width (with a PNG tip, as the longest side of the tip).</p>
 
@@ -1580,7 +1757,7 @@
 
 <!-- ── BRUSH TIPS ── -->
 <section id="punte">
-  <div class="section-label">09</div>
+  <div class="section-label">11</div>
   <h2>Tips: watercolor and pen</h2>
   <p>Tips are <strong>PNG files with transparency</strong> that give the <strong>shape of each stamp</strong>: watercolor and the pen with tips stamp them along the stroke. <strong>Only the transparency counts</strong>: where the PNG is full the color comes out full, where it is semi-transparent it comes out lighter, where it is transparent nothing comes out. The color of the pixels does not matter (Mosaica gives it), so you can draw them in black. Watercolor and pen <strong>each have their own folder</strong>:</p>
   <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;">
@@ -1636,7 +1813,7 @@
 
 <!-- ── CLONE STAMP ── -->
 <section id="timbro">
-  <div class="section-label">10</div>
+  <div class="section-label">12</div>
   <h2>Clone Stamp</h2>
   <p>The <strong>Clone Stamp 🖼️</strong> copies a piece of the <strong>background</strong> — the image you loaded or the paper — and paints it again wherever you brush. It lets you carry the paper, the grain or a piece of the image into the grout and onto the areas to blend, without leaving Mosaica and without losing the millimeters: all the clone stamp measures are in <strong>real millimeters</strong>, like those of the tiles.</p>
   <p>The button is <strong>🖼️</strong> in the Left Toolbar, right after the hexagon ⬡. The clone stamp copies the background <strong>as it looks on the sheet</strong>, and its stroke sits <strong>above the background and below pen and watercolor</strong> (and, like all strokes, below the tiles).</p>
@@ -1776,7 +1953,7 @@
 
 <!-- ── BACKGROUND ── -->
 <section id="sfondo">
-  <div class="section-label">11</div>
+  <div class="section-label">13</div>
   <h2>Background Image</h2>
   <p>The <strong>BG Panel</strong> (the horizontal bar immediately below the top bar) is dedicated to the background image. You can load a reference photo, a drawing, or a photographed project to trace your mosaic over it.</p>
 
@@ -1825,7 +2002,7 @@
 
 <!-- ── PROJECTS ── -->
 <section id="progetti">
-  <div class="section-label">12</div>
+  <div class="section-label">14</div>
   <h2>Saving and Opening Projects</h2>
   <p>Mosaica projects are saved as <strong>.msp.json</strong> files. They contain all shapes, freehand strokes, watercolors, colors, applied textures, the background image, canvas orientation (portrait/landscape), and the current pen and watercolor parameters. The default folder is:</p>
 
@@ -1864,7 +2041,7 @@
 
 <!-- ── AUTO-SAVE ── -->
 <section id="autosave">
-  <div class="section-label">13</div>
+  <div class="section-label">15</div>
   <h2>Auto-Save</h2>
   <p>Mosaica automatically saves your work <strong>in the background</strong> every minute and when you close the app. No interaction required: it happens on its own.</p>
 
@@ -1943,7 +2120,7 @@
 
 <!-- ── AUTO-OPEN ── -->
 <section id="autoopen">
-  <div class="section-label">14</div>
+  <div class="section-label">16</div>
   <h2>Automatic Opening of the Last Project</h2>
   <p>Mosaica can automatically open the last saved project every time you launch the app. The preference is configured from the <strong>File</strong> dropdown in the top bar.</p>
 
@@ -1999,7 +2176,7 @@
 
 <!-- ── FULL SCREEN ── -->
 <section id="fullscreen">
-  <div class="section-label">15</div>
+  <div class="section-label">17</div>
   <h2>Full Screen Mode</h2>
   <p>Mosaica always starts in <strong>full screen mode</strong> to maximize workspace. You can exit and enter at any time.</p>
 
@@ -2023,14 +2200,18 @@
 
 <!-- ── EXPORT ── -->
 <section id="esporta">
-  <div class="section-label">16</div>
+  <div class="section-label">18</div>
   <h2>Exporting Your Work</h2>
-  <p>The <strong>Export</strong> dropdown in the top bar offers four items, each with a dedicated modal. The first three are below; the fourth, <strong>🧩 Tile sheet (laser)</strong>, prepares the files to cut the tiles with the laser and has a chapter of its own: <a href="#tavola" style="color:var(--blue);">Tile Sheet</a>.</p>
+  <p>The <strong>Export</strong> dropdown in the top bar offers five items, each with a dedicated modal. Four are below; <strong>🧩 Tile sheet (laser)</strong> prepares the files to cut the tiles with the laser and has a chapter of its own: <a href="#tavola" style="color:var(--blue);">Tile Sheet</a>. For <strong>🖨️ Export for print</strong> the details are in <a href="#colore" style="color:var(--blue);">Color and print</a>.</p>
 
   <div class="card-grid col3">
     <div class="card-mini">
       <h4>📄 PDF A4</h4>
       <p>Export to real A4 PDF at <strong>300 DPI</strong>. Respects orientation (portrait/landscape).</p>
+    </div>
+    <div class="card-mini">
+      <h4>🖨️ For print (PDF/X)</h4>
+      <p>The whole sheet at <strong>300 DPI</strong> with print colors: <strong>PDF/X-4</strong> (recommended for the print shop), <strong>PDF/X-1a</strong> already CMYK or Adobe RGB compatible PNG.</p>
     </div>
     <div class="card-mini">
       <h4>🖼️ PNG / SVG</h4>
@@ -2095,7 +2276,7 @@
   </ul>
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical Tips</strong><ul>
-    <li>For <strong>professional printing</strong> use the A4 PDF at 300 DPI in "Complete Canvas" or "Shapes Only on Paper Texture" mode: both preserve real dimensions in millimeters.</li>
+    <li>For the <strong>print shop</strong> use <strong>🖨️ Export for print</strong> as <strong>PDF/X-4</strong>: it carries the print profile and the colors arrive right. The A4 PDF at 300 DPI in "Complete Canvas" or "Shapes Only on Paper Texture" mode is for printing at home: both preserve real dimensions in millimeters.</li>
     <li>The <strong>Outlines SVG</strong> format is ideal for <strong>laser cutting</strong> (LightBurn / Beam Studio / RDWorks) or cutting plotter: black stroke for textures, original color for solid fills.</li>
     <li>The <strong>Filled SVG</strong> renders textures as average color to guarantee importation into laser CAM software: if you need the real texture, export to PNG or PDF.</li>
     <li>Exporting freehand strokes as <strong>SVG</strong> preserves the <code>mix-blend-mode</code>: open it in a modern browser or in Illustrator to see the color overlap correctly.</li>
@@ -2107,7 +2288,7 @@
 
 <!-- ── TILE SHEET ── -->
 <section id="tavola">
-  <div class="section-label">17</div>
+  <div class="section-label">19</div>
   <h2>Tile Sheet — the files for the laser</h2>
   <p>From the <strong>Export</strong> dropdown → <strong>🧩 Tile sheet (laser)</strong> Mosaica prepares in one go the files to <strong>cut the rubber tiles with the laser</strong> and to work them at the bench. <strong>Nothing moves on the mosaic</strong>: the sorting, the reset rotation and the bill of materials live only inside the exported files.</p>
 
@@ -2190,7 +2371,7 @@
 
 <!-- ── WACOM TABLET ── -->
 <section id="wacom">
-  <div class="section-label">18</div>
+  <div class="section-label">20</div>
   <h2>Wacom Tablet — Pressure, Tilt, Pen Buttons</h2>
   <p>Mosaica integrates a complete system for Wacom graphic tablets (and any other tablet exposing <code>PointerEvent.pressure</code>). Pressure is <strong>true, point-by-point</strong>: every segment of the stroke stores its own pressure, is serialized in <code>.msp.json</code> projects, exported in SVG, and participates in Undo/Redo like any other Fabric object.</p>
 
@@ -2325,7 +2506,7 @@
 
 <!-- ── MOUSE & KEYBOARD MAPPING ── -->
 <section id="inputmapping">
-  <div class="section-label">19</div>
+  <div class="section-label">21</div>
   <h2>Mouse &amp; Keyboard Mapping</h2>
   <p>Mosaica's classic shortcuts (Ctrl+Z/C/V/X, Delete, Ctrl+/−, arrows, Ctrl+R, double-click) are <strong>protected and always active</strong>. The Input Mapping module lets you add <em>on top</em> of these:</p>
   <ul>
@@ -2458,7 +2639,7 @@
 
 <!-- ── SHORTCUTS ── -->
 <section id="scorciatoie">
-  <div class="section-label">20</div>
+  <div class="section-label">22</div>
   <h2>Keyboard Shortcuts</h2>
 
   <h3>History and Clipboard</h3>
@@ -2517,11 +2698,27 @@
       <tr><td><kbd>Enter</kbd></td><td>⬡ Closes the perimeter you are tracing; with the handles, leaves the mode</td></tr>
       <tr><td><kbd>Esc</kbd></td><td>⬡ Leaves the perimeter mode (an outline not closed is cancelled)</td></tr>
       <tr><td><kbd>Backspace</kbd></td><td>⬡ Removes the last traced point, or the selected handle</td></tr>
-      <tr><td><kbd>Del</kbd></td><td>⬡ Removes the selected handle</td></tr>
+      <tr><td><kbd>Del</kbd></td><td>⬡ Removes the selected handle, or the arc of the selected diamond</td></tr>
+      <tr><td><kbd>Shift</kbd> + tap</td><td>⬡ Adds a soft vertex</td></tr>
+      <tr><td><kbd>M</kbd></td><td>⬡ Selected handle: corner ↔ soft. Selected diamond: removes the arc</td></tr>
+      <tr><td>Arrows (<kbd>Shift</kbd>, <kbd>Ctrl</kbd>)</td><td>⬡ Move the selected point or diamond by 0.1 mm (1 mm, 0.01 mm)</td></tr>
+      <tr><td>Hold the button (lens on)</td><td>⬡ Slow aim: the micrometer screw</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>⬡ Inside the perimeter mode undoes one shape step of the perimeter</td></tr>
       <tr><td><kbd>L</kbd></td><td>🔍 Turns the crosshair lens on and off (only inside the perimeter mode)</td></tr>
       <tr><td><kbd>Ctrl</kbd> + Click</td><td>🖼️ Clone Stamp: picks the fixed source</td></tr>
       <tr><td><kbd>Esc</kbd></td><td>🖼️ Clone Stamp: cancels the “Pick source” eyedropper</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Color: wheel and eyedropper</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Key</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Enter</kbd></td><td>🎨 In the wheel: applies the HEX, RGB or CMYK typed in the fields</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>🎨 Closes the wheel (the pen one without leaving full screen)</td></tr>
+      <tr><td>Click on the sheet</td><td>🎯 Eyedropper on: takes the color of that spot</td></tr>
+      <tr><td><kbd>Shift</kbd> + click on the sheet</td><td>🎯 Eyedropper on: takes the average of the pixels around it (5×5)</td></tr>
+      <tr><td><kbd>Esc</kbd> / right click</td><td>🎯 Cancels the eyedropper</td></tr>
     </tbody>
   </table>
 
@@ -2549,7 +2746,7 @@
 
 <!-- ── SECURITY & UPDATES ── -->
 <section id="sicurezza">
-  <div class="section-label">21</div>
+  <div class="section-label">23</div>
   <h2>Security &amp; Online Updates</h2>
   <p>Mosaica Workspace Pro is an <strong>offline drawing application</strong>: the only thing it does on the network is <strong>check whether a new version exists</strong> on the official GitHub repository and, at your request, download its installer. Everything else in the program never talks to the internet. This section explains how updates work and which protections are always active.</p>
 
@@ -2594,7 +2791,7 @@
     <li><strong>No web navigation</strong>: the window cannot be taken to external pages; http(s) links (e.g. the project page) open in the <strong>system browser</strong>, never inside the app. No popups, no nested windows.</li>
     <li><strong>Permissions denied by principle</strong>: camera, microphone, geolocation, notifications and the like are <strong>always refused</strong> — Mosaica does not need them.</li>
     <li><strong>Strict Content-Security-Policy</strong>: the program loads only its own local resources and never runs code coming from the network. The renderer never talks to the internet directly: every network operation goes through the main process.</li>
-    <li><strong>Independent of the drawing engine</strong>: this security layer does not touch Fabric and is fully compatible with <strong>Fabric.js from v5.1.0 to v5.3.0</strong>.</li>
+    <li><strong>Independent of the drawing engine</strong>: this security layer does not touch Fabric and is fully compatible with <strong>Fabric.js 5.5.2</strong>, the version Mosaica uses (and with 5.3.0).</li>
   </ul>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div>On the first launch after an update, Windows Defender may show the "Unknown publisher" warning because the installer is not signed with a paid certificate. This is normal: click <strong>More info → Run anyway</strong>. The SHA-256 verification done by Mosaica still guarantees that the downloaded file is identical to the published one.</div></div>
 
@@ -2611,7 +2808,7 @@
 <!-- ════════════════════════════════ FOOTER ════════════════════════════════ -->
 <footer>
   <strong>Mosaica Workspace Pro</strong> · User Guide · By Pico Mosaici<br>
-  <span style="margin-top:6px;display:block;">Updated to version · V 09.2026</span>
+  <span style="margin-top:6px;display:block;">Updated to version · V 10.2026</span>
   <span style="margin-top:6px;display:block;">© 2026 Pico Mosaici® by Pietro Coraggio | Venafro (IS) | All rights reserved</span>
 </footer>
 

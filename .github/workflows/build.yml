@@ -61,37 +61,44 @@ jobs:
           body: |
             ## 🎨 Mosaica Workspace Pro ${{ github.ref_name }}
 
-            La penna impara le punte, l'acquerello ha un set di punte nuovo e il foglio non si gira più a lavoro iniziato.
+            Tre cantieri in una release: le texture fantasma per i mosaici grandi, i colori che arrivano giusti in copisteria e un perimetro che si mira al centesimo di millimetro e sa fare le curve.
 
             ### ✨ Novità
 
-            - ✏️ **Penna con le punte** — oltre alla punta tonda di sempre, la penna può usare una punta disegnata (PNG), come l'acquerello: pennini, grafite, carboncino, gessetto. Il tratto resta **vettoriale**: nitido a ogni zoom, leggero da salvare, si cancella e si annulla come gli altri. Nell'Ispettore: **Punta**, **Distanza**, **Rotazione iniziale** e **Direzione** (la punta segue il tratto)
-            - 🖋️ **Sei punte per la penna**: tonda morbida, pennino a punta, pennino piatto, grafite, carboncino, gessetto. Le tue si aggiungono con il pulsante **📁 Apri la cartella delle punte**
-            - 💧 **Nuovo set di 11 punte per l'acquerello**, fatte apposta: tonda morbida e asciutta, piatta, lingua di gatto, bordo bagnato, bordo sfumato, nuvola, granulazione, spugna, schizzi e la punta di base rifatta
+            - 👻 **Texture fantasma** — metti la texture una volta sola su una tessera e premi **Fantasma**: la texture si nasconde, e le copie, i cambi di forma e i settori se la portano dietro senza mostrarla. Con **Mostra la famiglia** compare su tutte, ognuna tinta col suo colore; con **Nascondi** tornano ai loro colori. Pensata per i mosaici da 1600 tessere e più
+            - 🖨️ **Prova di stampa** — un velo mostra a video come uscirà il foglio dal plotter (FOGRA39 o ISO Coated v2 300%), con la carta simulata e i colori fuori stampa segnati a righe. Il disegno e i file non cambiano
+            - 📄 **Esporta per la stampa** — il foglio intero a 300 DPI in **PDF/X-4** (consigliato per la copisteria), **PDF/X-1a** già in CMYK o PNG compatibile Adobe RGB (1998)
+            - 🎨 **Ruota dei colori nuova** — anello e quadrato, HEX/RGB/**CMYK**, il colore «in stampa» accanto a quello «a video», l'avviso ⚠ fuori stampa e **Portalo in stampa**
+            - 🎯 **Contagocce** — prende il colore di un punto del foglio (Shift+clic = la media dei pixel attorno)
+            - ✏️ **La ruota anche per penna e acquerello** — la Tinta dell'Ispettore apre la ruota coi CMYK e il contagocce
+            - 🧾 **Profili di stampa** — liberi nell'installer; quelli già installati sul PC si trovano da soli, gli altri si aggiungono
+            - ⬡ **Perimetro con le curve** — punti morbidi (maniglia tonda: Shift+tap, M o doppio clic) e archi (si tira il rombo a metà lato)
+            - 🔍 **Perimetro, la mira** — con la lente, tenendo premuto, la mano si demoltiplica e il punto si porta piano; al rilascio il mirino non salta. Le frecce spostano il punto di 0,1 mm (Shift 1 mm, Ctrl 0,01 mm)
 
             ### 🔧 Miglioramenti
 
-            - 🔒 **Orientamento del foglio**: a lavoro iniziato (un tratto oppure due tessere) i pulsanti Verticale e Orizzontale non girano più il foglio e lo dicono — girarlo a metà lavoro spostava le tessere e deformava gli acquerelli
-            - 🖱️ **Penna col mouse**: il tratto è largo quanto la Larghezza e quanto l'anello (prima era il 70%). I tratti già fatti non cambiano
-            - 🖊️ **Tavoletta Wacom**: curva di pressione e sensibilità arrivano al tratto finito, che non cambia più spessore quando alzi la penna
-            - 🔄 **Punte aggiornate da sole**: le punte di Mosaica si aggiornano e le 66 vecchie si tolgono; le punte aggiunte da te con altri nomi non si toccano mai
-            - ⚙️ **Impostazioni di penna e acquerello**: quelle del progetto hanno la precedenza e tutti gli slider tornano come li avevi lasciati
+            - 🧱 La copia di una tessera con texture non colorata ha la stessa texture e la stessa grana (prima nasceva grigia)
+            - ⚡ Texture colorate: annulla, ripristina, incolla e riapertura dei mosaici grandi molto più veloci
+            - 🏷️ **PNG completo** con l'etichetta sRGB: in copisteria non viene più scambiato per Adobe RGB
+            - 🎯 Perimetro: il punto va dove premi, e con la lente le prese si misurano nel vetro
+            - 📖 Guida utente con i capitoli nuovi «Texture e texture fantasma» e «Colore e stampa»
 
             ### 🐛 Correzioni
 
-            - Acquerello con una punta che su questo computer non c'è: prima i tratti erano invisibili, ora usa la punta di base e avvisa
-            - Cambiare la punta dell'acquerello non lascia più un Ctrl+Z "a vuoto"
+            - La texture non colorata ricolorata con la ruota non torna più fuori da sola dopo un Ctrl+Z o una riapertura
+            - Cambia forma e Dividi cerchio non perdono più la texture al Ctrl+Z; i settori hanno ognuno la sua grana
+            - Il colore di prima della texture si ritrova anche dopo un Ctrl+Z o una riapertura
 
             ### 📥 Installazione
 
-            1. Scarica il file `MosaicaWorkspacePro-Setup-09.2026.exe` qui sotto
+            1. Scarica il file `MosaicaWorkspacePro-Setup-10.2026.exe` qui sotto
             2. Eseguilo (se Windows mostra *"Editore sconosciuto"*, clicca **Ulteriori informazioni → Esegui comunque**)
             3. Segui l'installer — puoi scegliere la lingua all'avvio
 
-            > 💡 Tavole salvate, calibrazioni e preferenze vengono **conservate** durante l'aggiornamento. Le punte che hai aggiunto tu restano; gli acquerelli già dipinti non cambiano.
+            > 💡 Tavole salvate, calibrazioni e preferenze vengono **conservate** durante l'aggiornamento. Per la prova di stampa fedele serve un monitor calibrato.
 
             ### 📝 Note tecniche
 
-            - Versione interna: `9.2026.2`
-            - Esporta disegno mano libera (SVG): i tratti fatti con una punta escono come immagine del tratto, come l'acquerello
-            - I progetti salvati con le versioni precedenti si aprono normalmente
+            - Versione interna: `10.2026.0`
+            - Fabric.js 5.5.2; motore colore Little CMS 2 (lcms-wasm, MIT) dentro Mosaica, nessuna dipendenza npm nuova
+            - I progetti salvati con le versioni precedenti si aprono normalmente. Un progetto con texture fantasma o perimetro curvo si apre anche con una versione vecchia, ma se quella lo risalva famiglie e maniglie morbide si perdono
