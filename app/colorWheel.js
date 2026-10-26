@@ -135,7 +135,8 @@
     // Fetta 4-bis: per chi lavora la ruota. "tile" = le tessere (#colorInput, il popup lo apre renderer.js col 🎨);
     // "stroke" = la penna e l'acquerello (#strokeColorPicker, il popup lo apre la Tinta dell'ispettore).
     target: "tile",
-    strokeWasOpen: false
+    strokeWasOpen: false,
+    seedNext: false // 26/10: il 🎨 ha riaperto la ruota → riparte dal colore delle tessere
   };
   try {
     S.mapOn = localStorage.getItem(KEY_MAP) !== "0";
@@ -695,6 +696,74 @@
     setRgb(rgb, true);
   }
 
+  // ── Il colore da cui parte la ruota (26/10) ──
+  // renderer.js, aprendo il 🎨, scrive in #colorInput il colore della PRIMA tessera selezionata, ma solo se è un
+  // colore pieno: su una tessera con texture (il fill è un motivo) scrive sempre #78a0ff, e la ruota partiva da lì.
+  // Qui si legge il colore VERO delle tessere selezionate:
+  //   • colore pieno → quello;
+  //   • texture colorata dalla ruota → la sua tinta;
+  //   • texture non colorata → il colore medio della texture (_averageTextureColor di renderer.js).
+  // In multi-selezione: se i colori sono più o meno uguali (vicini entro TILE_SIMILAR) si parte dal colore della
+  // prima; se sono diversi, la ruota resta sull'ultimo colore usato (null = non si tocca niente).
+  const TILE_SIMILAR = 30; // distanza RGB massima per «più o meno lo stesso colore»
+  function tileLeaves() {
+    const c = fab();
+    const a = c && typeof c.getActiveObject === "function" ? c.getActiveObject() : null;
+    if (!a) return [];
+    const out = [];
+    const walk = (o) => {
+      if (!o) return;
+      if ((o.type === "activeSelection" || o.type === "group") && Array.isArray(o._objects)) o._objects.forEach(walk);
+      else out.push(o);
+    };
+    walk(a);
+    return out;
+  }
+  function cssToRgb(c) {
+    if (typeof c !== "string" || !c) return null;
+    let hex = null;
+    try {
+      if (typeof toHex === "function") hex = toHex(c); // eslint-disable-line no-undef
+    } catch (_) {}
+    return parseHex(hex || c, true);
+  }
+  function tileColor(o) {
+    const f = o && o.fill;
+    if (typeof f === "string") return cssToRgb(f);
+    if (!f || typeof f !== "object" || !f.__texId) return null;
+    if (f.__colorize && f.__tint) return cssToRgb(f.__tint);
+    if (o.__textureColorize && o.__textureTint) return cssToRgb(o.__textureTint);
+    try {
+      const e = typeof getRegisteredTexture === "function" ? getRegisteredTexture(f.__texId) : null; // eslint-disable-line no-undef
+      if (e && e.img && typeof _averageTextureColor === "function") return cssToRgb(_averageTextureColor(e.img, f.__texId)); // eslint-disable-line no-undef
+    } catch (_) {}
+    return null;
+  }
+  function tileStartColor() {
+    const list = tileLeaves();
+    let first = null;
+    for (let i = 0; i < list.length; i++) {
+      const rgb = tileColor(list[i]);
+      if (!rgb) continue;
+      if (!first) {
+        first = rgb;
+        continue;
+      }
+      const d = Math.hypot(rgb[0] - first[0], rgb[1] - first[1], rgb[2] - first[2]);
+      if (d > TILE_SIMILAR) return null; // colori diversi: la ruota resta dov'era
+    }
+    return first ? rgbToHex(first) : null;
+  }
+  // Scrive in #colorInput (senza eventi: renderer.js lo legge solo su «input»/«change») il colore delle tessere;
+  // se i colori sono diversi, ci rimette quello della ruota.
+  function seedTileInput() {
+    if (S.target !== "tile") return;
+    const inp = $("colorInput");
+    if (!inp) return;
+    const hex = tileStartColor() || (S.ready ? rgbToHex(S.rgb) : null);
+    if (hex) inp.value = hex;
+  }
+
   let _wasShown = false;
   function onPopupStyle() {
     const shown = popupShown();
@@ -702,11 +771,17 @@
       _wasShown = true;
       S.lastSent = null;
       S.dirty = false;
+      S.seedNext = false;
+      seedTileInput(); // il colore vero delle tessere selezionate, non il #78a0ff di renderer.js
       syncFromInput(); // → syncInfo → keepOnScreen: il popup torna dentro la finestra
       refreshSettings();
     } else if (shown) {
       // riaperto senza passare da chiuso (🎨 di nuovo, o chiuso e aperto nello stesso giro): renderer.js
       // ha riscritto #colorInput. Se è lo stesso colore della ruota, syncFromInput rifà solo i conti a video.
+      if (S.seedNext) {
+        S.seedNext = false;
+        seedTileInput(); // solo se l'ha riaperta il 🎨 (non a ogni spostamento del popup)
+      }
       syncFromInput();
     } else if (!shown && _wasShown) {
       _wasShown = false;
@@ -1047,6 +1122,7 @@
         if (e.target && e.target.closest && e.target.closest("[data-action='copyColor']")) {
           pickCancel(true);
           setTarget("tile");
+          S.seedNext = true; // la riapertura col 🎨 riparte dal colore delle tessere
         }
       },
       true

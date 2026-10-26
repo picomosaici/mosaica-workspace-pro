@@ -25,8 +25,15 @@
 //     v  1 = famiglia mostrata, 0 = nascosta
 //     b  il colore proprio della tessera, SOLO mentre mostra la
 //        texture della famiglia (è il colore a cui torna)
-//  Con «colora» acceso ogni tessera prende la grana tinta col SUO
-//  colore (B1 = a): la famiglia dà la grana, il colore resta suo.
+//     p  il «colore di lavoro»: quello che la tessera aveva subito dopo
+//        «👻 Fantasma» (le copie lo ereditano) — regola ibrida, 26/10
+//     s  la tinta che il Mostra ha messo sulla grana, SOLO mentre mostra
+//  LA REGOLA IBRIDA (Mirko, 26/10, prende il posto di B1 = a): con
+//  «colora» acceso, mostrando, una tessera ancora del colore di lavoro
+//  prende la grana tinta col colore della FAMIGLIA (k); una tessera
+//  ricolorata a mano tiene il SUO colore. Nascondendo, ognuna torna al
+//  colore che aveva. Le famiglie di prima, senza `p`, lo ricavano al primo
+//  Mostra: il colore proprio più frequente fra le loro tessere.
 //
 //  PERCHÉ STA FUORI DA renderer.js — il patto
 //  ------------------------------------------
@@ -128,7 +135,7 @@
   if (typeof canvas === "undefined" || !canvas || typeof canvas.on !== "function") return;
   window.__textureGhostInstalled = true;
 
-  const TG_VERSION = "3";
+  const TG_VERSION = "4";
   const LABELS = ["__textureId", "__textureSpanMM", "__textureColorize", "__textureTint", "__preTextureFill"];
 
   // ── nomi presi in prestito da renderer.js (sempre con la guardia) ──
@@ -224,12 +231,76 @@
   // Il colore che la tessera mostra quando la texture della famiglia è a
   // posto: con «colora» acceso è la tinta (se l'hanno ritinta con la ruota
   // vale la tinta nuova), altrimenti il colore proprio annotato.
+  // ⚠ (26/10, la regola ibrida) La tinta che il Mostra ha messo è in `s`:
+  // può essere il colore della FAMIGLIA (k), non il colore proprio. Se la
+  // tinta di adesso è diversa da `s`, l'hanno ritinta con la ruota mentre era
+  // mostrata: quella diventa il suo colore. Senza `s` (tessere mostrate da un
+  // Mosaica di prima) vale il confronto vecchio, con `b`.
   function ownColorWhileShown(o) {
     const g = o.__ghost;
-    if (o.__textureColorize && o.__textureTint && g && g.b != null && hexOf(o.__textureTint) !== hexOf(g.b)) {
-      return o.__textureTint;
+    if (o.__textureColorize && o.__textureTint && g && g.b != null) {
+      const ref = g.s != null ? g.s : g.b;
+      if (hexOf(o.__textureTint) !== hexOf(ref)) return o.__textureTint;
     }
     return g && g.b != null ? g.b : o.__textureTint || "#cfcfd0";
+  }
+
+  // ── LA REGOLA IBRIDA (decisa da Mirko il 26/10, al posto di B1 = a) ──
+  // Ogni tessera della famiglia ricorda il suo «colore di lavoro» `p`: il
+  // colore che aveva subito dopo «👻 Fantasma» (le copie lo ereditano). Al
+  // Mostra, con «colora» acceso:
+  //   • la tessera è ancora del colore di lavoro → la grana prende il colore
+  //     della FAMIGLIA (k, quello scelto con la ruota sulla capostipite);
+  //   • la tessera è stata ricolorata a mano → tiene il SUO colore.
+  // Nascondendo, ognuna torna al colore che aveva (lavoro o il suo).
+  function sameColor(a, b) {
+    if (a == null || b == null) return false;
+    return a === b || hexOf(a) === hexOf(b);
+  }
+  // Famiglie fatte prima del 26/10 non hanno `p`: si ricava come il colore
+  // proprio più frequente fra le sue tessere (le copie nascono tutte del
+  // colore della capostipite), e si scrive su tutte. Si fa al Mostra.
+  function ownNow(o) {
+    const g = o.__ghost;
+    if (showsFamily(o)) return ownColorWhileShown(o);
+    if (typeof o.fill === "string") return o.fill;
+    return g && g.b != null ? g.b : typeof o.__preTextureFill === "string" ? o.__preTextureFill : null;
+  }
+  function ensureWorkColor(members) {
+    const byF = new Map();
+    members.forEach((o) => {
+      const g = o.__ghost;
+      if (!g || !g.c || g.p != null) return;
+      if (!byF.has(g.f)) byF.set(g.f, []);
+      byF.get(g.f).push(o);
+    });
+    byF.forEach((list, f) => {
+      // colori di lavoro già noti su altre tessere della stessa famiglia
+      const known = allLeaves().find((x) => x.__ghost && x.__ghost.f === f && x.__ghost.p != null);
+      let p = known ? known.__ghost.p : null;
+      if (p == null) {
+        const count = new Map();
+        list.forEach((o) => {
+          const c = ownNow(o);
+          if (typeof c !== "string") return;
+          const key = hexOf(c);
+          const e = count.get(key) || { n: 0, c: c };
+          e.n++;
+          count.set(key, e);
+        });
+        let best = null;
+        count.forEach((e) => {
+          if (!best || e.n > best.n) best = e;
+        });
+        p = best ? best.c : null;
+      }
+      if (p != null) list.forEach((o) => (o.__ghost.p = p));
+    });
+  }
+  // La tinta da dare alla grana di una tessera della famiglia.
+  function tintFor(g, own) {
+    if (g.k && g.p != null && sameColor(own, g.p)) return hexOf(g.k);
+    return hexOf(own);
   }
 
   // ════════════════════════════════════════════════════════════════
@@ -366,13 +437,18 @@
     if (!g) return false;
     const own =
       typeof o.fill === "string" ? o.fill : g.b != null ? g.b : typeof o.__preTextureFill === "string" ? o.__preTextureFill : "#cfcfd0";
+    // la regola ibrida: famiglie di prima del 26/10 senza colore di lavoro
+    if (g.c && g.p == null) ensureWorkColor(membersOf(g.f));
+    const tint = g.c ? tintFor(g, own) : null;
     g.b = own;
     g.v = 1;
+    if (tint) g.s = tint;
+    else delete g.s;
     o.__preTextureFill = own;
     o.__textureId = g.t;
     o.__textureSpanMM = g.g;
     o.__textureColorize = !!g.c;
-    o.__textureTint = g.c ? hexOf(own) : null;
+    o.__textureTint = tint;
     let ok = false;
     rebuild(o, (r) => {
       ok = !!r;
@@ -393,6 +469,7 @@
       changed = true;
     }
     delete g.b;
+    delete g.s;
     g.v = 0;
     return changed;
   }
@@ -428,6 +505,7 @@
       if (hasPat(o) && !showsFamily(o)) {
         // Ha una texture sua (B7): resta la sua.
         delete g.b;
+        delete g.s;
         g.v = 1;
       } else if (!showsFamily(o)) {
         const e = registryEntry(g.t);
@@ -446,6 +524,7 @@
       // Famiglia nascosta: la copia ha già il colore proprio.
       g.v = 0;
       delete g.b;
+      delete g.s;
     }
   }
 
@@ -646,7 +725,7 @@
       if (!g.c) return;
       const own = typeof o.fill === "string" ? o.fill : g.b != null ? g.b : o.__preTextureFill;
       if (typeof own !== "string") return;
-      const k = tintKey(g.t, hexOf(own));
+      const k = tintKey(g.t, tintFor(g, own));
       if (!_tintKeep.has(k)) keys.add(k);
     });
     let ms = n * 0.05;
@@ -719,7 +798,10 @@
           // vivo (l'«input», prima del «change») ha già messo il colore.
           if (o.__textureId && !o.__textureColorize) {
             const g = o.__ghost;
-            if (g && g.b != null && o.__textureId === g.t) delete g.b;
+            if (g && g.b != null && o.__textureId === g.t) {
+              delete g.b;
+              delete g.s;
+            }
             stripLabels(o);
           }
         });
@@ -751,7 +833,8 @@
 
   // Il colore che la tessera aveva prima della texture.
   function colorBeforeTexture(o) {
-    if (o.__ghost && o.__ghost.b != null && showsFamily(o)) return o.__ghost.b;
+    // mostrata: il colore a cui tornerebbe nascondendo (anche quello dato con la ruota)
+    if (o.__ghost && o.__ghost.b != null && showsFamily(o)) return ownColorWhileShown(o);
     if (typeof o.__preTextureFill === "string" && o.__preTextureFill) return o.__preTextureFill;
     if (o.__textureColorize && o.__textureTint) return o.__textureTint;
     try {
@@ -787,7 +870,8 @@
         o.set("fill", own);
         stripLabels(o);
         delete o.__textureDataURL;
-        o.__ghost = { f: f, t: grp.t, g: grp.g, c: grp.c ? 1 : 0, k: grp.k ? hexOf(grp.k) : null, v: 0 };
+        // p = il colore di lavoro (regola ibrida, 26/10): le copie lo ereditano
+        o.__ghost = { f: f, t: grp.t, g: grp.g, c: grp.c ? 1 : 0, k: grp.k ? hexOf(grp.k) : null, v: 0, p: own };
         markDirty(o);
       });
       made.push({ f: f, count: grp.tiles.length });
@@ -837,6 +921,7 @@
         if (hasPat(o)) {
           // B7: una texture sua, messa a mano, vince.
           delete g.b;
+          delete g.s;
           g.v = 1;
           result.skipped++;
           return;

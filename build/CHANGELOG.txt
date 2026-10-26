@@ -1,4 +1,36 @@
 ------------------------------------------------------------
+Versione 10.2026.1  (Ottobre 2026)
+------------------------------------------------------------
+
+CORREZIONI:
+  * Texture fantasma, il colore: mostrando la famiglia, le
+    tessere rimaste del colore di lavoro (quello che la
+    capostipite ha dopo "Fantasma") prendono il colore dato
+    alla texture con la ruota, cioe' il colore della
+    famiglia; quelle ricolorate a mano tengono il loro.
+    Prima tutte prendevano il colore di lavoro (per esempio
+    il blu della tessera nuova) e il colore scelto per la
+    texture non si vedeva piu'
+  * I progetti con texture fantasma fatti con la 10.2026 si
+    rimettono a posto da soli: basta nascondere e mostrare
+    la famiglia (il colore della famiglia e' scritto in ogni
+    tessera)
+  * La ruota dei colori parte dal colore della tessera
+    selezionata anche se ha una texture (la sua tinta, o il
+    colore medio della texture se non e' colorata); prima
+    partiva sempre da un azzurro fisso. Con piu' tessere
+    parte dal loro colore se e' piu' o meno lo stesso per
+    tutte, altrimenti resta sull'ultimo colore usato
+  * "Fantasma" su tessere di una famiglia mostrata tiene il
+    colore dato con la ruota
+
+NOTE TECNICHE:
+  - Versione interna: 10.2026.1
+  - Guida utente IT ed EN aggiornate (texture fantasma, ruota)
+  - I progetti salvati con le versioni precedenti si aprono
+    normalmente
+
+------------------------------------------------------------
 Versione 10.2026  (Ottobre 2026)
 ------------------------------------------------------------
 
