@@ -61,19 +61,24 @@ jobs:
           body: |
             ## 🎨 Mosaica Workspace Pro ${{ github.ref_name }}
 
-            Correzione della 10.2026: le texture fantasma tornano col colore che hai scelto, e la ruota dei colori parte dal colore della tessera.
+            Le punte delle tessere si mozzano direttamente sulla tessera, e il lato curvo dei settori si abbassa o parte dritto.
+
+            ### ✨ Novità
+
+            - ✂️ **Spunta delle tessere** — con una tessera a lati dritti selezionata (triangolo, trapezio, quadrato, rettangolo, forma libera anche della Palladiana) premi ✂️ nel menu radiale: **clic su una punta** e la punta si mozza con un lato dritto nuovo (1 mm la prima volta), **trascinando** scegli quanto, i due **capi** del taglio si spostano lungo il loro lato. Larghezza e capi anche in mm nell'Ispettore, **Togli questo taglio** e **↺ Rimetti le punte**. La tessera **resta lei**: colore, texture, famiglia fantasma 👻, posizione, rotazione
+            - ◠ **Curva dei settori** — sui settori del cerchio e dell'ovale, nell'Ispettore: **Curva %** abbassa il lato curvo verso la linea dritta fra i suoi capi (100 = l'arco di sempre, 0 = lato dritto) lasciando **identici i due lati dritti**; **Inizio / Fine curvatura** fanno partire il lato curvo dritto per N mm e curvare solo dopo, raccordato senza spigolo, con due pallini da trascinare sul settore
+            - 🔪 **Tavola delle Tessere** — nella distinta ogni forma col suo nome: «triangolo spuntato», «trapezio spuntato», «quadrato spuntato», «rettangolo spuntato», «settore schiacciato» (curva in %), «settore sagomato» (tratti dritti in mm)
 
             ### 🐛 Correzioni
 
-            - 👻 **Texture fantasma, il colore** — mostrando la famiglia, le tessere rimaste del colore di lavoro (quello della capostipite dopo **Fantasma**) prendono il **colore dato alla texture con la ruota**; quelle ricolorate a mano tengono il loro. Prima tutte prendevano il colore di lavoro (per esempio il blu della tessera nuova)
-            - 🔁 **I progetti fatti con la 10.2026 si rimettono a posto da soli**: nascondi e mostra la famiglia (il colore della famiglia è scritto in ogni tessera)
-            - 🎨 **La ruota parte dal colore della tessera**, anche con una texture (la sua tinta, o il colore medio della texture); con più tessere dal loro colore se è più o meno lo stesso, altrimenti dall'ultimo usato. Prima partiva sempre da un azzurro fisso
-            - 👻 **Fantasma** su tessere di una famiglia mostrata tiene il colore dato con la ruota
-            - 📖 Guida utente IT/EN aggiornata
+            - 🖊️ Il tasto **«Ripeti» della penna Wacom** non faceva niente (mandava Ctrl+Y): ora ripristina, come <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd>
+            - ↷ Il pulsante Ripristina diceva «Ctrl+Y»: il tasto giusto è <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd>
+            - ⌨️ Nei campi in mm della spunta, <kbd>Esc</kbd> rimette il numero di prima
+            - 📖 Guida utente IT/EN aggiornata, con un capitolo nuovo
 
             ### 📥 Installazione
 
-            1. Scarica il file `MosaicaWorkspacePro-Setup-10.2026.exe` qui sotto
+            1. Scarica il file `MosaicaWorkspacePro-Setup-11.2026.exe` qui sotto
             2. Eseguilo (se Windows mostra *"Editore sconosciuto"*, clicca **Ulteriori informazioni → Esegui comunque**)
             3. Segui l'installer — puoi scegliere la lingua all'avvio
 
@@ -81,6 +86,6 @@ jobs:
 
             ### 📝 Note tecniche
 
-            - Versione interna: `10.2026.1`
+            - Versione interna: `11.2026.0`
             - Fabric.js 5.5.2; nessuna dipendenza nuova
-            - I progetti salvati con le versioni precedenti si aprono normalmente
+            - I progetti salvati con le versioni precedenti si aprono normalmente; aperti con una versione vecchia, le tessere spuntate si vedono giuste e i settori curvati tornano interi

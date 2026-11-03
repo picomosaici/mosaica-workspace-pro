@@ -1240,6 +1240,124 @@
         border: 1px solid var(--col-border-strong);
         color: var(--col-text);
       }
+      /* ── ✂️ SPUNTA TESSERE (spuntaTessere.js, cantiere «Spunta Tessere», Fetta 2) ──
+         Le maniglie stanno in un SVG sopra il foglio (#spuntaOverlay, lo crea
+         il modulo): sotto le misure (9997) e il radiale (9998), ritagliato
+         sull'area libera del foglio, così non passa sopra barre e ispettore.
+         Il velo non prende il mouse: lo prendono solo le maniglie. */
+      #spuntaOverlay {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 0;
+        height: 0;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 9996;
+      }
+      #spuntaOverlay.st-drag {
+        pointer-events: auto;
+        cursor: move;
+      }
+      #spuntaOverlay [data-k] {
+        pointer-events: auto;
+      }
+      #spuntaOverlay .st-punta {
+        fill: rgba(0, 200, 255, 0.22);
+        stroke: #00c8ff;
+        stroke-width: 2;
+        cursor: pointer;
+      }
+      #spuntaOverlay .st-punta:hover {
+        fill: #00c8ff;
+      }
+      #spuntaOverlay .st-via {
+        fill: rgba(255, 138, 0, 0.16);
+        stroke: rgba(255, 255, 255, 0.75);
+        stroke-width: 1;
+        stroke-dasharray: 3 3;
+        pointer-events: none;
+      }
+      #spuntaOverlay .st-seg {
+        stroke: #00c8ff;
+        stroke-width: 2;
+        pointer-events: none;
+      }
+      #spuntaOverlay .st-seg.on {
+        stroke: #ff8a00;
+        stroke-width: 3;
+      }
+      #spuntaOverlay .st-mid {
+        fill: #00c8ff;
+        stroke: #002244;
+        stroke-width: 1.5;
+        cursor: move;
+      }
+      #spuntaOverlay .st-mid.on {
+        fill: #ff8a00;
+        stroke: #3a1d00;
+      }
+      #spuntaOverlay .st-mid:hover,
+      #spuntaOverlay .st-capo:hover {
+        stroke: #fff;
+        stroke-width: 2.5;
+      }
+      #spuntaOverlay .st-capo {
+        stroke: #222;
+        stroke-width: 1.5;
+        cursor: move;
+      }
+      #spuntaOverlay .st-capo-a {
+        fill: #ffd400;
+      }
+      #spuntaOverlay .st-capo-b {
+        fill: #ff4fd8;
+      }
+      #spuntaOverlay .st-num {
+        font: bold 12px monospace;
+        fill: #fff;
+        stroke: #000;
+        stroke-width: 3px;
+        paint-order: stroke;
+        pointer-events: none;
+      }
+      .radial-btn[data-action="spunta"].st-on,
+      .radial-btn[data-action="spunta"].st-on:hover {
+        background: #ff8a00;
+        box-shadow: 0 0 0 3px rgba(255, 138, 0, 0.45), 0 6px 15px rgba(0, 0, 0, 0.5);
+      }
+      .inspector-btn.st-on {
+        background: #ff8a00;
+      }
+      .st-hint {
+        font-size: 11px;
+        color: var(--col-text-dim);
+        line-height: 1.4;
+        margin: 0 0 6px 0;
+      }
+      .st-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border: 1px solid #222;
+        margin-right: 4px;
+        vertical-align: middle;
+      }
+      .st-dot-a {
+        background: #ffd400;
+      }
+      .st-dot-b {
+        background: #ff4fd8;
+      }
+      /* ◠ Inizio / Fine curvatura: l'etichetta va a capo, il numero ha il suo posto */
+      .st-tratto .lbl {
+        flex: 1 1 auto;
+        min-width: 0;
+        line-height: 1.15;
+      }
+      .st-tratto input {
+        flex: 0 0 66px;
+      }
       .tg-pop {
         border-top: 1px solid var(--col-border);
         margin-top: 10px;
@@ -2284,6 +2402,12 @@
         data-tooltip="Dividi cerchio/ellisse (Click=4 quarti | Alt+Click=2 metà)">
         ◔
       </div>
+      <!-- ── ✂️ SPUNTA (spuntaTessere.js, cantiere «Spunta Tessere», Fetta 2) ──
+           Nascosto di partenza: lo mostra il modulo solo sulle tessere a lati
+           dritti (triangoli, trapezi, quadrati, forme libere). Dove si vede ◔
+           (cerchio, ovale) non si vede ✂️, e viceversa: il raggio del radiale
+           resta quello di oggi. -->
+      <div class="radial-btn" data-action="spunta" data-i18n-tooltip="radial.tooltip.spunta" data-tooltip="Spunta le punte della tessera" style="display: none">✂️</div>
       <div class="radial-btn" data-action="lock" data-i18n-tooltip="radial.tooltip.lock" data-tooltip="Blocca oggetto (non selezionabile)">🔒</div>
       <div class="radial-btn" data-action="delete" data-i18n-tooltip="radial.tooltip.delete" data-tooltip="Elimina oggetto (tasto Canc)">🗑️</div>
       <div class="radial-btn" data-action="group" data-i18n-tooltip="radial.tooltip.group" data-tooltip="Raggruppa oggetti selezionati">⎇</div>
@@ -2616,7 +2740,7 @@
       <!-- Undo/Redo -->
       <div class="topbar-section">
         <button id="undoBtn" class="topbar-icon-btn" disabled data-i18n-title="topbar.undo.tooltip" title="Annulla (Ctrl+Z)">↶</button>
-        <button id="redoBtn" class="topbar-icon-btn" disabled data-i18n-title="topbar.redo.tooltip" title="Ripristina (Ctrl+Y)">↷</button>
+        <button id="redoBtn" class="topbar-icon-btn" disabled data-i18n-title="topbar.redo.tooltip" title="Ripristina (Ctrl+Shift+Z)">↷</button>
       </div>
 
       <!-- Zoom (id="zoomPanel" mantenuto per compat JS) -->
@@ -2925,6 +3049,139 @@
             data-i18n="inspector.ghost.make"
             data-i18n-title="inspector.ghost.make.tooltip"
             title="La tessera torna al colore che aveva prima della texture e diventa la capostipite di una famiglia: le sue copie si portano dietro la texture senza mostrarla. Un passo di Ctrl+Z.">👻 Fantasma</button>
+          <div class="inspector-divider"></div>
+        </div>
+
+        <!-- ── ✂️ SPUNTA (cantiere «Spunta Tessere», Fetta 2): lo mostra e lo
+             riempie spuntaTessere.js, sulle tessere a lati dritti ── -->
+        <div id="inspectorSpuntaBlock" style="display: none">
+          <p class="inspector-section-title" data-i18n="inspector.spunta.title">✂️ Spunta</p>
+          <p class="st-hint" id="spuntaHint" style="display: none"></p>
+          <div id="spuntaTaglioBox" style="display: none">
+            <div class="inspector-row">
+              <span class="lbl" data-i18n="inspector.spunta.width">Punta</span>
+              <input
+                type="number"
+                id="spuntaLarghezza"
+                class="inspector-dim-input"
+                step="0.1"
+                min="0.1"
+                data-i18n-title="inspector.spunta.width.tooltip"
+                title="Larghezza della punta piatta, in mm sul foglio — Invio per applicare. I due capi tengono la loro proporzione." />
+              <span class="val">mm</span>
+            </div>
+            <div class="inspector-row">
+              <span class="lbl"><span class="st-dot st-dot-a"></span><span data-i18n="inspector.spunta.capoA">Capo 1</span></span>
+              <input
+                type="number"
+                id="spuntaCapoA"
+                class="inspector-dim-input"
+                step="0.1"
+                min="0.01"
+                data-i18n-title="inspector.spunta.capo.tooltip"
+                title="Distanza del capo dalla punta, in mm lungo il suo lato — Invio per applicare. Il taglio diventa libero." />
+              <span class="val">mm</span>
+            </div>
+            <div class="inspector-row">
+              <span class="lbl"><span class="st-dot st-dot-b"></span><span data-i18n="inspector.spunta.capoB">Capo 2</span></span>
+              <input
+                type="number"
+                id="spuntaCapoB"
+                class="inspector-dim-input"
+                step="0.1"
+                min="0.01"
+                data-i18n-title="inspector.spunta.capo.tooltip"
+                title="Distanza del capo dalla punta, in mm lungo il suo lato — Invio per applicare. Il taglio diventa libero." />
+              <span class="val">mm</span>
+            </div>
+            <button
+              type="button"
+              id="spuntaTogliBtn"
+              class="inspector-btn tg-secondary"
+              data-i18n="inspector.spunta.remove"
+              data-i18n-title="inspector.spunta.remove.tooltip"
+              title="Rimette la punta di questo taglio (anche col tasto Canc). Un passo di Ctrl+Z.">✂️ Togli questo taglio</button>
+          </div>
+          <button
+            type="button"
+            id="spuntaBtn"
+            class="inspector-btn"
+            data-i18n-title="inspector.spunta.start.tooltip"
+            title="Mostra le maniglie sulle punte: clic su una punta per tagliarla, trascina per scegliere quanto. La tessera resta lei: colore, famiglia, texture, posizione.">✂️ Spunta le punte</button>
+          <button
+            type="button"
+            id="spuntaRimettiBtn"
+            class="inspector-btn tg-secondary"
+            style="display: none"
+            data-i18n="inspector.spunta.restore"
+            data-i18n-title="inspector.spunta.restore.tooltip"
+            title="Toglie tutti i tagli: la tessera torna com'era (il triangolo e il trapezio coi loro cursori, il quadrato un quadrato). Un passo di Ctrl+Z.">↺ Rimetti le punte</button>
+          <div class="inspector-divider"></div>
+        </div>
+
+        <!-- ── ◠ CURVA (cantiere «Spunta Tessere», Fetta 3): il lato curvo dei
+             settori del cerchio e dell'ovale si abbassa verso la corda, i due
+             lati dritti restano quelli. Lo mostra e lo riempie spuntaTessere.js,
+             su un settore solo fino a 180° ── -->
+        <div id="inspectorCurvaBlock" style="display: none">
+          <p class="inspector-section-title" data-i18n="inspector.curva.title">◠ Curva</p>
+          <div class="inspector-row">
+            <span class="lbl" data-i18n="inspector.curva.label">Curva</span>
+            <input
+              type="number"
+              id="curvaPercento"
+              class="inspector-dim-input"
+              step="1"
+              min="0"
+              max="100"
+              data-i18n-title="inspector.curva.tooltip"
+              title="100 % = l'arco di sempre, 0 % = lato dritto. I due lati dritti non cambiano. Un passo di Ctrl+Z per ogni scelta." />
+            <span class="val">%</span>
+          </div>
+          <div class="inspector-row">
+            <input
+              type="range"
+              id="curvaSlider"
+              min="0"
+              max="100"
+              step="1"
+              value="100"
+              data-i18n-title="inspector.curva.tooltip"
+              title="100 % = l'arco di sempre, 0 % = lato dritto. I due lati dritti non cambiano. Un passo di Ctrl+Z per ogni scelta." />
+          </div>
+          <div class="inspector-row st-tratto">
+            <span class="lbl"><span class="st-dot st-dot-a"></span><span data-i18n="inspector.curva.start">Inizio curvatura</span></span>
+            <input
+              type="number"
+              id="curvaInizio"
+              class="inspector-dim-input"
+              step="0.5"
+              min="0"
+              data-i18n-title="inspector.curva.start.tooltip"
+              title="Quanto è lungo il tratto dritto dal capo prima che cominci la curva (il pallino giallo sul settore: si può anche trascinare), in mm sul foglio — Invio per applicare. 0 = la curva parte subito." />
+            <span class="val">mm</span>
+          </div>
+          <div class="inspector-row st-tratto">
+            <span class="lbl"><span class="st-dot st-dot-b"></span><span data-i18n="inspector.curva.end">Fine curvatura</span></span>
+            <input
+              type="number"
+              id="curvaFine"
+              class="inspector-dim-input"
+              step="0.5"
+              min="0"
+              data-i18n-title="inspector.curva.end.tooltip"
+              title="Quanto è lungo il tratto dritto fino al capo dopo la fine della curva (il pallino rosa sul settore: si può anche trascinare), in mm sul foglio — Invio per applicare. 0 = la curva arriva fino al capo." />
+            <span class="val">mm</span>
+          </div>
+          <p class="st-hint" id="curvaTrattiHint"></p>
+          <button
+            type="button"
+            id="curvaInteraBtn"
+            class="inspector-btn tg-secondary"
+            style="display: none"
+            data-i18n="inspector.curva.restore"
+            data-i18n-title="inspector.curva.restore.tooltip"
+            title="Il lato curvo torna l'arco di sempre: curva 100 %, nessun tratto dritto. Un passo di Ctrl+Z.">↺ Curva intera</button>
           <div class="inspector-divider"></div>
         </div>
 
@@ -4756,6 +5013,7 @@
     <script src="csb-image.js"></script>
     <script src="selectionTools.js"></script>
     <script src="textureGhost.js"></script>
+    <script src="spuntaTessere.js"></script>
     <script src="softProof.js"></script>
     <script src="printColor.js"></script>
     <script src="colorWheel.js"></script>

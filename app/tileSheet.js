@@ -2346,8 +2346,35 @@
     formaLibera: "forma libera",
     formaCurva: "forma curva",
     gruppo: "gruppo",
-    forma: "forma"
+    forma: "forma",
+    // cantiere «Spunta Tessere» (B6, 02/11/2026): le tessere spuntate e il
+    // settore schiacciato si chiamano per quello che erano
+    triangoloSpuntato: "triangolo spuntato",
+    trapezioSpuntato: "trapezio spuntato",
+    quadratoSpuntato: "quadrato spuntato",
+    rettangoloSpuntato: "rettangolo spuntato",
+    settoreSchiacciato: "settore schiacciato",
+    settoreSagomato: "settore sagomato"
   };
+
+  // B6 (Mirko, 02/11/2026): una tessera spuntata si chiama per quello che
+  // era («triangolo spuntato», non «forma libera»). Lo dice il record della
+  // spunta (__shape.spunta.da, spuntaTessere.js); il quadrato e il
+  // rettangolo si distinguono dai lati di prima, scalati come la tessera.
+  // La forma della Palladiana spuntata resta «forma libera».
+  function _nomeSpuntata(obj) {
+    var sp = obj && obj.__shape && obj.__shape.spunta;
+    if (!sp || typeof sp !== "object") return null;
+    if (sp.da === "triangle") return "triangoloSpuntato";
+    if (sp.da === "trapezoid") return "trapezioSpuntato";
+    if (sp.da === "rect") {
+      var a = Math.abs(Number(sp.w) * (obj.scaleX || 1)),
+        b = Math.abs(Number(sp.h) * (obj.scaleY || 1));
+      if (!(a > 0 && b > 0)) return null;
+      return Math.abs(a - b) <= 0.01 * Math.max(a, b) ? "quadratoSpuntato" : "rettangoloSpuntato";
+    }
+    return null;
+  }
 
   function _verticiPoligono(ct) {
     if (!ct || !ct.segs.length) return null;
@@ -2395,6 +2422,29 @@
       // misura, e una scala non la cambia
       var sh = f.obj && f.obj.__shape;
       var a = sh ? Number(sh.sweepDeg) : NaN;
+      // il settore col lato curvo schiacciato (Fetta 3 della Spunta): la
+      // curva in % sta nel modello (__shape.curva, assente = arco intero)
+      var cu = sh ? Number(sh.curva) : NaN;
+      // e con i tratti dritti dai capi (inizio / fine curvatura): le misure
+      // VERE sul foglio le dà spuntaTessere.js (quelle che il path disegna)
+      if (sh && (Number(sh.inizio_mm) > 0 || Number(sh.fine_mm) > 0)) {
+        var stc = null;
+        try {
+          stc = window.spuntaTessere && typeof window.spuntaTessere.statoCurva === "function" ? window.spuntaTessere.statoCurva(f.obj) : null;
+        } catch (_) {}
+        var di = stc && stc.ok ? stc.inizioMm : Number(sh.inizio_mm) || 0,
+          df = stc && stc.ok ? stc.fineMm : Number(sh.fine_mm) || 0;
+        if (di > 0 || df > 0) {
+          var exs = { curva: Math.round((isFinite(cu) ? cu : 1) * 100), dritto: [Math.round(di * 10) / 10, Math.round(df * 10) / 10] };
+          if (isFinite(a) && a > 0) exs.ampiezza = Math.round(a);
+          return { forma: "settoreSagomato", extra: exs };
+        }
+      }
+      if (isFinite(cu) && cu < 1) {
+        var ex = { curva: Math.round(cu * 100) };
+        if (isFinite(a) && a > 0) ex.ampiezza = Math.round(a);
+        return { forma: "settoreSchiacciato", extra: ex };
+      }
       return { forma: "settore", extra: isFinite(a) && a > 0 ? { ampiezza: Math.round(a) } : null };
     }
     var v = cts.length === 1 ? _verticiPoligono(cts[0]) : null;
@@ -2417,6 +2467,8 @@
       return { forma: "triangolo", extra: { angoli: [_angolo(sx, dx, apice), _angolo(dx, sx, apice)] } };
     }
     if (curve) return { forma: "formaCurva", extra: null };
+    var nsp = v ? _nomeSpuntata(f.obj) : null;
+    if (nsp) return { forma: nsp, extra: { lati: v.length } };
     if (v) return { forma: "formaLibera", extra: { lati: v.length } };
     return { forma: cts.length > 1 ? "formaLibera" : "forma", extra: null };
   }
@@ -2429,6 +2481,8 @@
     if (e.angoli) return "a" + Math.round(e.angoli[0]) + "/" + Math.round(e.angoli[1]);
     if (e.lati) return "l" + e.lati;
     if (e.pezzi) return "p" + e.pezzi;
+    if (e.dritto) return "s" + (e.ampiezza || "") + "c" + e.curva + "d" + Math.round(e.dritto[0] * 10) + "/" + Math.round(e.dritto[1] * 10);
+    if (e.curva != null) return "s" + (e.ampiezza || "") + "c" + e.curva;
     if (e.ampiezza) return "s" + e.ampiezza;
     return "";
   }
@@ -2439,6 +2493,13 @@
     if (e.angoli) return _t("tileSheet.pdf.extra.angles", { a: Math.round(e.angoli[0]), b: Math.round(e.angoli[1]) }, "angoli {a}° / {b}°");
     if (e.lati) return _t("tileSheet.pdf.extra.sides", { n: e.lati }, "{n} lati");
     if (e.pezzi) return _t("tileSheet.pdf.extra.pieces", { n: e.pezzi }, "{n} pezzi");
+    if (e.dritto && e.ampiezza)
+      return _t(
+        "tileSheet.pdf.extra.sweepCurveStraight",
+        { a: e.ampiezza, c: e.curva, i: _num(e.dritto[0], 1), f: _num(e.dritto[1], 1) },
+        "apertura {a}° · curva {c} % · dritto {i} / {f} mm"
+      );
+    if (e.curva != null && e.ampiezza) return _t("tileSheet.pdf.extra.sweepCurve", { a: e.ampiezza, c: e.curva }, "apertura {a}° · curva {c} %");
     if (e.ampiezza) return _t("tileSheet.pdf.extra.sweep", { a: e.ampiezza }, "apertura {a}°");
     return "";
   }

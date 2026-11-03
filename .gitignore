@@ -37,3 +37,40 @@ $RECYCLE.BIN/
 *.bak
 *.orig
 *.tmp
+
+# ============================================================
+# Aggiunte del 02/11/2026 - quello che resta SOLO sul PC di Mirko
+# ============================================================
+
+# Cartella di lavoro di Claude: banchi, cantieri, zip delle fette,
+# copie di sicurezza, foto delle prove. Non va MAI su GitHub.
+CLAUDE/
+claude/
+
+# Copie di sicurezza fatte prima di sostituire un file
+*.backup
+*.bak.*
+*_backup/
+*-backup/
+backup/
+backups/
+BACKUP/
+_old/
+
+# Archivi (consegne, banchi, pacchetti): nel repo non ce n'e' nessuno
+*.zip
+*.7z
+*.rar
+
+# Diff e patch avanzati (non si usano: le modifiche arrivano a file interi)
+*.diff
+*.patch
+*.rej
+
+# Progetti dei mosaici (stanno in "PROGETTI MWP", non qui)
+*.msp.json
+*.mspp.json
+
+# NOTA: app/data/calibration.json E' nel repo (i valori di partenza per
+# chi installa). Se "git status" lo segna come modificato NON va
+# committato: si rimette com'era con  git checkout -- app/data/calibration.json

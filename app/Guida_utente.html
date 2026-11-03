@@ -582,7 +582,7 @@
   <div class="header-inner">
     <div class="logo-badge">
       <div class="logo-dot">🎨</div>
-      Guida Utente · V 10.2026
+      Guida Utente · V 11.2026
     </div>
     <h1>Mosaica<br><em>Workspace Pro</em></h1>
     <p class="header-sub">Guida completa all'uso dell'applicazione per la progettazione di mosaici in scala reale, disegno a mano libera, acquerello digitale ed esportazione per laser CAM.</p>
@@ -598,6 +598,7 @@
     <a href="#rotazione">Rotazione Canvas</a>
     <a href="#forme">Forme</a>
     <a href="#radiale">Menu Radiale</a>
+    <a href="#spunta">Spunta e Curva</a>
     <a href="#texture">Texture fantasma</a>
     <a href="#colore">Colore e stampa</a>
     <a href="#lazo">Selezione Lazo</a>
@@ -923,7 +924,7 @@
     <li><strong>Click normale</strong> → divide in 4 quarti (90° ciascuno)</li>
     <li><strong>Alt + Click</strong> → divide in 2 metà (180° ciascuna)</li>
   </ul>
-  <p>Ogni settore diventa un oggetto indipendente, ridimensionabile e modificabile.</p>
+  <p>Ogni settore diventa un oggetto indipendente, ridimensionabile e modificabile. Il suo <strong>lato curvo</strong> si può abbassare, o far partire dritto, lasciando identici i due lati dritti: vedi <a href="#spunta" style="color:var(--blue);">Spuntare le tessere e curvare i settori</a>.</p>
 
   <h3>Forme personalizzate (non standard)</h3>
   <p>Quando le forme regolari (rettangolo, cerchio, triangolo, trapezio, settore) non bastano — per esempio per stelle, frecce, petali, sagome irregolari, contorni di tessere irregolari per i tuoi mosaici — usa il <strong>builder di forme personalizzate</strong> dalla Left Toolbar (pulsante <strong>✏️➕</strong> subito accanto a <strong>➕ Aggiungi forma</strong>).</p>
@@ -1097,6 +1098,13 @@
       </div>
     </div>
     <div class="radial-item">
+      <div class="radial-icon">✂️</div>
+      <div>
+        <div class="radial-label">Spunta le punte</div>
+        <div class="radial-desc">Visibile con <strong>una</strong> tessera a lati dritti (dove c'è ◔ non c'è ✂️). Accende la spunta: clic su una punta per mozzarla, trascina per scegliere quanto. Vedi <a href="#spunta" style="color:var(--blue);">Spuntare le tessere</a>.</div>
+      </div>
+    </div>
+    <div class="radial-item">
       <div class="radial-icon orange">🔒</div>
       <div>
         <div class="radial-label">Blocca / Sblocca</div>
@@ -1206,7 +1214,7 @@
     <li><strong>⎇ Raggruppa</strong> → si <strong>attiva</strong> con due o più forme selezionate e le fonde in un gruppo unico. <strong>⎆ Separa</strong> si attiva invece quando hai selezionato un gruppo, e lo riporta a forme singole.</li>
     <li><strong>⬚ Deseleziona tutto</strong> → lascia andare la selezione. Su un mosaico pieno è più comodo che cercare un punto vuoto del foglio dove cliccare.</li>
     <li><strong>◨ e ⬓ Specchia</strong> → rovesciano <strong>la disposizione</strong> di tutte le tessere selezionate intorno all'asse che passa per il centro della selezione, senza cambiare di un decimo di millimetro le misure delle tessere. Vedi il paragrafo <em>Lo specchio</em> qui sopra.</li>
-    <li><strong>◔ Dividi cerchio</strong> compare solo quando la selezione è un singolo cerchio o ellisse, quindi <strong>non appare</strong> in multi-selezione.</li>
+    <li><strong>◔ Dividi cerchio</strong> compare solo quando la selezione è un singolo cerchio o ellisse, quindi <strong>non appare</strong> in multi-selezione. Lo stesso vale per <strong>✂️ Spunta</strong>, che lavora su una tessera alla volta.</li>
   </ul>
   <p>In multi-selezione la Status Bar mostra <strong>"N oggetti"</strong> al posto delle misure della singola forma, e il blocco <strong>Dimensioni</strong> dell'Ispettore si nasconde (le misure singole non avrebbero senso su più forme). La colonna dei pulsanti si mette <strong>fuori dalla selezione</strong>, appoggiata al bordo del riquadro che racchiude <em>tutte</em> le forme selezionate — così non copre le tessere su cui stai lavorando — mentre in altezza resta all'altezza dell'<strong>ultima forma che hai aggiunto</strong>, cioè di dove stai lavorando. Se il bordo esterno della selezione è fuori dallo schermo, la colonna resta comunque <strong>dentro la finestra</strong>, appoggiata al suo bordo.</p>
 
@@ -1222,9 +1230,53 @@
   </ul></div></div>
 </section>
 
+<!-- ── SPUNTA E CURVA (cantiere «Spunta Tessere», 11.2026) ── -->
+<section id="spunta">
+  <div class="section-label">06</div>
+  <h2>Spuntare le tessere ✂️ e curvare i settori ◠</h2>
+  <p>Per le tessere particolari — un triangolo con la punta mozzata, un trapezio con un angolo piatto, un quarto di cerchio col lato curvo più basso — non serve più passare dalla Palladiana: si lavora sulla <strong>tessera che c'è</strong>. La tessera <strong>resta lei</strong>: tiene colore, <a href="#texture" style="color:var(--blue);">famiglia fantasma 👻</a>, texture, posizione, rotazione, specchio e livello. Ogni comando è <strong>un passo</strong> di <kbd>Ctrl</kbd>+<kbd>Z</kbd>.</p>
+
+  <h3>✂️ Spuntare le punte</h3>
+  <p>Seleziona <strong>una</strong> tessera a lati dritti — triangolo, trapezio, quadrato, rettangolo, o una forma libera a lati dritti (anche della Palladiana) — e premi <strong>✂️</strong> nel menu radiale, oppure <strong>✂️ Spunta le punte</strong> nell'Ispettore. Sui cerchi e sui settori ✂️ non c'è: al suo posto c'è ◔.</p>
+  <ul>
+    <li><strong>Spunta accesa</strong>: ✂️ e il pulsante dell'Ispettore diventano arancioni («✔ Fine spunta»), le maniglie della tessera spariscono e su ogni punta che si può tagliare compare un <strong>cerchietto azzurro</strong>.</li>
+    <li><strong>Clic su un cerchietto</strong> → la punta si taglia: un lato dritto nuovo, <strong>simmetrico</strong>, largo quanto la punta di partenza (<strong>1 mm</strong> la prima volta, poi l'ultima che hai usato).</li>
+    <li><strong>Trascinando</strong> il cerchietto, o il pallino di un taglio, <strong>verso la tessera</strong> la punta si allarga, verso fuori si stringe. Un trascinamento è un passo solo di <kbd>Ctrl</kbd>+<kbd>Z</kbd>.</li>
+    <li>Il taglio <strong>scelto</strong> è arancione, col numero in mm accanto. I suoi due <strong>capi</strong> — quadratino <strong>giallo</strong> (capo 1) e <strong>rosa</strong> (capo 2) — si trascinano lungo il loro lato: il taglio diventa <strong>libero</strong>, non più simmetrico.</li>
+    <li>Nell'Ispettore, blocco <strong>✂️ Spunta</strong>: <strong>Punta</strong> (la larghezza del lato nuovo, in mm sul foglio: i capi tengono la loro proporzione), <strong>Capo 1</strong> e <strong>Capo 2</strong> (in mm dalla punta lungo il lato), <strong>✂️ Togli questo taglio</strong>; su una tessera spuntata <strong>↺ Rimetti le punte</strong> e «Punte tagliate: N». Invio applica il numero, Esc rimette quello di prima.</li>
+    <li><strong>I tasti</strong> a spunta accesa: <kbd>Canc</kbd> / <kbd>Backspace</kbd> tolgono il <strong>taglio scelto</strong>, mai la tessera; <kbd>Invio</kbd> o <kbd>Esc</kbd> finiscono; <kbd>Ctrl</kbd>+<kbd>Z</kbd> finisce e annulla; le frecce spostano la tessera come sempre.</li>
+    <li>La spunta finisce anche con un clic fuori, un'altra selezione o un altro pulsante del menu radiale.</li>
+  </ul>
+  <ul>
+    <li>Si tagliano solo le punte <strong>sporgenti</strong> (non quelle rientranti di una forma a L) e più chiuse di <strong>175°</strong>. Fra due tagli sullo stesso lato resta almeno <strong>0,2 mm</strong> di lato, e una punta non è più stretta di <strong>0,1 mm</strong>. Se chiedi troppo, il taglio si ferma al più largo che ci sta e te lo dice.</li>
+    <li>Le misure sono <strong>vere sul foglio</strong>, anche su una tessera girata, allungata con le maniglie o specchiata.</li>
+    <li>Dopo la spunta la tessera è una <strong>forma libera</strong>: gli slider degli angoli (triangolo) e delle basi (trapezio) non ci sono più. <strong>↺ Rimetti le punte</strong> ridà il triangolo o il trapezio coi suoi slider, il quadrato un quadrato. Quindi: <strong>prima</strong> misure e angoli, <strong>poi</strong> la spunta.</li>
+    <li>Le copie (<kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>Ctrl</kbd>+<kbd>V</kbd>, ⎘, Duplica selezione) nascono spuntate. Salvataggio, auto-salvataggio, export e <a href="#tavola" style="color:var(--blue);">Tavola delle Tessere</a> le trattano col loro contorno vero; nella distinta si chiamano <strong>triangolo spuntato</strong>, <strong>trapezio spuntato</strong>, <strong>quadrato spuntato</strong>, <strong>rettangolo spuntato</strong> (una forma della Palladiana resta «forma libera»).</li>
+  </ul>
+
+  <h3>◠ Curvare i settori</h3>
+  <p>Su un <strong>settore</strong> (fatto con ◔ da un cerchio o da un ovale) l'Ispettore mostra il blocco <strong>◠ Curva</strong>. Le maniglie del settore lo scalano tutto; questo blocco invece cambia <strong>solo il lato curvo</strong> e lascia <strong>identici i due lati dritti</strong>.</p>
+  <ul>
+    <li><strong>Curva</strong> (numero in % e cursore): <strong>100 %</strong> è l'arco di sempre, <strong>0 %</strong> il lato dritto (il settore diventa un triangolo coi due lati di prima). Il lato curvo si abbassa verso la linea dritta fra i suoi due capi, ogni punto in proporzione: resta una curva liscia. Il cursore trascinato è un passo solo di <kbd>Ctrl</kbd>+<kbd>Z</kbd>.</li>
+    <li><strong>Inizio curvatura</strong> e <strong>Fine curvatura</strong> (in mm): il lato curvo può <strong>partire dritto</strong> e curvare solo dopo. Con «Inizio curvatura» 6 il lato parte dal suo capo e va dritto per 6 mm lungo la tangente, poi comincia la curva, raccordata senza spigolo; «Fine curvatura» fa lo stesso dall'altro capo. Sul settore un pallino <strong>giallo</strong> segna dove comincia la curva e uno <strong>rosa</strong> dove finisce: <strong>si trascinano</strong> lungo il lato e il numero li segue. Sotto leggi quanto può essere lungo al massimo il tratto dritto: se chiedi di più, si ferma lì e te lo dice. Trascinato indietro oltre il capo, il tratto sparisce.</li>
+    <li>Cambiando la <strong>Curva</strong> i tratti dritti restano lunghi uguali. Inizio e Fine curvatura si fanno sui settori più stretti di mezzo cerchio (i quarti) e con la curva sopra 0 %: su una metà di cerchio le due tangenti sono parallele e i campi sono spenti.</li>
+    <li><strong>↺ Curva intera</strong> rimette l'arco di sempre: curva 100 %, nessun tratto dritto.</li>
+    <li>Salvataggio, copie, famiglie fantasma, export e Tavola delle Tessere li trattano come sono. Nella distinta: <strong>settore schiacciato</strong> («apertura 90° · curva 60 %») o <strong>settore sagomato</strong> se ha tratti dritti («apertura 90° · curva 100 % · dritto 6,0 / 0,0 mm»).</li>
+    <li>Su una tessera bloccata 🔒 il blocco è spento.</li>
+  </ul>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>Un progetto con tessere spuntate o settori curvati aperto con una <strong>versione vecchia</strong> di Mosaica: le tessere spuntate si vedono giuste (ma non si possono rimettere), i settori tornano <strong>interi</strong>.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
+    <li>Le punte mozzate delle tessere di una <strong>famiglia fantasma</strong> falle con ✂️ e non con la Palladiana: la tessera resta nella famiglia e la Tavola delle Tessere la mette insieme alle sue sorelle.</li>
+    <li>Prima regola angoli e basi, poi spunta: dopo la spunta gli slider non ci sono più (↺ Rimetti le punte li ridà).</li>
+    <li>Per una punta piccolissima, ingrandisci il foglio: sotto i 16 px a schermo i due capi del taglio si nascondono, ma i numeri dell'Ispettore funzionano sempre.</li>
+  </ul></div></div>
+</section>
+
 <!-- ── TEXTURE E TEXTURE FANTASMA ── -->
 <section id="texture">
-  <div class="section-label">06</div>
+  <div class="section-label">07</div>
   <h2>Texture e texture fantasma 👻</h2>
   <p>Una <strong>texture</strong> è un'immagine che riempie la tessera ripetendosi: il granito, il marmo, la gomma EVA. Nella <strong>colonna Texture</strong>, a sinistra, ci sono quelle generate dal codice (granito, marmo, cemento, murano, EVA, venature) e le immagini della cartella delle texture. Sotto trovi anche le <strong>texture fantasma</strong>: la texture che le tessere si portano dietro senza mostrarla, pensata per i mosaici grandi.</p>
 
@@ -1264,7 +1316,7 @@
     <li>Nell'Ispettore la famiglia si riconosce dalla miniatura, dal nome (per esempio «Granito · 14.0 mm · 🎨», dove 🎨 vuol dire colorata) e dalla riga «tessere: N · nascosta» o «· mostrata». Con tessere di più famiglie selezionate i pulsanti diventano <strong>Mostra / Nascondi le famiglie</strong>.</li>
     <li>Nel pannello <strong>▦</strong>: una riga per famiglia, con la miniatura, il numero di tessere e <strong>Mostra</strong> / <strong>Nascondi</strong>; sotto, <strong>Mostra tutte</strong> e <strong>Nascondi tutte</strong>.</li>
     <li>Una tessera della famiglia che ha una texture <strong>sua</strong>, messa a mano, quando mostri la famiglia <strong>resta com'è</strong>: l'avviso ti dice quante sono.</li>
-    <li>Con la famiglia <strong>mostrata</strong>, le copie nuove entrano e mostrano la texture anche loro. Una tessera fatta col doppio-click o col ➕, o arrivata dalla Palladiana, non entra in nessuna famiglia. Una tessera sta in <strong>una famiglia sola</strong>: 👻 Fantasma su una tessera che ha già una famiglia ne fa una nuova.</li>
+    <li>Con la famiglia <strong>mostrata</strong>, le copie nuove entrano e mostrano la texture anche loro. Una tessera fatta col doppio-click o col ➕, o arrivata dalla Palladiana, non entra in nessuna famiglia: per mozzare le punte di una tessera della famiglia usa <a href="#spunta" style="color:var(--blue);">✂️ Spunta</a>, che la lascia nella famiglia. Una tessera sta in <strong>una famiglia sola</strong>: 👻 Fantasma su una tessera che ha già una famiglia ne fa una nuova.</li>
     <li>Se cancelli la capostipite la famiglia vive: ogni tessera sa tutto della sua texture.</li>
     <li>Mostrata, la texture fantasma è una <strong>texture normale</strong>: salvataggio, export (PDF, PNG, per la stampa), lente del perimetro e Tavola delle Tessere la trattano come sempre.</li>
     <li>Con una famiglia grande, la <strong>prima</strong> volta Mosaica deve preparare la texture in tutti i colori: se ci vuole più di mezzo secondo compare l'avviso <strong>«⏳ Texture fantasma: preparo N colori per M tessere…»</strong>. Dopo, Nascondi e Mostra sono quasi istantanei, e un <kbd>Ctrl</kbd>+<kbd>Z</kbd> con la famiglia mostrata è svelto come con la famiglia nascosta.</li>
@@ -1282,7 +1334,7 @@
 
 <!-- ── COLORE E STAMPA ── -->
 <section id="colore">
-  <div class="section-label">07</div>
+  <div class="section-label">08</div>
   <h2>Colore e stampa</h2>
   <p>Lo schermo fa i colori con la luce (<strong>RGB</strong>), la stampa con gli inchiostri (<strong>CMYK</strong>): certi colori accesi dello schermo la stampa non li sa fare, e la copisteria li schiaccia come può. Mosaica ha dentro un <strong>motore colore</strong> (Little CMS) che conosce i <strong>profili di stampa</strong> e ti fa vedere e scegliere i colori <strong>come usciranno</strong>: la ruota dei colori coi CMYK, la prova di stampa a video e i file per la copisteria.</p>
 
@@ -1369,7 +1421,7 @@
 
 <!-- ── SELEZIONE LAZO ── -->
 <section id="lazo">
-  <div class="section-label">08</div>
+  <div class="section-label">09</div>
   <h2>Selezione Lazo (poligono libero)</h2>
   <p>Il <strong>Lazo</strong> è un metodo di selezione avanzato che permette di racchiudere forme con un <strong>poligono libero disegnato a mano</strong>. È pensato in particolare per i mosaici, dove le tessere sono spesso piccole, fitte e con fughe strette: con un riquadro rettangolare prenderesti troppo o troppo poco, mentre con il lazo segui il contorno reale dell'area che ti interessa.</p>
 
@@ -1491,7 +1543,7 @@
 
 <!-- ── DISEGNO LIBERO ── -->
 <section id="disegno">
-  <div class="section-label">09</div>
+  <div class="section-label">10</div>
   <h2>Disegno a mano libera</h2>
   <p>La <strong>Left Toolbar</strong> contiene tre strumenti di disegno modali: <strong>penna ✏️</strong>, <strong>gomma 🧼</strong> e <strong>acquerello 💧</strong>. Sono mutuamente esclusivi: attivando uno, gli altri si disattivano.</p>
   <p>Accanto a loro, dopo l'esagono ⬡, c'è il <strong>🖼️ Pennello Timbro</strong>, che copia lo sfondo invece di stendere colore: ha un capitolo suo, <a href="#timbro" style="color:var(--blue);">Pennello Timbro</a>.</p>
@@ -1635,7 +1687,7 @@
 
 <!-- ── ACQUERELLO ── -->
 <section id="acquerello">
-  <div class="section-label">10</div>
+  <div class="section-label">11</div>
   <h2>Controlli Acquerello</h2>
   <p>La modalità acquerello ha un set di parametri avanzati per simulare il comportamento reale della pittura ad acquerello. Tutti i controlli sono nell'<strong>Ispettore a destra</strong> quando lo strumento è attivo. Ogni parametro agisce su un aspetto diverso del tratto.</p>
 
@@ -1756,7 +1808,7 @@
 
 <!-- ── PUNTE PENNELLO ── -->
 <section id="punte">
-  <div class="section-label">11</div>
+  <div class="section-label">12</div>
   <h2>Punte: acquerello e penna</h2>
   <p>Le punte sono file <strong>PNG con la trasparenza</strong> che danno la <strong>forma di ogni timbro</strong>: l'acquerello e la penna a punte le timbrano lungo il tratto. Conta <strong>solo la trasparenza</strong>: dove la PNG è piena il colore esce pieno, dove è semitrasparente esce più leggero, dove è trasparente non esce niente. Il colore dei pixel non conta (lo dà Mosaica), quindi puoi disegnarle in nero. Acquerello e penna hanno <strong>ognuno la sua cartella</strong>:</p>
   <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;">
@@ -1812,7 +1864,7 @@
 
 <!-- ── PENNELLO TIMBRO ── -->
 <section id="timbro">
-  <div class="section-label">12</div>
+  <div class="section-label">13</div>
   <h2>Pennello Timbro</h2>
   <p>Il <strong>Pennello Timbro 🖼️</strong> copia un pezzo dello <strong>sfondo</strong> — l'immagine che hai caricato o la carta — e lo ridipinge dove passi il pennello. Serve a portarti la carta, la venatura o un pezzo d'immagine dentro le fughe e sulle zone da raccordare, senza uscire da Mosaica e senza perdere i millimetri: tutte le misure del timbro sono in <strong>millimetri reali</strong>, come quelle delle tessere.</p>
   <p>Il pulsante è <strong>🖼️</strong> nella Left Toolbar, subito dopo l'esagono ⬡. Il timbro copia lo sfondo <strong>come si vede sul foglio</strong>, e il suo tratto sta <strong>sopra lo sfondo e sotto penna e acquerello</strong> (e, come tutti i tratti, sotto le tessere).</p>
@@ -1952,7 +2004,7 @@
 
 <!-- ── SFONDO ── -->
 <section id="sfondo">
-  <div class="section-label">13</div>
+  <div class="section-label">14</div>
   <h2>Immagine di Sfondo</h2>
   <p>Il <strong>BG Panel</strong> (la barra orizzontale subito sotto la top bar) è dedicato all'immagine di sfondo. Puoi caricare una foto di riferimento, un disegno o un progetto fotografato per tracciare sopra il tuo mosaico.</p>
 
@@ -2001,7 +2053,7 @@
 
 <!-- ── PROGETTI ── -->
 <section id="progetti">
-  <div class="section-label">14</div>
+  <div class="section-label">15</div>
   <h2>Salvare e aprire progetti</h2>
   <p>I progetti Mosaica si salvano come file <strong>.msp.json</strong>. Contengono tutte le forme, i tratti freehand, gli acquerelli, i colori, le texture applicate, l'immagine di sfondo, l'orientamento del canvas (portrait/landscape) e i parametri correnti di penna e acquerello. La cartella predefinita è:</p>
 
@@ -2040,7 +2092,7 @@
 
 <!-- ── AUTO-SAVE ── -->
 <section id="autosave">
-  <div class="section-label">15</div>
+  <div class="section-label">16</div>
   <h2>Auto-salvataggio</h2>
   <p>Mosaica salva automaticamente il tuo lavoro <strong>in background</strong> ogni minuto e quando chiudi l'app. Nessuna interazione richiesta: succede da solo.</p>
 
@@ -2119,7 +2171,7 @@
 
 <!-- ── AUTO-OPEN ── -->
 <section id="autoopen">
-  <div class="section-label">16</div>
+  <div class="section-label">17</div>
   <h2>Apertura automatica dell'ultimo progetto</h2>
   <p>Mosaica può aprire automaticamente l'ultimo progetto salvato ogni volta che lanci l'app. La preferenza si configura dal dropdown <strong>File</strong> in topbar.</p>
 
@@ -2175,7 +2227,7 @@
 
 <!-- ── FULLSCREEN ── -->
 <section id="fullscreen">
-  <div class="section-label">17</div>
+  <div class="section-label">18</div>
   <h2>Modalità schermo intero</h2>
   <p>Mosaica si avvia <strong>sempre in modalità schermo intero</strong> per massimizzare lo spazio di lavoro. Puoi uscire ed entrare in qualsiasi momento.</p>
 
@@ -2199,7 +2251,7 @@
 
 <!-- ── ESPORTA ── -->
 <section id="esporta">
-  <div class="section-label">18</div>
+  <div class="section-label">19</div>
   <h2>Esportare il lavoro</h2>
   <p>Il dropdown <strong>Esporta</strong> in topbar offre cinque voci, ciascuna con un modale dedicato. Quattro sono qui sotto; <strong>🧩 Tavola delle tessere (laser)</strong> prepara i file per tagliare le tessere col laser e ha un capitolo suo: <a href="#tavola" style="color:var(--blue);">Tavola delle Tessere</a>. Per <strong>🖨️ Esporta per la stampa</strong> i dettagli sono in <a href="#colore" style="color:var(--blue);">Colore e stampa</a>.</p>
 
@@ -2287,7 +2339,7 @@
   
 <!-- ── TAVOLA DELLE TESSERE ── -->
 <section id="tavola">
-  <div class="section-label">19</div>
+  <div class="section-label">20</div>
   <h2>Tavola delle Tessere — i file per il laser</h2>
   <p>Dal dropdown <strong>Esporta</strong> → <strong>🧩 Tavola delle tessere (laser)</strong> Mosaica prepara in un colpo solo i file per <strong>tagliare le tessere in gomma col laser</strong> e per lavorarle al banco. <strong>Sul mosaico non si muove niente</strong>: l'ordinamento, la rotazione azzerata e la distinta vivono solo dentro i file esportati.</p>
 
@@ -2358,6 +2410,7 @@
     <li><strong>Excel</strong>: si apre con un doppio clic, con le colonne già separate.</li>
     <li><strong>LibreOffice</strong>: nella finestra «Importa testo» scegli <strong>Punto e virgola</strong> come separatore e la codifica <strong>UTF-8</strong>.</li>
     <li>Il formato segue la lingua di Mosaica: in italiano punto e virgola fra le colonne e virgola nei decimali; in inglese virgola e punto.</li>
+    <li>Le tessere spuntate e i settori curvati hanno il loro nome: <strong>triangolo spuntato</strong>, <strong>trapezio spuntato</strong>, <strong>quadrato spuntato</strong>, <strong>rettangolo spuntato</strong>; <strong>settore schiacciato</strong> con la curva in % e <strong>settore sagomato</strong> con i tratti dritti in mm, nella colonna «Misure in più» (vedi <a href="#spunta" style="color:var(--blue);">Spuntare le tessere e curvare i settori</a>).</li>
   </ul>
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Consigli pratici</strong><ul>
@@ -2370,7 +2423,7 @@
 
 <!-- ── TAVOLETTA WACOM ── -->
 <section id="wacom">
-  <div class="section-label">20</div>
+  <div class="section-label">21</div>
   <h2>Tavoletta Wacom — pressione, inclinazione, tasti penna</h2>
   <p>Mosaica integra un sistema completo per tavolette grafiche Wacom (e qualsiasi altra tavoletta che esponga <code>PointerEvent.pressure</code>). La pressione è <strong>vera, punto-per-punto</strong>: ogni segmento del tratto memorizza la propria pressione, viene serializzato nei progetti <code>.msp.json</code>, esportato in SVG, e partecipa a Undo/Redo come qualsiasi altro oggetto Fabric.</p>
 
@@ -2450,7 +2503,7 @@
     <div class="card-mini"><h4>⚡ Doppio click</h4><p>Sintetizza un <code>dblclick</code> sul punto del puntatore — utile per creare un nuovo rettangolo o aprire campi inline.</p></div>
     <div class="card-mini"><h4>🧼 Gomma rapida</h4><p>Attiva lo strumento Gomma. Premere di nuovo torna allo strumento precedente.</p></div>
     <div class="card-mini"><h4>✋ Pan canvas</h4><p>Mentre tieni premuto il tasto, trascini per fare pan (equivale ad <kbd>Alt</kbd>+drag).</p></div>
-    <div class="card-mini"><h4>↩️ Annulla / ↪️ Ripeti</h4><p>Equivalente a <kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd>.</p></div>
+    <div class="card-mini"><h4>↩️ Annulla / ↪️ Ripeti</h4><p>Equivalente a <kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd>.</p></div>
     <div class="card-mini"><h4>✏️ Toggle Penna</h4><p>Attiva/disattiva lo strumento Penna libera.</p></div>
     <div class="card-mini"><h4>💧 Toggle Acquerello</h4><p>Attiva/disattiva lo strumento Acquerello.</p></div>
     <div class="card-mini"><h4>⭕ Toggle Lazo</h4><p>Attiva/disattiva la selezione con lazo.</p></div>
@@ -2505,7 +2558,7 @@
 
 <!-- ── MAPPATURA MOUSE & TASTIERA ── -->
 <section id="inputmapping">
-  <div class="section-label">21</div>
+  <div class="section-label">22</div>
   <h2>Mappatura Mouse &amp; Tastiera</h2>
   <p>Le scorciatoie classiche di Mosaica (Ctrl+Z/C/V/X, Delete, Ctrl+/−, frecce, Ctrl+R, doppio click) sono <strong>protette e sempre attive</strong>. Il modulo Mappatura Input ti permette di aggiungere <em>oltre</em> a queste:</p>
   <ul>
@@ -2589,7 +2642,7 @@
   <h3>Tutte le azioni mappabili</h3>
   <div class="card-grid col3">
     <div class="card-mini"><h4>↩️ Annulla</h4><p>Equivalente a Ctrl+Z. Funziona anche se la cronologia ha un singolo passo.</p></div>
-    <div class="card-mini"><h4>↪️ Ripeti</h4><p>Equivalente a Ctrl+Shift+Z / Ctrl+Y.</p></div>
+    <div class="card-mini"><h4>↪️ Ripeti</h4><p>Equivalente a Ctrl+Shift+Z (il pulsante ↷).</p></div>
     <div class="card-mini"><h4>📋 Copia / 📌 Incolla / ✂️ Taglia</h4><p>Stessa logica di Ctrl+C/V/X, anche per la selezione multipla.</p></div>
     <div class="card-mini"><h4>🗑️ Elimina selezione</h4><p>Cancella oggetto o selezione attiva (Delete/Backspace).</p></div>
     <div class="card-mini"><h4>🔍➕ Aumenta lo zoom / 🔍➖ Riduci lo zoom / 🔍⤾ Azzera lo zoom</h4><p>Zoom verso il centro dello schermo. Reset = Ctrl+0.</p></div>
@@ -2638,7 +2691,7 @@
 
 <!-- ── SCORCIATOIE ── -->
 <section id="scorciatoie">
-  <div class="section-label">22</div>
+  <div class="section-label">23</div>
   <h2>Scorciatoie da tastiera</h2>
 
   <h3>Cronologia e appunti</h3>
@@ -2687,6 +2740,16 @@
       <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></td><td>Sposta oggetto selezionato di <strong>0.1 mm</strong> (calibrato). Pan della vista di 5 mm se nessun oggetto è selezionato.</td></tr>
       <tr><td><kbd>Shift</kbd>+Frecce</td><td>Sposta oggetto di <strong>1 mm</strong> alla volta (step grande)</td></tr>
       <tr><td><kbd>Ctrl</kbd>+Frecce</td><td>Sposta oggetto di <strong>0.01 mm</strong> (super-fine, sub-pixel — per allineamenti perfetti su mosaici)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Spunta delle tessere ✂️ (a spunta accesa)</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Tasto</th><th>Azione</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Canc</kbd> / <kbd>Backspace</kbd></td><td>✂️ Toglie il taglio scelto (mai la tessera)</td></tr>
+      <tr><td><kbd>Invio</kbd> / <kbd>Esc</kbd></td><td>✂️ Fine spunta</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>✂️ Fine spunta, poi annulla</td></tr>
     </tbody>
   </table>
 
@@ -2745,7 +2808,7 @@
 
 <!-- ── SICUREZZA & AGGIORNAMENTI ── -->
 <section id="sicurezza">
-  <div class="section-label">23</div>
+  <div class="section-label">24</div>
   <h2>Sicurezza &amp; Aggiornamenti online</h2>
   <p>Mosaica Workspace Pro è un'<strong>applicazione di disegno offline</strong>: l'unica cosa che fa in rete è <strong>controllare se esiste una nuova versione</strong> sul repository GitHub ufficiale e, su tua richiesta, scaricarne l'installer. Tutto il resto del programma non parla con internet. Questa sezione spiega come funzionano gli aggiornamenti e quali protezioni sono sempre attive.</p>
 
@@ -2807,7 +2870,7 @@
 <!-- ════════════════════════════════ FOOTER ════════════════════════════════ -->
 <footer>
   <strong>Mosaica Workspace Pro</strong> · Guida Utente · By Pico Mosaici<br>
-  <span style="margin-top:6px;display:block;">Aggiornata alla versione · V 10.2026</span>
+  <span style="margin-top:6px;display:block;">Aggiornata alla versione · V 11.2026</span>
   <span style="margin-top:6px;display:block;">© 2026 Pico Mosaici® di Pietro Coraggio | Venafro (IS) | Tutti i diritti riservati</span>
 </footer>
 

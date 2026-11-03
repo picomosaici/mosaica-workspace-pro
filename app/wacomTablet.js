@@ -159,7 +159,7 @@ function __wt(key, params, fallback) {
     eraser:             { label: __wt("wacom.action.eraser",          null, "Gomma rapida"),            icon: "🧼" },
     pan:                { label: __wt("wacom.action.pan",             null, "Pan canvas (Alt+trascina)"), icon: "✋" },
     undo:               { label: __wt("wacom.action.undo",            null, "Annulla (Ctrl+Z)"),        icon: "↩️" },
-    redo:               { label: __wt("wacom.action.redo",            null, "Ripeti (Ctrl+Y)"),         icon: "↪️" },
+    redo:               { label: __wt("wacom.action.redo",            null, "Ripeti (Ctrl+Shift+Z)"),         icon: "↪️" },
     "toggle-freehand":  { label: __wt("wacom.action.toggleFreehand",  null, "Toggle Penna"),            icon: "✏️" },
     "toggle-watercolor":{ label: __wt("wacom.action.toggleWatercolor",null, "Toggle Acquerello"),       icon: "💧" },
     "toggle-lasso":     { label: __wt("wacom.action.toggleLasso",     null, "Toggle Lazo"),             icon: "⭕" }
@@ -518,11 +518,16 @@ function __wt(key, params, fallback) {
         if (typeof window.flashToast === "function") window.flashToast(__wt("wacom.toast.undo", null, "↩️ Annulla (tasto penna)"));
         break;
       case "redo":
+        // Il ripristino di Mosaica è Ctrl+Shift+Z (keyboardShortcuts.js): un
+        // Ctrl+Y non lo ascolta nessuno (cantiere «Spunta Tessere», B8,
+        // 02/11/2026). Come l'annulla qui sopra, si passa dalla tastiera:
+        // così chi deve chiudere qualcosa prima (la spunta accesa) lo fa.
         document.dispatchEvent(
           new KeyboardEvent("keydown", {
-            key: "y",
-            code: "KeyY",
+            key: "z",
+            code: "KeyZ",
             ctrlKey: true,
+            shiftKey: true,
             bubbles: true
           })
         );

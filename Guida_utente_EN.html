@@ -583,7 +583,7 @@
   <div class="header-inner">
     <div class="logo-badge">
       <div class="logo-dot">🎨</div>
-      User Guide · V 10.2026
+      User Guide · V 11.2026
     </div>
     <h1>Mosaica<br><em>Workspace Pro</em></h1>
     <p class="header-sub">Complete guide to using the application for to-scale mosaic design, freehand drawing, digital watercolor, and laser CAM export.</p>
@@ -599,6 +599,7 @@
     <a href="#rotazione">Canvas Rotation</a>
     <a href="#forme">Shapes</a>
     <a href="#radiale">Radial Menu</a>
+    <a href="#spunta">Trim &amp; Curve</a>
     <a href="#texture">Ghost Textures</a>
     <a href="#colore">Color &amp; Print</a>
     <a href="#lazo">Lasso</a>
@@ -924,7 +925,7 @@
     <li><strong>Normal click</strong> → divides into 4 quarters (90° each)</li>
     <li><strong>Alt + Click</strong> → divides into 2 halves (180° each)</li>
   </ul>
-  <p>Each sector becomes an independent object, resizable and modifiable.</p>
+  <p>Each sector becomes an independent object, resizable and modifiable. Its <strong>curved side</strong> can be lowered, or made to start straight, leaving the two straight sides identical: see <a href="#spunta" style="color:var(--blue);">Trimming tiles and curving sectors</a>.</p>
 
   <h3>Custom Shapes (Non-Standard)</h3>
   <p>When regular shapes (rectangle, circle, triangle, trapezoid, sector) are not enough — for example for stars, arrows, petals, irregular silhouettes, irregular tile outlines for your mosaics — use the <strong>custom shape builder</strong> from the Left Toolbar (button <strong>✏️➕</strong> right next to <strong>➕ Add Shape</strong>).</p>
@@ -1098,6 +1099,13 @@
       </div>
     </div>
     <div class="radial-item">
+      <div class="radial-icon">✂️</div>
+      <div>
+        <div class="radial-label">Trim the tips</div>
+        <div class="radial-desc">Visible with <strong>one</strong> tile with straight sides (where there is ◔ there is no ✂️). Turns trimming on: click a tip to cut it, drag to choose how much. See <a href="#spunta" style="color:var(--blue);">Trimming tiles</a>.</div>
+      </div>
+    </div>
+    <div class="radial-item">
       <div class="radial-icon orange">🔒</div>
       <div>
         <div class="radial-label">Lock / Unlock</div>
@@ -1207,7 +1215,7 @@
     <li><strong>⎇ Group</strong> → <strong>enables</strong> with two or more shapes selected and merges them into a single group. <strong>⎆ Ungroup</strong> enables instead when you have a group selected, and returns it to single shapes.</li>
     <li><strong>⬚ Deselect all</strong> → lets the selection go. On a full mosaic it is handier than hunting for an empty patch of sheet to click on.</li>
     <li><strong>◨ and ⬓ Mirror</strong> → flip <strong>the layout</strong> of all the selected tiles around the axis through the center of the selection, without changing the tiles' measurements by a tenth of a millimeter. See <em>The Mirror</em> above.</li>
-    <li><strong>◔ Slice circle</strong> only shows when the selection is a single circle or ellipse, so it <strong>does not appear</strong> in multi-selection.</li>
+    <li><strong>◔ Slice circle</strong> only shows when the selection is a single circle or ellipse, so it <strong>does not appear</strong> in multi-selection. The same goes for <strong>✂️ Trim</strong>, which works on one tile at a time.</li>
   </ul>
   <p>In multi-selection the Status Bar shows <strong>"N objects"</strong> instead of the single shape's measurements, and the Inspector's <strong>Dimensions</strong> block hides (single measurements would not make sense for several shapes). The column of buttons sits <strong>outside the selection</strong>, against the edge of the box that encloses <em>all</em> the selected shapes — so it does not cover the tiles you are working on — while vertically it stays level with the <strong>last shape you added</strong>, that is, with where you are working. If the outer edge of the selection is off-screen, the column still stays <strong>inside the window</strong>, against its border.</p>
 
@@ -1223,9 +1231,53 @@
   </ul></div></div>
 </section>
 
+<!-- ── TRIM AND CURVE ("Spunta Tessere" worksite, 11.2026) ── -->
+<section id="spunta">
+  <div class="section-label">06</div>
+  <h2>Trimming tiles ✂️ and curving sectors ◠</h2>
+  <p>For special tiles — a triangle with a cut-off tip, a trapezoid with a flat corner, a quarter circle with a lower curved side — you no longer need the Palladiana: you work on the <strong>tile you already have</strong>. The tile <strong>stays itself</strong>: it keeps its color, <a href="#texture" style="color:var(--blue);">ghost family 👻</a>, texture, position, rotation, mirroring and layer. Every command is <strong>one</strong> <kbd>Ctrl</kbd>+<kbd>Z</kbd> step.</p>
+
+  <h3>✂️ Trimming the tips</h3>
+  <p>Select <strong>one</strong> tile with straight sides — triangle, trapezoid, square, rectangle, or a free shape with straight sides (Palladiana ones too) — and press <strong>✂️</strong> in the radial menu, or <strong>✂️ Trim the tips</strong> in the Inspector. Circles and sectors have no ✂️: they have ◔ instead.</p>
+  <ul>
+    <li><strong>Trimming on</strong>: ✂️ and the Inspector button turn orange ("✔ Finish trimming"), the tile's handles disappear and every tip that can be cut gets a <strong>light-blue circle</strong>.</li>
+    <li><strong>Click a circle</strong> → the tip is cut: a new straight side, <strong>symmetric</strong>, as wide as the starting tip (<strong>1 mm</strong> the first time, then the last one you used).</li>
+    <li><strong>Dragging</strong> the circle, or the dot of a cut, <strong>towards the tile</strong> widens the tip, outwards narrows it. One drag is a single <kbd>Ctrl</kbd>+<kbd>Z</kbd> step.</li>
+    <li>The <strong>selected</strong> cut is orange, with its size in mm next to it. Its two <strong>ends</strong> — the <strong>yellow</strong> square (end 1) and the <strong>pink</strong> one (end 2) — slide along their side: the cut becomes <strong>free</strong>, no longer symmetric.</li>
+    <li>In the Inspector, <strong>✂️ Trim tips</strong> block: <strong>Tip</strong> (the width of the new side, in mm on the sheet: the ends keep their proportion), <strong>End 1</strong> and <strong>End 2</strong> (in mm from the tip along the side), <strong>✂️ Remove this cut</strong>; on a trimmed tile <strong>↺ Restore the tips</strong> and "Trimmed tips: N". Enter applies the number, Esc puts back the previous one.</li>
+    <li><strong>Keys</strong> while trimming: <kbd>Delete</kbd> / <kbd>Backspace</kbd> remove the <strong>selected cut</strong>, never the tile; <kbd>Enter</kbd> or <kbd>Esc</kbd> finish; <kbd>Ctrl</kbd>+<kbd>Z</kbd> finishes and undoes; the arrows move the tile as usual.</li>
+    <li>Trimming also ends with a click outside, another selection or another radial menu button.</li>
+  </ul>
+  <ul>
+    <li>Only <strong>outward</strong> tips can be cut (not the inner corner of an L shape), and only those sharper than <strong>175°</strong>. Between two cuts on the same side at least <strong>0.2 mm</strong> of side remains, and a tip is never narrower than <strong>0.1 mm</strong>. Ask for too much and the cut stops at the widest that fits, and tells you.</li>
+    <li>Measurements are <strong>true on the sheet</strong>, even on a rotated, handle-stretched or mirrored tile.</li>
+    <li>After trimming the tile is a <strong>free shape</strong>: the angle sliders (triangle) and base sliders (trapezoid) are gone. <strong>↺ Restore the tips</strong> brings back the triangle or trapezoid with its sliders, the square as a square. So: measurements and angles <strong>first</strong>, trimming <strong>after</strong>.</li>
+    <li>Copies (<kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>Ctrl</kbd>+<kbd>V</kbd>, ⎘, Duplicate selection) are born trimmed. Saving, auto-save, export and the <a href="#tavola" style="color:var(--blue);">Tile Sheet</a> use their true outline; in the bill of materials they are called <strong>trimmed triangle</strong>, <strong>trimmed trapezoid</strong>, <strong>trimmed square</strong>, <strong>trimmed rectangle</strong> (a Palladiana shape stays "free shape").</li>
+  </ul>
+
+  <h3>◠ Curving sectors</h3>
+  <p>On a <strong>sector</strong> (made with ◔ from a circle or an oval) the Inspector shows the <strong>◠ Curve</strong> block. The sector's handles scale all of it; this block instead changes <strong>only the curved side</strong> and leaves <strong>the two straight sides identical</strong>.</p>
+  <ul>
+    <li><strong>Curve</strong> (number in % and slider): <strong>100 %</strong> is the usual arc, <strong>0 %</strong> the straight side (the sector becomes a triangle with the same two sides). The curved side drops towards the straight line between its two ends, each point in proportion: it stays a smooth curve. Dragging the slider is a single <kbd>Ctrl</kbd>+<kbd>Z</kbd> step.</li>
+    <li><strong>Curve start</strong> and <strong>Curve end</strong> (in mm): the curved side can <strong>start straight</strong> and curve only afterwards. With "Curve start" 6 the side leaves its end and runs straight for 6 mm along the tangent, then the curve begins, joined without a corner; "Curve end" does the same from the other end. On the sector a <strong>yellow</strong> dot marks where the curve starts and a <strong>pink</strong> one where it ends: <strong>you can drag them</strong> along the side and the number follows. Below you read how long the straight stretch can be at most: ask for more and it stops there and tells you. Dragged back past the end, the stretch disappears.</li>
+    <li>Changing the <strong>Curve</strong> keeps the straight stretches the same length. Curve start and end work on sectors narrower than a half circle (the quarters) and with the curve above 0 %: on a half circle the two tangents are parallel and the fields are off.</li>
+    <li><strong>↺ Full curve</strong> puts back the usual arc: curve 100 %, no straight stretch.</li>
+    <li>Saving, copies, ghost families, export and the Tile Sheet handle them as they are. In the bill of materials: <strong>flattened sector</strong> ("opening 90° · curve 60 %") or <strong>shaped sector</strong> if it has straight stretches ("opening 90° · curve 100 % · straight 6.0 / 0.0 mm").</li>
+    <li>On a locked tile 🔒 the block is off.</li>
+  </ul>
+
+  <div class="callout warning"><div class="callout-icon"></div><div>A project with trimmed tiles or curved sectors opened with an <strong>older version</strong> of Mosaica: trimmed tiles look right (but cannot be restored), sectors come back <strong>whole</strong>.</div></div>
+
+  <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical tips</strong><ul>
+    <li>Cut the tips of the tiles of a <strong>ghost family</strong> with ✂️, not with the Palladiana: the tile stays in the family and the Tile Sheet puts it with its sisters.</li>
+    <li>Set angles and bases first, then trim: after trimming the sliders are gone (↺ Restore the tips brings them back).</li>
+    <li>For a very small tip, zoom in: under 16 px on screen the two ends of the cut are hidden, but the Inspector numbers always work.</li>
+  </ul></div></div>
+</section>
+
 <!-- ── TEXTURES AND GHOST TEXTURES ── -->
 <section id="texture">
-  <div class="section-label">06</div>
+  <div class="section-label">07</div>
   <h2>Textures and ghost textures 👻</h2>
   <p>A <strong>texture</strong> is an image that fills the tile by repeating itself: granite, marble, EVA foam. The <strong>Texture column</strong> on the left holds the ones generated by code (granite, marble, concrete, murano, EVA, veins) and the images in the textures folder. Further down you will also find the <strong>ghost textures</strong>: the texture that tiles carry with them without showing it, made for large mosaics.</p>
 
@@ -1265,7 +1317,7 @@
     <li>In the Inspector you recognise the family by its thumbnail, its name (for example "Granite · 14.0 mm · 🎨", where 🎨 means tinted) and the line "tiles: N · hidden" or "· shown". With tiles of several families selected the buttons become <strong>Show / Hide the families</strong>.</li>
     <li>In the <strong>▦</strong> panel: one row per family, with the thumbnail, the number of tiles and <strong>Show</strong> / <strong>Hide</strong>; below, <strong>Show all</strong> and <strong>Hide all</strong>.</li>
     <li>A tile of the family with a texture of <strong>its own</strong>, put on by hand, <strong>stays as it is</strong> when you show the family: the message tells you how many.</li>
-    <li>With the family <strong>shown</strong>, new copies join and show the texture too. A tile made with double-click or ➕, or coming from the Palladiana, joins no family. A tile belongs to <strong>one family only</strong>: 👻 Ghost on a tile that already has a family makes a new one.</li>
+    <li>With the family <strong>shown</strong>, new copies join and show the texture too. A tile made with double-click or ➕, or coming from the Palladiana, joins no family: to cut the tips of a tile of the family use <a href="#spunta" style="color:var(--blue);">✂️ Trim</a>, which keeps it in the family. A tile belongs to <strong>one family only</strong>: 👻 Ghost on a tile that already has a family makes a new one.</li>
     <li>If you delete the founder the family lives on: every tile knows everything about its texture.</li>
     <li>Once shown, the ghost texture is an <strong>ordinary texture</strong>: saving, export (PDF, PNG, for print), the perimeter lens and the Tile Sheet treat it as always.</li>
     <li>With a large family, the <strong>first</strong> time Mosaica has to prepare the texture in every color: if it takes more than half a second the message <strong>"⏳ Ghost texture: preparing N colours for M tiles…"</strong> appears. After that, Hide and Show are almost instant, and a <kbd>Ctrl</kbd>+<kbd>Z</kbd> with the family shown is as quick as with the family hidden.</li>
@@ -1283,7 +1335,7 @@
 
 <!-- ── COLOR AND PRINT ── -->
 <section id="colore">
-  <div class="section-label">07</div>
+  <div class="section-label">08</div>
   <h2>Color and print</h2>
   <p>The screen makes colors with light (<strong>RGB</strong>), print makes them with inks (<strong>CMYK</strong>): some bright screen colors cannot be printed, and the print shop squeezes them as best it can. Mosaica has a <strong>color engine</strong> inside (Little CMS) that knows the <strong>print profiles</strong> and lets you see and choose colors <strong>as they will come out</strong>: the color wheel with CMYK, the on-screen print preview and the files for the print shop.</p>
 
@@ -1370,7 +1422,7 @@
 
 <!-- ── LASSO SELECTION ── -->
 <section id="lazo">
-  <div class="section-label">08</div>
+  <div class="section-label">09</div>
   <h2>Lasso Selection (Freehand Polygon)</h2>
   <p>The <strong>Lasso</strong> is an advanced selection method that lets you enclose shapes with a <strong>freehand drawn polygon</strong>. It is designed especially for mosaics, where tiles are often small, dense, and have tight joints: with a rectangular box you would catch too much or too little, while with the lasso you follow the real contour of the area you are interested in.</p>
 
@@ -1492,7 +1544,7 @@
 
 <!-- ── FREEHAND DRAWING ── -->
 <section id="disegno">
-  <div class="section-label">09</div>
+  <div class="section-label">10</div>
   <h2>Freehand Drawing</h2>
   <p>The <strong>Left Toolbar</strong> contains three modal drawing tools: <strong>pen ✏️</strong>, <strong>eraser 🧼</strong>, and <strong>watercolor 💧</strong>. They are mutually exclusive: activating one deactivates the others.</p>
   <p>Next to them, after the hexagon ⬡, is the <strong>🖼️ Clone Stamp</strong>, which copies the background instead of laying down color: it has a chapter of its own, <a href="#timbro" style="color:var(--blue);">Clone Stamp</a>.</p>
@@ -1636,7 +1688,7 @@
 
 <!-- ── WATERCOLOR ── -->
 <section id="acquerello">
-  <div class="section-label">10</div>
+  <div class="section-label">11</div>
   <h2>Watercolor Controls</h2>
   <p>Watercolor mode has an advanced set of parameters to simulate the real behavior of watercolor painting. All controls are in the <strong>Inspector on the right</strong> when the tool is active. Each parameter acts on a different aspect of the stroke.</p>
 
@@ -1757,7 +1809,7 @@
 
 <!-- ── BRUSH TIPS ── -->
 <section id="punte">
-  <div class="section-label">11</div>
+  <div class="section-label">12</div>
   <h2>Tips: watercolor and pen</h2>
   <p>Tips are <strong>PNG files with transparency</strong> that give the <strong>shape of each stamp</strong>: watercolor and the pen with tips stamp them along the stroke. <strong>Only the transparency counts</strong>: where the PNG is full the color comes out full, where it is semi-transparent it comes out lighter, where it is transparent nothing comes out. The color of the pixels does not matter (Mosaica gives it), so you can draw them in black. Watercolor and pen <strong>each have their own folder</strong>:</p>
   <div class="card" style="background:var(--ink);color:#a8d8ff;font-family:'DM Mono',monospace;font-size:13px;padding:16px 22px;">
@@ -1813,7 +1865,7 @@
 
 <!-- ── CLONE STAMP ── -->
 <section id="timbro">
-  <div class="section-label">12</div>
+  <div class="section-label">13</div>
   <h2>Clone Stamp</h2>
   <p>The <strong>Clone Stamp 🖼️</strong> copies a piece of the <strong>background</strong> — the image you loaded or the paper — and paints it again wherever you brush. It lets you carry the paper, the grain or a piece of the image into the grout and onto the areas to blend, without leaving Mosaica and without losing the millimeters: all the clone stamp measures are in <strong>real millimeters</strong>, like those of the tiles.</p>
   <p>The button is <strong>🖼️</strong> in the Left Toolbar, right after the hexagon ⬡. The clone stamp copies the background <strong>as it looks on the sheet</strong>, and its stroke sits <strong>above the background and below pen and watercolor</strong> (and, like all strokes, below the tiles).</p>
@@ -1953,7 +2005,7 @@
 
 <!-- ── BACKGROUND ── -->
 <section id="sfondo">
-  <div class="section-label">13</div>
+  <div class="section-label">14</div>
   <h2>Background Image</h2>
   <p>The <strong>BG Panel</strong> (the horizontal bar immediately below the top bar) is dedicated to the background image. You can load a reference photo, a drawing, or a photographed project to trace your mosaic over it.</p>
 
@@ -2002,7 +2054,7 @@
 
 <!-- ── PROJECTS ── -->
 <section id="progetti">
-  <div class="section-label">14</div>
+  <div class="section-label">15</div>
   <h2>Saving and Opening Projects</h2>
   <p>Mosaica projects are saved as <strong>.msp.json</strong> files. They contain all shapes, freehand strokes, watercolors, colors, applied textures, the background image, canvas orientation (portrait/landscape), and the current pen and watercolor parameters. The default folder is:</p>
 
@@ -2041,7 +2093,7 @@
 
 <!-- ── AUTO-SAVE ── -->
 <section id="autosave">
-  <div class="section-label">15</div>
+  <div class="section-label">16</div>
   <h2>Auto-Save</h2>
   <p>Mosaica automatically saves your work <strong>in the background</strong> every minute and when you close the app. No interaction required: it happens on its own.</p>
 
@@ -2120,7 +2172,7 @@
 
 <!-- ── AUTO-OPEN ── -->
 <section id="autoopen">
-  <div class="section-label">16</div>
+  <div class="section-label">17</div>
   <h2>Automatic Opening of the Last Project</h2>
   <p>Mosaica can automatically open the last saved project every time you launch the app. The preference is configured from the <strong>File</strong> dropdown in the top bar.</p>
 
@@ -2176,7 +2228,7 @@
 
 <!-- ── FULL SCREEN ── -->
 <section id="fullscreen">
-  <div class="section-label">17</div>
+  <div class="section-label">18</div>
   <h2>Full Screen Mode</h2>
   <p>Mosaica always starts in <strong>full screen mode</strong> to maximize workspace. You can exit and enter at any time.</p>
 
@@ -2200,7 +2252,7 @@
 
 <!-- ── EXPORT ── -->
 <section id="esporta">
-  <div class="section-label">18</div>
+  <div class="section-label">19</div>
   <h2>Exporting Your Work</h2>
   <p>The <strong>Export</strong> dropdown in the top bar offers five items, each with a dedicated modal. Four are below; <strong>🧩 Tile sheet (laser)</strong> prepares the files to cut the tiles with the laser and has a chapter of its own: <a href="#tavola" style="color:var(--blue);">Tile Sheet</a>. For <strong>🖨️ Export for print</strong> the details are in <a href="#colore" style="color:var(--blue);">Color and print</a>.</p>
 
@@ -2288,7 +2340,7 @@
 
 <!-- ── TILE SHEET ── -->
 <section id="tavola">
-  <div class="section-label">19</div>
+  <div class="section-label">20</div>
   <h2>Tile Sheet — the files for the laser</h2>
   <p>From the <strong>Export</strong> dropdown → <strong>🧩 Tile sheet (laser)</strong> Mosaica prepares in one go the files to <strong>cut the rubber tiles with the laser</strong> and to work them at the bench. <strong>Nothing moves on the mosaic</strong>: the sorting, the reset rotation and the bill of materials live only inside the exported files.</p>
 
@@ -2359,6 +2411,7 @@
     <li><strong>Excel</strong>: it opens with a double-click, with the columns already separated.</li>
     <li><strong>LibreOffice</strong>: in the “Text Import” window choose <strong>Comma</strong> as separator and the <strong>UTF-8</strong> encoding.</li>
     <li>The format follows Mosaica's language: in English comma between columns and point for decimals; in Italian semicolon and decimal comma.</li>
+    <li>Trimmed tiles and curved sectors have their own names: <strong>trimmed triangle</strong>, <strong>trimmed trapezoid</strong>, <strong>trimmed square</strong>, <strong>trimmed rectangle</strong>; <strong>flattened sector</strong> with the curve in % and <strong>shaped sector</strong> with the straight stretches in mm, in the "Extra measures" column (see <a href="#spunta" style="color:var(--blue);">Trimming tiles and curving sectors</a>).</li>
   </ul>
 
   <div class="tips-box"><div class="tips-icon">🎯</div><div><strong>Practical tips</strong><ul>
@@ -2371,7 +2424,7 @@
 
 <!-- ── WACOM TABLET ── -->
 <section id="wacom">
-  <div class="section-label">20</div>
+  <div class="section-label">21</div>
   <h2>Wacom Tablet — Pressure, Tilt, Pen Buttons</h2>
   <p>Mosaica integrates a complete system for Wacom graphic tablets (and any other tablet exposing <code>PointerEvent.pressure</code>). Pressure is <strong>true, point-by-point</strong>: every segment of the stroke stores its own pressure, is serialized in <code>.msp.json</code> projects, exported in SVG, and participates in Undo/Redo like any other Fabric object.</p>
 
@@ -2451,7 +2504,7 @@
     <div class="card-mini"><h4>⚡ Double Click</h4><p>Synthesizes a <code>dblclick</code> at the pointer location — useful for quickly creating a new rectangle or opening inline fields.</p></div>
     <div class="card-mini"><h4>🧼 Quick Eraser</h4><p>Activates the Eraser tool. Pressing again returns to the previous tool.</p></div>
     <div class="card-mini"><h4>✋ Pan Canvas</h4><p>While holding the button, dragging pans the canvas (equivalent to <kbd>Alt</kbd>+drag).</p></div>
-    <div class="card-mini"><h4>↩️ Undo / ↪️ Redo</h4><p>Equivalent to <kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd>.</p></div>
+    <div class="card-mini"><h4>↩️ Undo / ↪️ Redo</h4><p>Equivalent to <kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd>.</p></div>
     <div class="card-mini"><h4>✏️ Toggle Pen</h4><p>Activates/deactivates the Freehand Pen tool.</p></div>
     <div class="card-mini"><h4>💧 Toggle Watercolor</h4><p>Activates/deactivates the Watercolor tool.</p></div>
     <div class="card-mini"><h4>⭕ Toggle Lasso</h4><p>Activates/deactivates the Lasso selection.</p></div>
@@ -2506,7 +2559,7 @@
 
 <!-- ── MOUSE & KEYBOARD MAPPING ── -->
 <section id="inputmapping">
-  <div class="section-label">21</div>
+  <div class="section-label">22</div>
   <h2>Mouse &amp; Keyboard Mapping</h2>
   <p>Mosaica's classic shortcuts (Ctrl+Z/C/V/X, Delete, Ctrl+/−, arrows, Ctrl+R, double-click) are <strong>protected and always active</strong>. The Input Mapping module lets you add <em>on top</em> of these:</p>
   <ul>
@@ -2590,7 +2643,7 @@
   <h3>All Mappable Actions</h3>
   <div class="card-grid col3">
     <div class="card-mini"><h4>↩️ Undo</h4><p>Equivalent to Ctrl+Z. Also works if the history has a single step.</p></div>
-    <div class="card-mini"><h4>↪️ Redo</h4><p>Equivalent to Ctrl+Shift+Z / Ctrl+Y.</p></div>
+    <div class="card-mini"><h4>↪️ Redo</h4><p>Equivalent to Ctrl+Shift+Z (the ↷ button).</p></div>
     <div class="card-mini"><h4>📋 Copy / 📌 Paste / ✂️ Cut</h4><p>Same logic as Ctrl+C/V/X, also for multi-selection.</p></div>
     <div class="card-mini"><h4>🗑️ Delete Selection</h4><p>Deletes active object or selection (Delete/Backspace).</p></div>
     <div class="card-mini"><h4>🔍➕ Zoom in / 🔍➖ Zoom out / 🔍⤾ Reset</h4><p>Zoom toward the center of the screen. Reset = Ctrl+0.</p></div>
@@ -2639,7 +2692,7 @@
 
 <!-- ── SHORTCUTS ── -->
 <section id="scorciatoie">
-  <div class="section-label">22</div>
+  <div class="section-label">23</div>
   <h2>Keyboard Shortcuts</h2>
 
   <h3>History and Clipboard</h3>
@@ -2688,6 +2741,16 @@
       <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></td><td>Move selected object by <strong>0.1 mm</strong> (calibrated). Pan view by 5 mm if no object is selected.</td></tr>
       <tr><td><kbd>Shift</kbd>+Arrows</td><td>Move object by <strong>1 mm</strong> at a time (large step)</td></tr>
       <tr><td><kbd>Ctrl</kbd>+Arrows</td><td>Move object by <strong>0.01 mm</strong> (super-fine, sub-pixel — for perfect alignments on mosaics)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Trimming tiles ✂️ (while trimming)</h3>
+  <table class="shortcut-table">
+    <thead><tr><th>Key</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Delete</kbd> / <kbd>Backspace</kbd></td><td>✂️ Removes the selected cut (never the tile)</td></tr>
+      <tr><td><kbd>Enter</kbd> / <kbd>Esc</kbd></td><td>✂️ Finish trimming</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>✂️ Finish trimming, then undo</td></tr>
     </tbody>
   </table>
 
@@ -2746,7 +2809,7 @@
 
 <!-- ── SECURITY & UPDATES ── -->
 <section id="sicurezza">
-  <div class="section-label">23</div>
+  <div class="section-label">24</div>
   <h2>Security &amp; Online Updates</h2>
   <p>Mosaica Workspace Pro is an <strong>offline drawing application</strong>: the only thing it does on the network is <strong>check whether a new version exists</strong> on the official GitHub repository and, at your request, download its installer. Everything else in the program never talks to the internet. This section explains how updates work and which protections are always active.</p>
 
@@ -2808,7 +2871,7 @@
 <!-- ════════════════════════════════ FOOTER ════════════════════════════════ -->
 <footer>
   <strong>Mosaica Workspace Pro</strong> · User Guide · By Pico Mosaici<br>
-  <span style="margin-top:6px;display:block;">Updated to version · V 10.2026</span>
+  <span style="margin-top:6px;display:block;">Updated to version · V 11.2026</span>
   <span style="margin-top:6px;display:block;">© 2026 Pico Mosaici® by Pietro Coraggio | Venafro (IS) | All rights reserved</span>
 </footer>
 

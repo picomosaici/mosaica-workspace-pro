@@ -1,6 +1,6 @@
 {
   "name": "mosaica-workspace-pro",
-  "version": "10.2026.1",
+  "version": "11.2026.0",
   "description": "Mosaica Workspace Pro - Strumento professionale per mosaici, disegno a mano libera e acquerello digitale",
   "author": {
     "name": "Pico Mosaici",
@@ -38,7 +38,7 @@
     "appId": "com.picomosaici.mosaicaworkspacepro",
     "productName": "Mosaica Workspace Pro",
     "copyright": "Copyright © 2026 Pico Mosaici. Tutti i diritti riservati.",
-    "artifactName": "MosaicaWorkspacePro-Setup-10.2026.${ext}",
+    "artifactName": "MosaicaWorkspacePro-Setup-11.2026.${ext}",
     "asar": true,
     "directories": {
       "output": "dist",
@@ -47,6 +47,8 @@
     "files": [
       "**/*",
       "!dist/*",
+      "!CLAUDE/**",
+      "!claude/**",
       "!build/*",
       "!app/profili-icc/*",
       "!node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}"
@@ -106,7 +108,7 @@
         "en_US"
       ],
       "language": "1040",
-      "uninstallDisplayName": "Mosaica Workspace Pro 10.2026"
+      "uninstallDisplayName": "Mosaica Workspace Pro 11.2026"
     }
   },
   "devDependencies": {

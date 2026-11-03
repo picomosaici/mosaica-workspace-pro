@@ -1,4 +1,57 @@
 ------------------------------------------------------------
+Versione 11.2026  (Novembre 2026)
+------------------------------------------------------------
+
+NOVITA':
+  + Spunta delle tessere: con una tessera a lati dritti
+    selezionata (triangolo, trapezio, quadrato, rettangolo,
+    forma libera, anche della Palladiana) il pulsante con le
+    forbici del menu radiale accende la spunta. Clic su una
+    punta = la punta si mozza con un lato dritto nuovo
+    (1 mm la prima volta, poi l'ultima larghezza usata);
+    trascinando si sceglie quanto; i due capi del taglio si
+    spostano lungo il loro lato per un taglio non
+    simmetrico. Larghezza e capi anche in mm nell'Ispettore,
+    "Togli questo taglio" e "Rimetti le punte". La tessera
+    resta lei: colore, texture, famiglia fantasma,
+    posizione, rotazione. Canc toglie il taglio scelto, mai
+    la tessera; Invio o Esc finiscono
+  + Curva dei settori: sui settori del cerchio e dell'ovale
+    l'Ispettore ha il blocco "Curva". Curva %: il lato curvo
+    si abbassa verso la linea dritta fra i suoi capi (100 =
+    l'arco di sempre, 0 = lato dritto) e i due lati dritti
+    restano identici. "Inizio curvatura" e "Fine
+    curvatura" (mm): il lato curvo parte dritto e curva
+    solo dopo, raccordato senza spigolo; due pallini sul
+    settore (giallo, rosa) si trascinano lungo il lato.
+    "Curva intera" rimette l'arco di sempre
+  + Tavola delle Tessere: nella distinta le tessere
+    spuntate si chiamano "triangolo spuntato", "trapezio
+    spuntato", "quadrato spuntato", "rettangolo spuntato";
+    i settori "settore schiacciato" (con la curva in %) o
+    "settore sagomato" (coi tratti dritti in mm)
+
+CORREZIONI:
+  * Il tasto "Ripeti" della penna Wacom non faceva niente
+    (mandava Ctrl+Y): ora ripristina, come Ctrl+Shift+Z
+  * Il pulsante Ripristina diceva "Ctrl+Y": il tasto giusto
+    e' Ctrl+Shift+Z
+  * Nei campi in mm dell'Ispettore della spunta, Esc
+    rimette il numero di prima (prima applicava quello
+    scritto)
+
+NOTE TECNICHE:
+  - Versione interna: 11.2026.0
+  - Guida utente IT ed EN aggiornate (capitolo nuovo "Spuntare
+    le tessere e curvare i settori")
+  - I progetti salvati con le versioni precedenti si aprono
+    normalmente. Un progetto con tessere spuntate o settori
+    curvati aperto con una versione vecchia: le tessere
+    spuntate si vedono giuste, i settori tornano interi
+  - In sviluppo (npm run dev) la console si apre con F12 o
+    Ctrl+Shift+I; l'app installata non cambia
+
+------------------------------------------------------------
 Versione 10.2026.1  (Ottobre 2026)
 ------------------------------------------------------------
 

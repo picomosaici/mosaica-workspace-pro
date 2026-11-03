@@ -174,6 +174,25 @@ function createWindow() {
     console.error("[security] init falliti:", e);
   }
 
+  // ── 🛠️ CONSOLE DI SVILUPPO (solo da "npm run dev", MAI nell'app installata) ──
+  // Il menu nativo è tolto (Menu.setApplicationMenu(null), più su) e con lui
+  // sparisce anche la scorciatoia Ctrl+Shift+I di Electron. Qui F12 e
+  // Ctrl+Shift+I aprono e chiudono la console, ma SOLO quando Mosaica parte
+  // dal repository (app.isPackaged === false): chi installa l'app non la vede.
+  // Il tasto non arriva alla pagina (nessuna scorciatoia di Mosaica usa F12 o
+  // Ctrl+Shift+I).
+  if (!app.isPackaged) {
+    mainWindow.webContents.on("before-input-event", (event, input) => {
+      if (input.type !== "keyDown") return;
+      const f12 = input.key === "F12";
+      const ctrlShiftI = (input.control || input.meta) && input.shift && String(input.key || "").toLowerCase() === "i";
+      if (f12 || ctrlShiftI) {
+        event.preventDefault();
+        mainWindow.webContents.toggleDevTools();
+      }
+    });
+  }
+
   // Carichiamo la pagina UNA SOLA volta. (Prima loadFile veniva chiamata DUE
   // volte: la pagina partiva e veniva subito ricaricata → lampo bianco
   // all'avvio. Era proprio quella la "schermata bianca all'avvio".)

@@ -30,6 +30,7 @@ Sviluppata su tecnologia Electron e Fabric.js, offre un'esperienza nativa Window
 ## ✨ Funzionalità
 
 - 🟦 **Modelli geometrici dedicati al mosaico**: settori circolari, triangoli, trapezoidi, sagome personalizzate
+- 📐 **Spunta delle tessere e curva dei settori**: mozzi una o più punte di triangoli, trapezi, quadrati e forme a lati dritti direttamente sulla tessera, che resta lei (colore, texture, famiglia fantasma), con maniglie sulle punte, capi trascinabili e misure in mm veri; il lato curvo dei settori di cerchio e ovale si abbassa (**Curva %**) o parte dritto (**Inizio / Fine curvatura**, coi pallini da trascinare) senza toccare i due lati dritti. Nella distinta della Tavola ognuna col suo nome («triangolo spuntato», «settore schiacciato»…)
 - ✂️ **Builder forme non regolari** con foglio in mm reali (A5→A0 + personalizzato), arrotondamento per singolo vertice, curve di Bézier sui lati, immagine di riferimento per il ricalco e composizioni multi-forma (posa palladiana)
 - 🪨 **Texture procedurali di pietra** generate da codice (granito, marmo, cemento, murano, EVA, venature): ripetibili senza giunte, colorabili a piacere e salvate nel progetto, così un file riaperto ritrova la texture identica anche su un altro PC
 - 👻 **Texture fantasma** per i mosaici grandi: la texture si mette una volta su una tessera e si nasconde; copie, cambi di forma e settori se la portano dietro, e con un clic compare su tutta la famiglia, col colore scelto per la texture (le tessere ricolorate a mano tengono il loro)
